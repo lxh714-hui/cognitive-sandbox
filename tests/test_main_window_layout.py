@@ -34,6 +34,28 @@ def make_window(tmp_path, qapp, monkeypatch):
     return window, settings
 
 
+def test_send_button_tracks_trimmed_input(tmp_path, qapp, monkeypatch):
+    window, _settings = make_window(tmp_path, qapp, monkeypatch)
+    try:
+        assert window.input.text() == ""
+        assert not window.send_button.isEnabled()
+
+        QTest.keyClicks(window.input, "   ")
+        qapp.processEvents()
+        assert not window.send_button.isEnabled()
+
+        window.input.clear()
+        QTest.keyClicks(window.input, "Hello")
+        qapp.processEvents()
+        assert window.send_button.isEnabled()
+
+        window.input.clear()
+        qapp.processEvents()
+        assert not window.send_button.isEnabled()
+    finally:
+        window.close()
+
+
 def test_button_is_centered_on_fixed_divider_and_uses_expanded_arrow(tmp_path, qapp, monkeypatch):
     window, _settings = make_window(tmp_path, qapp, monkeypatch)
     try:

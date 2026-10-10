@@ -141,6 +141,8 @@ class MainWindow(QMainWindow):
         self.send_button = QPushButton("发送  ↗")
         self.send_button.setObjectName("sendButton")
         self.send_button.clicked.connect(self._submit)
+        self.input.textChanged.connect(self._update_send_button)
+        self._update_send_button(self.input.text())
         input_row.addWidget(self.input, 1)
         input_row.addWidget(self.send_button)
         left_layout.addLayout(input_row)
@@ -327,16 +329,20 @@ class MainWindow(QMainWindow):
         self._thread.start()
 
     @Slot(str)
+    def _update_send_button(self, text: str) -> None:
+        self.send_button.setEnabled(bool(text.strip()) and self._thread is None)
+
+    @Slot(str)
     def _turn_finished(self, _reply: str) -> None:
         self._load_history()
         self.status.setText(f"{self.service.provider.label}  ·  对话保存在本地")
-        self.send_button.setEnabled(True)
+        self._update_send_button(self.input.text())
         self.input.setFocus()
 
     @Slot(str)
     def _turn_failed(self, message: str) -> None:
         self.status.setText(f"生成失败：{message}（检查 Ollama 配置后可重试）")
-        self.send_button.setEnabled(True)
+        self._update_send_button(self.input.text())
         self.input.setFocus()
 
     @Slot()
@@ -347,6 +353,7 @@ class MainWindow(QMainWindow):
             self._thread.deleteLater()
         self._worker = None
         self._thread = None
+        self._update_send_button(self.input.text())
 
 
 STYLESHEET = """
