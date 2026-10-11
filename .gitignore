@@ -3,6 +3,7 @@
 
 __pycache__/
 .pytest_cache/
+.pytest-phase*/
 *.py[cod]
 
 pytest_tmp*/
@@ -26,3 +27,11 @@ dist/
 build/
 *.egg-info
 _pytest_tmp*/
+
+.vscode/
+.env
+
+.coverage
+htmlcov/
+
+.DS_Store

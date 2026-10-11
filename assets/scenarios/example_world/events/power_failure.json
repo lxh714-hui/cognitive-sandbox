@@ -1,0 +1,17 @@
+{
+  "event_id": "power_failure",
+  "name": "能源危机",
+  "description": "城市备用能源即将耗尽，几个聚落都在寻找维持供电的办法。",
+  "event_type": "initial",
+  "participants": [
+    "player",
+    "doctor"
+  ],
+  "conditions": [
+    "备用能源水平偏低"
+  ],
+  "effects": [
+    "照明和医疗设备可能受到能源状况影响"
+  ],
+  "priority": 1
+}

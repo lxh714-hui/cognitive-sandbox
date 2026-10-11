@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import os
 from pathlib import Path
@@ -173,3 +173,29 @@ def test_sidebar_recalculates_on_resize_and_scene_fills_when_collapsed(tmp_path,
 def qapp():
     app = QApplication.instance() or QApplication([])
     yield app
+
+
+def test_runtime_mode_switch_updates_selection_and_disables_roleplay_input(tmp_path, qapp, monkeypatch):
+    from cognitive_sandbox.domain.runtime_mode import RuntimeMode
+
+    window, _settings = make_window(tmp_path, qapp, monkeypatch)
+    try:
+        assert window.runtime_mode is RuntimeMode.ROLEPLAY
+        assert window.roleplay_mode_button.isChecked()
+        assert not window.story_mode_button.isChecked()
+        assert window.input.isEnabled()
+
+        QTest.mouseClick(window.story_mode_button, Qt.MouseButton.LeftButton)
+        qapp.processEvents()
+        assert window.runtime_mode is RuntimeMode.STORY_SIMULATION
+        assert window.story_mode_button.isChecked()
+        assert not window.roleplay_mode_button.isChecked()
+        assert not window.input.isEnabled()
+        assert "尚未接入界面" in window.mode_status.text()
+
+        QTest.mouseClick(window.roleplay_mode_button, Qt.MouseButton.LeftButton)
+        qapp.processEvents()
+        assert window.runtime_mode is RuntimeMode.ROLEPLAY
+        assert window.input.isEnabled()
+    finally:
+        window.close()

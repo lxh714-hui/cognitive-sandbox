@@ -1,0 +1,18 @@
+{
+  "character_id": "player",
+  "name": "玩家",
+  "identity": {
+    "age": null,
+    "gender": "",
+    "occupation": "幸存者"
+  },
+  "personality": [
+    "adaptive"
+  ],
+  "background": "玩家角色可替换。灾后，你来到灰港，在不同聚落之间寻找落脚之处。",
+  "goals": [
+    "寻找安全区域",
+    "与聚落建立联系"
+  ],
+  "constraints": []
+}

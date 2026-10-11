@@ -1,0 +1,17 @@
+{
+  "event_id": "first_meeting",
+  "name": "第一次相遇",
+  "description": "玩家在旧市场附近遇到正在寻找安全路线的周岚。",
+  "event_type": "initial",
+  "participants": [
+    "player",
+    "survivor"
+  ],
+  "conditions": [
+    "玩家进入旧市场附近"
+  ],
+  "effects": [
+    "这次相遇可能带来新的信息或合作机会"
+  ],
+  "priority": 0
+}

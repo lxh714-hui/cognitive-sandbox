@@ -1,0 +1,23 @@
+{
+  "character_id": "doctor",
+  "name": "沈医生",
+  "identity": {
+    "age": 34,
+    "gender": "女",
+    "occupation": "医生"
+  },
+  "personality": [
+    "谨慎",
+    "善良"
+  ],
+  "background": "灾害发生后，沈医生留在港区诊所，和其他幸存者一起照料伤病者。",
+  "goals": [
+    "救助幸存者"
+  ],
+  "constraints": [
+    {
+      "type": "preference",
+      "content": "优先保存有限的药品和医疗用品"
+    }
+  ]
+}

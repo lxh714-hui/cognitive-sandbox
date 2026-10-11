@@ -5,6 +5,7 @@ import pytest
 from cognitive_sandbox.application.branch_generator import BranchGenerator
 from cognitive_sandbox.application.dynamic_branch_evaluator import DynamicBranchEvaluator
 from cognitive_sandbox.application.narrative_search import NarrativeSearch
+from cognitive_sandbox.application.branch_value_evaluator import BranchValueEvaluator
 from cognitive_sandbox.domain.actions import ActionCandidate
 from cognitive_sandbox.domain.story import (
     DynamicBranchScore,
@@ -79,6 +80,7 @@ def test_dynamic_scores_guide_narrative_search_using_simulation_outcomes():
     branch_ids = iter(("A", "B", "child-B"))
     search = NarrativeSearch(
         candidates,
+        branch_value_evaluator=BranchValueEvaluator(),
         branch_generator=BranchGenerator(branch_id_factory=lambda: next(branch_ids)),
         branch_scorer=dynamic_scorer,
     )

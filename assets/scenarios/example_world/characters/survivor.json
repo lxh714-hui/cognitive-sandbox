@@ -1,0 +1,23 @@
+{
+  "character_id": "survivor",
+  "name": "周岚",
+  "identity": {
+    "age": 29,
+    "gender": "女",
+    "occupation": "幸存者"
+  },
+  "personality": [
+    "怀疑",
+    "现实主义"
+  ],
+  "background": "周岚独自在灰港周边辗转，熟悉通往高地的几条旧路，但不轻易相信陌生人。",
+  "goals": [
+    "寻找安全区域"
+  ],
+  "constraints": [
+    {
+      "type": "soft",
+      "content": "避免在没有退路的情况下消耗补给"
+    }
+  ]
+}

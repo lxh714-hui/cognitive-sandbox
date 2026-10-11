@@ -5,8 +5,11 @@ from uuid import uuid4
 
 from cognitive_sandbox.application.branch_generator import BranchGenerator
 from cognitive_sandbox.application.branch_scorer import BranchScorer
+from cognitive_sandbox.application.branch_value_evaluator import BranchValueEvaluator
+from cognitive_sandbox.application.search_priority import SearchPriorityCalculator
 from cognitive_sandbox.domain.actions import ActionCandidate
 from cognitive_sandbox.domain.story import (
+    BranchValue,
     BranchScore,
     NarrativeSearchResult,
     SearchPolicy,
@@ -22,15 +25,21 @@ class NarrativeSearch:
         self,
         candidate_provider: Callable[[StoryBranch], Iterable[ActionCandidate]],
         *,
+        branch_value_evaluator: BranchValueEvaluator,
+        priority_calculator: SearchPriorityCalculator | None = None,
         branch_generator: BranchGenerator | None = None,
         branch_scorer: BranchScorer | None = None,
         search_id_factory: Callable[[], str] | None = None,
     ) -> None:
         if not callable(candidate_provider):
             raise TypeError("candidate_provider must be callable.")
+        if not callable(getattr(branch_value_evaluator, "evaluate", None)):
+            raise TypeError("branch_value_evaluator must provide an evaluate method.")
         self._candidate_provider = candidate_provider
         self._branch_generator = branch_generator or BranchGenerator()
         self._branch_scorer = branch_scorer or BranchScorer()
+        self._branch_value_evaluator = branch_value_evaluator
+        self._priority_calculator = priority_calculator or SearchPriorityCalculator()
         self._search_id_factory = search_id_factory or (lambda: str(uuid4()))
 
     def search(self, root_branch: StoryBranch, policy: SearchPolicy) -> NarrativeSearchResult:
@@ -42,6 +51,7 @@ class NarrativeSearch:
         generated: list[StoryBranch] = []
         depths: dict[str, int] = {}
         scores: dict[str, BranchScore] = {}
+        values: dict[str, BranchValue] = {}
         expanded: list[str] = []
         known_ids = {root_branch.branch_id}
         # Queue entries retain insertion order, which makes score-guided ties
@@ -57,9 +67,7 @@ class NarrativeSearch:
                 best_index = max(
                     range(len(frontier)),
                     key=lambda index: (
-                        scores.get(frontier[index][0].branch_id, BranchScore(
-                            frontier[index][0].branch_id, 0.5, ("root node",)
-                        )).score,
+                        self._search_priority(frontier[index][0], values),
                         -index,
                     ),
                 )
@@ -88,14 +96,28 @@ class NarrativeSearch:
                 generated.append(child)
                 child_depth = depth + 1
                 depths[child.branch_id] = child_depth
-                scores[child.branch_id] = self._branch_scorer.score(child)
+                branch_score = self._branch_scorer.score(child)
+                if not isinstance(branch_score, BranchScore):
+                    raise TypeError("branch_scorer.score must return a BranchScore.")
+                branch_value = self._branch_value_evaluator.evaluate(child, branch_score)
+                if not isinstance(branch_value, BranchValue):
+                    raise TypeError("branch_value_evaluator.evaluate must return a BranchValue.")
+                if branch_value.branch_id != child.branch_id:
+                    raise ValueError("BranchValue must belong to the evaluated branch.")
+                scores[child.branch_id] = branch_score
+                values[child.branch_id] = branch_value
                 frontier.append((child, child_depth))
 
         best_branch_id = None
         if generated:
             best_branch_id = min(
                 generated,
-                key=lambda item: (-scores[item.branch_id].score, item.branch_id),
+                key=lambda item: (
+                    -self._search_priority(item, values)
+                    if policy.strategy is SearchStrategy.SCORE_GUIDED
+                    else -scores[item.branch_id].score,
+                    item.branch_id,
+                ),
             ).branch_id
         return NarrativeSearchResult(
             search_id=self._search_id_factory(),
@@ -106,4 +128,15 @@ class NarrativeSearch:
             branch_scores=tuple(scores[branch.branch_id] for branch in generated),
             best_branch_id=best_branch_id,
             depth_reached=max(depths.values(), default=0),
+            branch_values=tuple(values[branch.branch_id] for branch in generated),
         )
+
+    def _search_priority(
+        self,
+        branch: StoryBranch,
+        values: dict[str, BranchValue],
+    ) -> float:
+        branch_value = values.get(branch.branch_id, BranchValue(branch.branch_id, 0.5, ()))
+        action = branch.divergence_action
+        confidence = 1.0 if action is None else action.metadata.get("confidence", 1.0)
+        return self._priority_calculator.calculate(branch_value, confidence)

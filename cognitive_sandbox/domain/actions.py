@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import math
 from types import MappingProxyType
 from typing import Any, Mapping
+from uuid import uuid4
 
 
 def _freeze(value: Any) -> Any:
@@ -20,13 +21,21 @@ def _freeze(value: Any) -> Any:
 
 @dataclass(frozen=True)
 class ActionCandidate:
-    action_type: str
-    target_refs: tuple[str, ...]
-    metadata: Mapping[str, Any]
+    action_type: str | None = None
+    target_refs: tuple[str, ...] = ()
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    action_id: str | None = None
+    actor_id: str = "unknown-agent"
+    intent: str | None = None
+    target: str | None = None
+    motivation: str = "unspecified"
 
     def __post_init__(self) -> None:
-        if not isinstance(self.action_type, str) or not self.action_type.strip():
-            raise ValueError("action_type must not be empty.")
+        action_type = self.action_type
+        if action_type is None and isinstance(self.intent, str):
+            action_type = self.intent
+        if not isinstance(action_type, str) or not action_type.strip():
+            raise ValueError("action_type or intent must not be empty.")
         if isinstance(self.target_refs, str):
             raise TypeError("target_refs must be a collection of target IDs.")
         target_refs = tuple(self.target_refs)
@@ -36,6 +45,47 @@ class ActionCandidate:
         if not isinstance(self.metadata, Mapping):
             raise TypeError("metadata must be a mapping.")
         object.__setattr__(self, "metadata", _freeze(self.metadata))
+        action_id = self.action_id or self.metadata.get("action_id") or f"action_{uuid4().hex}"
+        if not isinstance(action_id, str) or not action_id.strip():
+            raise ValueError("action_id must not be empty.")
+        if not isinstance(self.actor_id, str) or not self.actor_id.strip():
+            raise ValueError("actor_id must not be empty.")
+        intent = action_type if self.intent is None else self.intent
+        if not isinstance(intent, str) or not intent.strip():
+            raise ValueError("intent must not be empty.")
+        target = self.target
+        if target is None and target_refs:
+            target = target_refs[0]
+        if target is not None and (not isinstance(target, str) or not target.strip()):
+            raise ValueError("target must be None or a non-empty string.")
+        if not target_refs and target is not None:
+            target_refs = (target,)
+        if not isinstance(self.motivation, str) or not self.motivation.strip():
+            raise ValueError("motivation must not be empty.")
+        object.__setattr__(self, "action_id", action_id)
+        object.__setattr__(self, "action_type", action_type)
+        object.__setattr__(self, "target_refs", target_refs)
+        object.__setattr__(self, "intent", intent)
+        object.__setattr__(self, "target", target)
+
+
+@dataclass(frozen=True)
+class ResolvedActionResult:
+    action_id: str
+    success: bool
+    event_description: str
+    impact: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.action_id, str) or not self.action_id.strip():
+            raise ValueError("action_id must not be empty.")
+        if not isinstance(self.success, bool):
+            raise TypeError("success must be a boolean.")
+        if not isinstance(self.event_description, str) or not self.event_description.strip():
+            raise ValueError("event_description must not be empty.")
+        if not isinstance(self.impact, Mapping):
+            raise TypeError("impact must be a mapping.")
+        object.__setattr__(self, "impact", _freeze(self.impact))
 
 
 @dataclass(frozen=True)

@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cognitive-sandbox"
-version = "0.1.0"
+version = "1.0.0"
 description = "A local-first visual-novel sandbox for worlds and cognitive agents."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["PySide6>=6.7,<7"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "PyInstaller>=6.11,<7"]
 
 [project.scripts]
 cognitive-sandbox = "cognitive_sandbox.bootstrap:main"

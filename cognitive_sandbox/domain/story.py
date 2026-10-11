@@ -105,6 +105,55 @@ class BranchGenerationResult:
 
 
 @dataclass(frozen=True)
+class ExpansionPolicy:
+    max_branches_per_expansion: int
+    max_total_expansions: int
+
+    def __post_init__(self) -> None:
+        for name in ("max_branches_per_expansion", "max_total_expansions"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be a non-negative integer.")
+            if value < 0:
+                raise ValueError(f"{name} must be non-negative.")
+
+
+@dataclass(frozen=True)
+class RolloutPolicy:
+    """Inclusive lower and upper limits for a branch's simulation batch."""
+
+    min_rollouts: int
+    max_rollouts: int
+
+    def __post_init__(self) -> None:
+        for name in ("min_rollouts", "max_rollouts"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be a non-negative integer.")
+            if value < 0:
+                raise ValueError(f"{name} must be non-negative.")
+        if self.min_rollouts > self.max_rollouts:
+            raise ValueError("min_rollouts must not exceed max_rollouts.")
+
+
+@dataclass(frozen=True)
+class RolloutAllocation:
+    branch_id: str
+    rollout_count: int
+    reason: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.branch_id, str) or not self.branch_id.strip():
+            raise ValueError("branch_id must not be empty.")
+        if isinstance(self.rollout_count, bool) or not isinstance(self.rollout_count, int):
+            raise TypeError("rollout_count must be a non-negative integer.")
+        if self.rollout_count < 0:
+            raise ValueError("rollout_count must be non-negative.")
+        if not isinstance(self.reason, str) or not self.reason.strip():
+            raise ValueError("reason must not be empty.")
+
+
+@dataclass(frozen=True)
 class BranchExplorationConfig:
     max_depth: int
     max_branches_per_node: int
@@ -244,6 +293,209 @@ class BranchScore:
 
 
 @dataclass(frozen=True)
+class BranchValue:
+    branch_id: str
+    value: float
+    reasons: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.branch_id, str) or not self.branch_id.strip():
+            raise ValueError("branch_id must not be empty.")
+        if isinstance(self.value, bool) or not isinstance(self.value, (int, float)):
+            raise TypeError("value must be a number between 0 and 1.")
+        if not math.isfinite(self.value) or not 0 <= self.value <= 1:
+            raise ValueError("value must be between 0 and 1.")
+        reasons = _string_tuple(self.reasons, "reasons")
+        object.__setattr__(self, "value", float(self.value))
+        object.__setattr__(self, "reasons", reasons)
+
+
+@dataclass(frozen=True)
+class BranchEvaluationSummary:
+    branch_id: str
+    sample_count: int
+    success_count: int
+    success_rate: float
+    average_soft_score: float
+    confidence: float
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.branch_id, str) or not self.branch_id.strip():
+            raise ValueError("branch_id must not be empty.")
+        for name in ("sample_count", "success_count"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be a non-negative integer.")
+            if value < 0:
+                raise ValueError(f"{name} must be non-negative.")
+        if self.success_count > self.sample_count:
+            raise ValueError("success_count must not exceed sample_count.")
+        for name in ("success_rate", "average_soft_score", "confidence"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise TypeError(f"{name} must be a number between 0 and 1.")
+            if not math.isfinite(value) or not 0 <= value <= 1:
+                raise ValueError(f"{name} must be between 0 and 1.")
+        if self.sample_count == 0 and (self.success_rate != 0 or self.average_soft_score != 0):
+            raise ValueError("An empty summary must have zero rates and scores.")
+        object.__setattr__(self, "success_rate", float(self.success_rate))
+        object.__setattr__(self, "average_soft_score", float(self.average_soft_score))
+        object.__setattr__(self, "confidence", float(self.confidence))
+
+
+@dataclass(frozen=True)
+class ConstraintCheck:
+    constraint_id: str
+    passed: bool
+    reason: str
+
+    def __post_init__(self) -> None:
+        for name in ("constraint_id", "reason"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must not be empty.")
+        if not isinstance(self.passed, bool):
+            raise TypeError("passed must be a boolean.")
+
+
+@dataclass(frozen=True)
+class RoleStateCheck:
+    role_id: str
+    valid: bool
+    reason: str
+
+    def __post_init__(self) -> None:
+        for name in ("role_id", "reason"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must not be empty.")
+        if not isinstance(self.valid, bool):
+            raise TypeError("valid must be a boolean.")
+
+
+@dataclass(frozen=True)
+class PruningPolicy:
+    minimum_value: float = 0.0
+
+    def __post_init__(self) -> None:
+        if isinstance(self.minimum_value, bool) or not isinstance(
+            self.minimum_value, (int, float)
+        ):
+            raise TypeError("minimum_value must be a number between 0 and 1.")
+        if not math.isfinite(self.minimum_value) or not 0 <= self.minimum_value <= 1:
+            raise ValueError("minimum_value must be between 0 and 1.")
+        object.__setattr__(self, "minimum_value", float(self.minimum_value))
+
+
+@dataclass(frozen=True)
+class PruningDecision:
+    branch_id: str
+    kept: bool
+    reason: str
+
+    def __post_init__(self) -> None:
+        for name in ("branch_id", "reason"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must not be empty.")
+        if not isinstance(self.kept, bool):
+            raise TypeError("kept must be a boolean.")
+
+
+@dataclass(frozen=True)
+class ExplorationPlan:
+    branch_id: str
+    should_explore: bool
+    priority: float
+    expansion_policy: ExpansionPolicy
+    rollout_allocation: RolloutAllocation
+    pruning_decision: PruningDecision
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.branch_id, str) or not self.branch_id.strip():
+            raise ValueError("branch_id must not be empty.")
+        if not isinstance(self.should_explore, bool):
+            raise TypeError("should_explore must be a boolean.")
+        if isinstance(self.priority, bool) or not isinstance(self.priority, (int, float)):
+            raise TypeError("priority must be a number between 0 and 1.2.")
+        if not math.isfinite(self.priority) or not 0 <= self.priority <= 1.2:
+            raise ValueError("priority must be between 0 and 1.2.")
+        if not isinstance(self.expansion_policy, ExpansionPolicy):
+            raise TypeError("expansion_policy must be an ExpansionPolicy.")
+        if not isinstance(self.rollout_allocation, RolloutAllocation):
+            raise TypeError("rollout_allocation must be a RolloutAllocation.")
+        if not isinstance(self.pruning_decision, PruningDecision):
+            raise TypeError("pruning_decision must be a PruningDecision.")
+        if self.rollout_allocation.branch_id != self.branch_id:
+            raise ValueError("rollout_allocation must belong to the planned branch.")
+        if self.pruning_decision.branch_id != self.branch_id:
+            raise ValueError("pruning_decision must belong to the planned branch.")
+        if self.should_explore != self.pruning_decision.kept:
+            raise ValueError("should_explore must match the pruning decision.")
+        object.__setattr__(self, "priority", float(self.priority))
+
+
+@dataclass(frozen=True)
+class ExplorationExecutionResult:
+    branch_id: str
+    executed: bool
+    expanded_count: int
+    rollout_count: int
+    feedback_count: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.branch_id, str) or not self.branch_id.strip():
+            raise ValueError("branch_id must not be empty.")
+        if not isinstance(self.executed, bool):
+            raise TypeError("executed must be a boolean.")
+        for name in ("expanded_count", "rollout_count", "feedback_count"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be a non-negative integer.")
+            if value < 0:
+                raise ValueError(f"{name} must be non-negative.")
+        if not self.executed and any(
+            getattr(self, name) != 0
+            for name in ("expanded_count", "rollout_count", "feedback_count")
+        ):
+            raise ValueError("A non-executed result must have zero counts.")
+
+
+@dataclass(frozen=True)
+class ExplorationLoopPolicy:
+    max_iterations: int
+    stop_on_no_feedback: bool
+
+    def __post_init__(self) -> None:
+        if isinstance(self.max_iterations, bool) or not isinstance(self.max_iterations, int):
+            raise TypeError("max_iterations must be a non-negative integer.")
+        if self.max_iterations < 0:
+            raise ValueError("max_iterations must be non-negative.")
+        if not isinstance(self.stop_on_no_feedback, bool):
+            raise TypeError("stop_on_no_feedback must be a boolean.")
+
+
+@dataclass(frozen=True)
+class ExplorationLoopResult:
+    iterations: int
+    executed_count: int
+    total_feedback_count: int
+    stopped_reason: str
+
+    def __post_init__(self) -> None:
+        for name in ("iterations", "executed_count", "total_feedback_count"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise TypeError(f"{name} must be a non-negative integer.")
+            if value < 0:
+                raise ValueError(f"{name} must be non-negative.")
+        if self.executed_count > self.iterations:
+            raise ValueError("executed_count must not exceed iterations.")
+        if not isinstance(self.stopped_reason, str) or not self.stopped_reason.strip():
+            raise ValueError("stopped_reason must not be empty.")
+
+
+@dataclass(frozen=True)
 class DynamicBranchScore:
     branch_id: str
     simulation_id: str
@@ -281,6 +533,7 @@ class NarrativeSearchResult:
     branch_scores: tuple[BranchScore, ...]
     best_branch_id: str | None
     depth_reached: int
+    branch_values: tuple[BranchValue, ...] = ()
 
     def __post_init__(self) -> None:
         for name in ("search_id", "root_branch_id"):
@@ -303,6 +556,14 @@ class NarrativeSearchResult:
             raise TypeError("branch_scores must contain BranchScore values.")
         if {score.branch_id for score in scores} != set(branch_ids) or len(scores) != len(branches):
             raise ValueError("branch_scores must contain one score for every generated branch.")
+        values = tuple(self.branch_values)
+        if any(not isinstance(value, BranchValue) for value in values):
+            raise TypeError("branch_values must contain BranchValue values.")
+        if values and (
+            {value.branch_id for value in values} != set(branch_ids)
+            or len(values) != len(branches)
+        ):
+            raise ValueError("branch_values must contain one value for every generated branch.")
         if self.best_branch_id is not None and self.best_branch_id not in branch_ids:
             raise ValueError("best_branch_id must identify a generated branch.")
         if isinstance(self.depth_reached, bool) or not isinstance(self.depth_reached, int):
@@ -312,6 +573,7 @@ class NarrativeSearchResult:
         object.__setattr__(self, "generated_branches", branches)
         object.__setattr__(self, "expanded_branch_ids", expanded)
         object.__setattr__(self, "branch_scores", scores)
+        object.__setattr__(self, "branch_values", values)
 
 
 @dataclass(frozen=True)
