@@ -1,13 +1,19 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
 .venv/
 .venv_backup/
 
-__pycache__/
+# pytest temporary files
 .pytest_cache/
-.pytest-phase*/
-*.py[cod]
-
+.pytest-*
 pytest_tmp*/
+pytest-temp-*
+_pytest-temp*/
 
+# Database files
 *.db
 *.db-shm
 *.db-wal
@@ -23,15 +29,18 @@ pytest_tmp*/
 *.sqlite3-wal
 *.sqlite3-journal
 
+# Build files
 dist/
 build/
 *.egg-info
-_pytest_tmp*/
 
+# IDE / environment
 .vscode/
 .env
 
+# Coverage
 .coverage
 htmlcov/
 
+# OS
 .DS_Store
