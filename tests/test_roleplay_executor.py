@@ -38,7 +38,15 @@ def _context():
 
 def _executor():
     tick = SimulationTick(
-        ActionDecisionEngine(action_id_factory=iter(("action-1", "action-2")).__next__),
+        ActionDecisionEngine(
+            action_id_factory=iter(("action-1", "action-2")).__next__,
+            action_rules=(
+                {"role_aliases": ("医生",), "situation_aliases": ("受伤",),
+                 "intent": "help", "motivation": "care"},
+                {"role_aliases": ("士兵",), "situation_aliases": ("danger",),
+                 "intent": "protect", "motivation": "duty"},
+            ),
+        ),
         ActionResolver(),
         ActionEventAdapter(
             world_id="world-1",

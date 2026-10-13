@@ -6,16 +6,19 @@ from cognitive_sandbox.application.relationship_initializer import RelationshipI
 from cognitive_sandbox.domain.relationship import RelationshipState
 
 
-def test_doctor_gets_care_relationship_with_patient():
-    relationships = RelationshipInitializer().initialize("年轻医生", source_id="doctor-1")
+def test_scenario_relationships_are_copied_without_role_inference():
+    relationships = RelationshipInitializer().initialize(
+        "角色", source_id="character-1",
+        relationships=({"target_id": "person-2", "relation_type": "care", "trust": .6},),
+    )
 
-    assert relationships == (RelationshipState("doctor-1", "patient", "care", 0.6),)
+    assert relationships == (RelationshipState("character-1", "person-2", "care", 0.6),)
 
 
-def test_soldier_gets_comrade_relationship():
-    relationships = RelationshipInitializer().initialize("士兵", source_id="soldier-1")
+def test_role_without_configured_relationships_starts_unconnected():
+    relationships = RelationshipInitializer().initialize("角色", source_id="character-1")
 
-    assert relationships == (RelationshipState("soldier-1", "comrade", "comrade", 0.8),)
+    assert relationships == ()
 
 
 def test_unknown_role_has_no_initial_relationships():

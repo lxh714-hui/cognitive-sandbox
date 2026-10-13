@@ -4,23 +4,23 @@ from cognitive_sandbox.application.game_launcher import GameLauncher
 from cognitive_sandbox.domain.world_instance import WorldInstance
 from cognitive_sandbox.persistence.models.save_metadata import SaveMetadata
 from cognitive_sandbox.persistence.world_serializer import WorldSerializer
-from cognitive_sandbox.simulation_test.scenario_probe import AnchorSimulationProbe
-from cognitive_sandbox.simulation_test.simulation_runner import SimulationRunner
+from tools.simulation_test.scenario_probe import AnchorSimulationProbe
+from tools.simulation_test.simulation_runner import SimulationRunner
 
 
 def test_agency_state_and_action_history_restore_from_save():
     launcher = GameLauncher()
-    session = launcher.start_anchor_world()
+    session = launcher.start_world("anchor")
     session.executor.world_clock.restore(datetime(2026, 1, 1, 20, tzinfo=timezone.utc).isoformat())
     AnchorSimulationProbe._configure_probe(session)
-    instance = WorldInstance(session.world_instance_id, "anchor_world", session.world_instance_id,
+    instance = WorldInstance(session.world_instance_id, "anchor", session.world_instance_id,
                              "锚点", "probe", "active", "running", "d1", "liangjing")
     SimulationRunner().run(instance, session=session, tick_count=0,
                            on_start=AnchorSimulationProbe._trigger_probe_clue)
     SimulationRunner().run(instance, session=session, tick_count=2)
     session.agency_manager.record_routine("probe:routine")
     expected = session.agency_manager.snapshot()
-    metadata = SaveMetadata(session.world_instance_id, session.executor.world_id, "anchor_world",
+    metadata = SaveMetadata(session.world_instance_id, session.executor.world_id, "anchor",
                             "锚点", "probe", "d1", "d2", "active", "running")
     serializer = WorldSerializer()
     decoded = serializer.deserialize_world(serializer.serialize_world(metadata, session))

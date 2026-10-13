@@ -11,6 +11,9 @@ from cognitive_sandbox.domain.ai_gm import AIGMRequest, AIGMResponse
 from cognitive_sandbox.domain.player_action import PlayerAction
 from cognitive_sandbox.domain.player_intent import PlayerIntent
 from cognitive_sandbox.domain.action_intent import ActionIntent
+from cognitive_sandbox.application.agent_context_builder import AgentContextBuilder
+from cognitive_sandbox.domain.character import CharacterState
+from cognitive_sandbox.domain.world_events import WorldEvent
 
 
 class StubAdapter:
@@ -68,6 +71,29 @@ def test_ai_failure_falls_back_to_keyword_parser():
     assert result == PlayerIntent("player-1", "请查看门口", "observe")
 
 
+def test_provider_failure_status_never_becomes_action_or_story_text():
+    from cognitive_sandbox.application.llm_provider import LLMProvider
+    from cognitive_sandbox.domain.llm_config import LLMConfig
+
+    class FailedTransport:
+        def post(self, *args, **kwargs):
+            raise ConnectionError("offline")
+
+    adapter = AIGMAdapter(LLMProvider(
+        LLMConfig("", "http://localhost/v1", "test"), transport=FailedTransport()
+    ))
+    interpreter = AIActionInterpreter(adapter)
+
+    assert interpreter.interpret("player-1", "无法识别的输入") is None
+    with pytest.raises(RuntimeError, match="provider request failed"):
+        adapter.generate_narrative(
+            WorldEvent("e", "main", "w", "unknown", "player", {}, 0),
+            AgentContextBuilder().build(
+                CharacterState("player", "玩家", "player", (), (), (), ()), (), (), {}
+            ),
+        )
+
+
 def test_input_is_passed_unchanged_and_world_context_is_not_sent():
     text = "  请看看门外  "
     adapter = StubAdapter(PlayerAction("player-1", text, "observe"))
@@ -83,7 +109,9 @@ def test_intent_is_immutable_and_parse_compatibility_is_structured():
     with pytest.raises(FrozenInstanceError):
         intent.intent = "protect"
 
-    parser_compatible = AIActionInterpreter().parse("player-1", "帮助医生")
+    parser_compatible = AIActionInterpreter(scenario_config={
+        "entity_aliases": {"医生": "doctor"},
+    }).parse("player-1", "帮助医生")
     assert parser_compatible == PlayerAction("player-1", "帮助医生", "help", "doctor")
 
 
@@ -115,7 +143,8 @@ def test_interpreter_rejects_invalid_intent_from_ai_then_falls_back():
 )
 def test_extracts_supported_action_from_json_variants(response, text, intent, target):
     interpreter = AIActionInterpreter(
-        ai_adapter=AIGMAdapter(ResponseProvider(response))
+        ai_adapter=AIGMAdapter(ResponseProvider(response)),
+        scenario_config={"entity_aliases": {"医生": "doctor", "doctor": "doctor", "soldier": "soldier"}},
     )
 
     result = interpreter.interpret("player-1", text)
@@ -126,7 +155,8 @@ def test_extracts_supported_action_from_json_variants(response, text, intent, ta
 def test_recovers_controlled_action_label_from_legacy_prose_response():
     response = "开始观察\n角色开始留意周围环境\ndoctor"
     interpreter = AIActionInterpreter(
-        ai_adapter=AIGMAdapter(ResponseProvider(response))
+        ai_adapter=AIGMAdapter(ResponseProvider(response)),
+        scenario_config={"entity_aliases": {"doctor": "doctor"}},
     )
 
     result = interpreter.interpret("player-1", "环顾四周")
@@ -137,7 +167,8 @@ def test_recovers_controlled_action_label_from_legacy_prose_response():
 def test_malformed_json_with_known_action_label_recovers_safely():
     response = '{"action_type": "保护'
     interpreter = AIActionInterpreter(
-        ai_adapter=AIGMAdapter(ResponseProvider(response))
+        ai_adapter=AIGMAdapter(ResponseProvider(response)),
+        scenario_config={"entity_aliases": {"医生": "doctor"}},
     )
 
     result = interpreter.interpret("player-1", "保护医生")

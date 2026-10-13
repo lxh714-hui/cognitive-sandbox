@@ -1,0 +1,308 @@
+{
+  "scenario_id": "anchor",
+  "name": "锚点",
+  "description": "一个关于异常、记忆与认知差异的小型模拟世界。",
+  "initial_world_state": {
+    "day": 1,
+    "time": "08:00",
+    "location": "梁景住所",
+    "current_stage": "重新开始生活",
+    "world_variables": {
+      "public_anomaly_reports": 0,
+      "neighborhood_tension": 0.1
+    }
+  },
+  "character_templates": [
+    {
+      "id": "liangjing",
+      "name": "梁景",
+      "role": "重新适应生活的人",
+      "traits": [
+        "谨慎",
+        "敏感",
+        "内省"
+      ],
+      "goals": [
+        "重新开始生活"
+      ]
+    },
+    {
+      "id": "liuyiyi",
+      "name": "柳依依",
+      "role": "异常调查者",
+      "traits": [
+        "敏锐",
+        "执着",
+        "谨慎"
+      ],
+      "goals": [
+        "寻找异常线索"
+      ]
+    },
+    {
+      "id": "pei",
+      "name": "裴",
+      "role": "普通居民",
+      "traits": [
+        "务实",
+        "谨慎",
+        "重视日常"
+      ],
+      "goals": [
+        "维持正常生活"
+      ]
+    },
+    {
+      "id": "song",
+      "name": "宋",
+      "role": "观察者",
+      "traits": [
+        "克制",
+        "耐心",
+        "善于观察"
+      ],
+      "goals": [
+        "观察变化"
+      ]
+    }
+  ],
+  "runtime_config": {
+    "cognitive_rules": [
+      {
+        "pattern": "12:03",
+        "category": "temporal_pattern",
+        "interpretation": "这个时间细节与周围环境不太协调，值得进一步核实。",
+        "confidence": 0.68,
+        "priority": 10
+      },
+      {
+        "pattern": "异常线索",
+        "category": "risk_signal",
+        "interpretation": "这条信息可能指向某种异常，但现有证据还不足以确定原因。",
+        "confidence": 0.62
+      }
+    ],
+    "player_character_id": "liangjing",
+    "initial_location_id": "liangjing_home",
+    "initial_location_name": "梁景住所",
+    "action_defaults": {
+      "leave_destination": "neighborhood"
+    },
+    "initial_visible_objects": [
+      {
+        "object_id": "clock",
+        "name": "墙上的钟",
+        "description": "指针停在12:03。"
+      }
+    ],
+    "autonomous_goals": [
+      {
+        "character_id": "liuyiyi",
+        "goal_type": "investigate_anomaly",
+        "priority": 0.7,
+        "description_index": 0
+      },
+      {
+        "character_id": "song",
+        "goal_type": "observe_changes",
+        "priority": 0.55,
+        "description_index": 0
+      },
+      {
+        "character_id": "pei",
+        "goal_type": "maintain_daily_life",
+        "priority": 0.45,
+        "description_index": 0
+      }
+    ],
+    "agency_profiles": {
+      "liuyiyi": {
+        "initiative": 0.68
+      },
+      "song": {
+        "initiative": 0.52
+      },
+      "pei": {
+        "initiative": 0.52
+      }
+    },
+    "goal_action_rules": [
+      {
+        "goal_type": "investigate_anomaly",
+        "action_type": "investigate",
+        "score": 0.7,
+        "minimum_visible_knowledge": 1,
+        "parameters": {
+          "location": "$current_location"
+        },
+        "reason": "依据已获得的信息继续调查"
+      },
+      {
+        "goal_type": "investigate_anomaly",
+        "action_type": "organize",
+        "score": 0.62,
+        "minimum_visible_knowledge": 1,
+        "reason": "整理已掌握的信息"
+      },
+      {
+        "goal_type": "investigate_anomaly",
+        "action_type": "observe",
+        "score": 0.74,
+        "minimum_visible_knowledge": 1,
+        "parameters": {
+          "location": "$current_location"
+        },
+        "reason": "观察线索所在环境"
+      },
+      {
+        "goal_type": "confirm_anomaly",
+        "action_type": "investigate",
+        "score": 0.74,
+        "minimum_visible_knowledge": 1,
+        "parameters": {
+          "location": "$current_location"
+        },
+        "reason": "核实已经发现的线索"
+      },
+      {
+        "goal_type": "observe_changes",
+        "action_type": "observe",
+        "score": 0.55,
+        "parameters": {
+          "location": "$current_location"
+        },
+        "reason": "留意周围变化"
+      },
+      {
+        "goal_type": "maintain_daily_life",
+        "action_type": "work",
+        "score": 0.5,
+        "reason": "维持日常生活"
+      }
+    ],
+    "evolution_rules": [
+      {
+        "event_type": "npc_investigated",
+        "when": [],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "investigate_anomaly"
+            },
+            "field": "progress",
+            "delta": 0.1,
+            "maximum": 1,
+            "reason": "场景规则记录调查进展"
+          }
+        ]
+      },
+      {
+        "event_type": "npc_investigated",
+        "when": [],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "confirm_anomaly"
+            },
+            "field": "progress",
+            "delta": 0.03,
+            "maximum": 1,
+            "reason": "场景规则记录核实进展"
+          }
+        ]
+      }
+    ],
+    "initial_opportunities": [
+      {
+        "opportunity_id": "investigate_clock",
+        "source_type": "WORLD",
+        "visibility": "owner",
+        "importance": 0.75,
+        "urgency": 0.3,
+        "possible_actions": [
+          "看看钟",
+          "检查钟表",
+          "直接离开房间"
+        ],
+        "description": "墙上的钟停在12:03。这个细节仍留在你的视线里。",
+        "source": "world_rule",
+        "source_id": "liangjing_home:clock",
+        "internal_context": {
+          "location_id": "liangjing_home",
+          "object_id": "clock"
+        },
+        "related_entities": [
+          "liangjing_home",
+          "clock"
+        ],
+        "candidate_actions": [
+          {
+            "action_type": "inspect",
+            "intent": "inspect",
+            "actor_id": "liangjing",
+            "target": "钟",
+            "target_refs": [
+              "钟"
+            ],
+            "motivation": "investigate_visible_detail",
+            "metadata": {
+              "objective": "inspect:钟",
+              "method": "inspect",
+              "risk": 0.25,
+              "relationship_effect": "no_direct_change",
+              "expected_effect": "inspect_target"
+            },
+            "action_id": "clock_inspection"
+          }
+        ]
+      }
+    ],
+    "action_durations": {
+      "wake": 5,
+      "eat": 20,
+      "work": 60,
+      "go_home": 15,
+      "move": 15,
+      "find": 10,
+      "inspect": 5,
+      "explore": 20
+    },
+    "location_aliases": {
+      "街上": [
+        "neighborhood"
+      ],
+      "街区": [
+        "neighborhood"
+      ],
+      "便利店": [
+        "convenience_store"
+      ]
+    },
+    "entity_aliases": {
+      "梁景": "liangjing",
+      "柳依依": "liuyiyi",
+      "宋": "song",
+      "裴": "pei"
+    },
+    "goal_transition_rules": [
+      {
+        "source_goal": "investigate_anomaly",
+        "condition": "progress>=0.2",
+        "result": "confirm_anomaly",
+        "result_description": "确认异常真实性",
+        "result_priority": 0.82,
+        "result_conditions": []
+      }
+    ],
+    "package_version": "0.2",
+    "genre": "psychological mystery",
+    "tone": "uncertain",
+    "initial_time": "第1天 08:00"
+  }
+}

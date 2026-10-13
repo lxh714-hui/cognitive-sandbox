@@ -60,7 +60,6 @@ class RelationshipLifecycleManager:
 
     _EVENTS = {
         "help_attempt": RelationshipEventType.HELP,
-        "player_helped_doctor": RelationshipEventType.HELP,
         "player_helped": RelationshipEventType.HELP,
         "protect_attempt": RelationshipEventType.PROTECT,
         "player_protected": RelationshipEventType.PROTECT,
@@ -83,7 +82,7 @@ class RelationshipLifecycleManager:
         "social_encounter": RelationshipEventType.OBSERVE,
     }
     _BASE_HANDLED = frozenset({
-        "help_attempt", "player_helped_doctor", "player_helped", "protect_attempt",
+        "help_attempt", "player_helped", "protect_attempt",
         "player_lied", "lied", "player_threatened", "weapon_threat", "weapon_drawn", "weapon_draw",
     })
 

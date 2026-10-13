@@ -1,4 +1,4 @@
-from .models import Agent, CognitiveMemory, World
+from cognitive_sandbox.domain.models import Agent, CognitiveMemory, World
 
 SAMPLE_WORLD = World(
     id="harbor-at-dusk",

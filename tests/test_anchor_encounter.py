@@ -1,7 +1,7 @@
 from cognitive_sandbox.application.game_launcher import GameLauncher
 from cognitive_sandbox.character_presence import EntryRule
 from cognitive_sandbox.domain.world_events import WorldEvent
-from cognitive_sandbox.simulation_test.scenario_probe import AnchorSimulationProbe
+from tools.simulation_test.scenario_probe import AnchorSimulationProbe
 
 
 def test_anchor_days_do_not_force_liang_and_liuyiyi_to_meet():
@@ -12,7 +12,7 @@ def test_anchor_days_do_not_force_liang_and_liuyiyi_to_meet():
 
 
 def test_anchor_contact_occurs_only_after_both_have_co_located_actions():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     session.presence_manager.move_to("liangjing", "neighborhood", travel_completed=True)
     session.presence_manager.add_rule(EntryRule(
         "liuyiyi", trigger_event_types=("anomaly_detected",), allowed_locations=("neighborhood",),

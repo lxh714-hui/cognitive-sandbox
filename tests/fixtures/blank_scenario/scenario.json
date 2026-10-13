@@ -1,0 +1,18 @@
+{
+  "scenario_id": "blank_world",
+  "name": "空白世界",
+  "description": "用于验证通用运行时的空白世界包。",
+  "initial_world_state": {"initialized": true},
+  "character_templates": [
+    {"id": "player_1", "name": "玩家", "role": "person", "traits": [], "goals": []},
+    {"id": "person_2", "name": "居民", "role": "person", "traits": [], "goals": []}
+  ],
+  "runtime_config": {
+    "goal_defaults": [
+      {"role_aliases": ["person"], "goal_type": "observe_environment", "description": "观察周围", "priority": 0.5}
+    ],
+    "npc_action_rules": [
+      {"goal_type": "observe_environment", "action_type": "observe", "reason": "执行已配置的通用观察行动"}
+    ]
+  }
+}

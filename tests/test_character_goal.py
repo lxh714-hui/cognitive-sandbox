@@ -17,7 +17,9 @@ def test_goal_is_immutable_and_manager_returns_owner_scoped_goals():
 
 def test_goal_evaluator_uses_rules_without_creating_goals():
     goal = CharacterGoal("doctor", "修复医疗站", "repair_clinic", conditions=("materials_needed",))
-    evaluator = GoalEvaluator()
+    evaluator = GoalEvaluator({
+        "materials_needed": {"type": "world_state", "field": "clinic_repaired", "operator": "eq", "value": False}
+    })
     assert evaluator.is_actionable(goal, world_state={"clinic_repaired": False})
     assert not evaluator.is_actionable(goal, world_state={"clinic_repaired": True})
     assert goal.progress == 0

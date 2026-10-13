@@ -8,8 +8,8 @@ from types import MappingProxyType
 from cognitive_sandbox.domain.world_events import WorldEvent
 from cognitive_sandbox.knowledge.retrieval.knowledge_query import KnowledgeQuery
 from cognitive_sandbox.narrative.event_planner import EventPlanner
-from cognitive_sandbox.simulation_test.simulation_metrics import SimulationMetrics
-from cognitive_sandbox.simulation_test.simulation_report import (
+from tools.simulation_test.simulation_metrics import SimulationMetrics
+from tools.simulation_test.simulation_report import (
     CharacterSimulationSummary, NarrativeThreadSummary, SimulationReport, ThreadStateChange,
 )
 from cognitive_sandbox.world_evolution.state_change import StateChange

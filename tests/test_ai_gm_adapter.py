@@ -41,7 +41,9 @@ def test_mock_provider_returns_response_for_supported_request():
 
 
 def test_player_action_parser_interface_returns_structured_action():
-    action = AIGMAdapter().parse_player_action("帮助医生", _agent())
+    action = AIGMAdapter().parse_player_action("帮助医生", {
+        "player_id": "agent-1", "scenario_config": {"entity_aliases": {"医生": "doctor"}},
+    })
 
     assert action == PlayerAction("agent-1", "帮助医生", "help", "doctor")
     assert AIGMAdapter().parse_player_action("我想休息", _agent()) is None

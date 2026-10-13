@@ -89,7 +89,9 @@ def test_session_starts_submits_and_executes_a_turn():
     assert session.current_turn.status == "completed"
     assert session.last_result is result
     assert session.world_state["social_trust"] == pytest.approx(0.6)
-    assert session.agent_context.memories
+    # This package has no memory seed for the player; the engine must not infer
+    # biography from the character's occupation.
+    assert session.agent_context.memories == ()
     assert original_context.memories == ()
     assert original_context.world_state["social_trust"] == 0.5
     assert original_world == {"social_trust": 0.5}

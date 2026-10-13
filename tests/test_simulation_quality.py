@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from cognitive_sandbox.simulation_test.simulation_metrics import SimulationMetrics
+from tools.simulation_test.simulation_metrics import SimulationMetrics
 
 
 def event(kind, actor, action=None, importance=0):

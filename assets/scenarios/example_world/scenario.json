@@ -7,29 +7,597 @@
     "energy_level": 0.2,
     "resource_level": 0.35,
     "danger_level": 0.4,
-    "settlement_count": 3
+    "settlement_count": 3,
+    "visible_characters": [
+      {
+        "character_id": "doctor"
+      }
+    ],
+    "visible_details": [
+      "城市备用能源即将耗尽。"
+    ]
   },
   "character_templates": [
     {
       "id": "player",
       "name": "玩家",
       "role": "幸存者",
-      "traits": ["adaptive"],
-      "goals": ["寻找安全区域", "与聚落建立联系"]
+      "traits": [
+        "adaptive"
+      ],
+      "goals": [
+        "寻找安全区域",
+        "与聚落建立联系"
+      ]
     },
     {
       "id": "doctor",
       "name": "沈医生",
       "role": "医生",
-      "traits": ["谨慎", "善良"],
-      "goals": ["救助幸存者"]
+      "traits": [
+        "谨慎",
+        "善良"
+      ],
+      "goals": [
+        "救助幸存者"
+      ]
     },
     {
       "id": "survivor",
       "name": "周岚",
       "role": "幸存者",
-      "traits": ["怀疑", "现实主义"],
-      "goals": ["寻找安全区域"]
+      "traits": [
+        "怀疑",
+        "现实主义"
+      ],
+      "goals": [
+        "寻找安全区域"
+      ]
     }
-  ]
+  ],
+  "runtime_config": {
+    "goal_defaults": [
+      {
+        "role_aliases": [
+          "doctor",
+          "医生"
+        ],
+        "goal_type": "repair_clinic",
+        "description": "修复医疗站",
+        "priority": 0.8,
+        "goal_tree": {
+          "completion_conditions": [
+            "all_subgoals_completed"
+          ],
+          "subgoals": [
+            {
+              "id": "collect_materials",
+              "description": "收集医疗站修复材料",
+              "goal_type": "collect_materials",
+              "priority": 0.75,
+              "conditions": [
+                "materials_needed"
+              ]
+            },
+            {
+              "id": "restore_power",
+              "description": "恢复医疗站供电",
+              "goal_type": "restore_power",
+              "priority": 0.7,
+              "conditions": [
+                "materials_available",
+                "clinic_power_restored"
+              ],
+              "status": "paused",
+              "completion_conditions": [
+                "clinic_power_restored"
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "entity_aliases": {
+      "沈医生": "doctor",
+      "医生": "doctor",
+      "doctor": "doctor"
+    },
+    "action_decision_rules": [
+      {
+        "role_aliases": [
+          "医生",
+          "doctor",
+          "physician"
+        ],
+        "situation_aliases": [
+          "受伤",
+          "病人",
+          "救助"
+        ],
+        "intent": "help",
+        "motivation": "compassion"
+      }
+    ],
+    "action_durations": {
+      "wake": 5,
+      "eat": 20,
+      "work": 60,
+      "go_home": 15,
+      "move": 15,
+      "find": 10,
+      "inspect": 5,
+      "explore": 20
+    },
+    "location_aliases": {
+      "街上": [
+        "街区",
+        "附近街区",
+        "neighborhood"
+      ],
+      "街道": [
+        "街区",
+        "附近街区",
+        "neighborhood"
+      ],
+      "便利店": [
+        "convenience_store"
+      ]
+    },
+    "locations": [
+      {
+        "location_id": "clinic",
+        "name": "旧诊所",
+        "status": "damaged",
+        "safety": 0,
+        "power": false,
+        "properties": {
+          "repair_progress": 0
+        }
+      }
+    ],
+    "npc_action_event_types": {
+      "collect": "npc_materials_collected",
+      "repair": "doctor_repaired_clinic"
+    },
+    "npc_action_policies": {
+      "collect": {
+        "lifecycle": "REPEATABLE",
+        "cooldown_days": 0,
+        "importance": 1
+      },
+      "repair": {
+        "lifecycle": "REPEATABLE",
+        "cooldown_days": 0,
+        "importance": 3
+      }
+    },
+    "npc_action_rules": [
+      {
+        "goal_type": "collect_materials",
+        "action_type": "collect",
+        "parameters": {
+          "resource_type": "medical_supplies",
+          "location": "clinic",
+          "goal_effect": {
+            "result": "progress",
+            "progress_delta": 0.2
+          }
+        },
+        "reason": "收集修复所需资源",
+        "description": "医生收集到修复材料。"
+      },
+      {
+        "goal_type": "restore_power",
+        "action_type": "repair",
+        "target": "clinic",
+        "parameters": {
+          "resource_type": "medical_supplies",
+          "location": "clinic",
+          "goal_effect": {
+            "result": "progress",
+            "progress_delta": 0.2
+          }
+        },
+        "reason": "推进场景目标",
+        "description": "医生使用材料修复旧诊所。",
+        "requires": [
+          {
+            "type": "resource",
+            "resource_type": "medical_supplies",
+            "location_id": "clinic",
+            "operator": "gte",
+            "value": 1
+          }
+        ]
+      }
+    ],
+    "goal_condition_definitions": {
+      "materials_needed": {
+        "all": [
+          {
+            "type": "location",
+            "location_id": "clinic",
+            "field": "repair_progress",
+            "operator": "lt",
+            "value": 100
+          },
+          {
+            "type": "resource",
+            "resource_type": "medical_supplies",
+            "location_id": "clinic",
+            "operator": "lt",
+            "value": 1
+          }
+        ]
+      },
+      "materials_available": {
+        "type": "resource",
+        "resource_type": "medical_supplies",
+        "location_id": "clinic",
+        "operator": "gte",
+        "value": 1
+      },
+      "clinic_power_restored": {
+        "type": "location",
+        "location_id": "clinic",
+        "field": "power",
+        "operator": "ne",
+        "value": true
+      }
+    },
+    "evolution_rules": [
+      {
+        "event_type": "npc_patrolled",
+        "when": [],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "location",
+              "id": "$event_location"
+            },
+            "field": "safety",
+            "delta": 5,
+            "maximum": 100,
+            "reason": "巡逻改变了区域状态"
+          }
+        ]
+      },
+      {
+        "event_type": "npc_materials_collected",
+        "when": [],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "delta": 1,
+            "reason": "场景规则增加资源"
+          }
+        ]
+      },
+      {
+        "event_type": "npc_materials_collected",
+        "when": [],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "collect_materials"
+            },
+            "field": "progress",
+            "delta": 0.2,
+            "maximum": 1,
+            "reason": "目标获得进展"
+          }
+        ]
+      },
+      {
+        "event_type": "npc_materials_collected",
+        "when": [
+          {
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "collect_materials"
+            },
+            "field": "progress",
+            "operator": "gte",
+            "value": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_state",
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "collect_materials"
+            },
+            "field": "status",
+            "value": "completed"
+          }
+        ]
+      },
+      {
+        "event_type": "npc_materials_collected",
+        "when": [],
+        "effects": [
+          {
+            "type": "set_state",
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "restore_power"
+            },
+            "field": "status",
+            "value": "active",
+            "reason": "前置目标完成后开放后续目标"
+          }
+        ]
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "delta": -1,
+            "reason": "场景规则消耗修复资源"
+          }
+        ]
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "repair_progress",
+            "delta": 20,
+            "maximum": 100,
+            "reason": "场景规则推进地点状态"
+          }
+        ]
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          },
+          {
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "repair_progress",
+            "operator": "gte",
+            "value": 100
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_state",
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "power",
+            "value": true
+          }
+        ],
+        "reason": "场景规则派生地点属性"
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          },
+          {
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "repair_progress",
+            "operator": "lt",
+            "value": 100
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_state",
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "power",
+            "value": false
+          }
+        ],
+        "reason": "场景规则派生地点属性"
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          },
+          {
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "repair_progress",
+            "operator": "gte",
+            "value": 100
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_state",
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "status",
+            "value": "operational"
+          }
+        ],
+        "reason": "场景规则派生地点状态"
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          },
+          {
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "repair_progress",
+            "operator": "lt",
+            "value": 100
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_state",
+            "target": {
+              "type": "location",
+              "id": "clinic"
+            },
+            "field": "status",
+            "value": "under_repair"
+          }
+        ],
+        "reason": "场景规则派生地点状态"
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "modify_value",
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "restore_power"
+            },
+            "field": "progress",
+            "delta": 0.2,
+            "maximum": 1,
+            "reason": "目标获得进展"
+          }
+        ]
+      },
+      {
+        "event_type": "doctor_repaired_clinic",
+        "when": [
+          {
+            "target": {
+              "type": "resource",
+              "id": "medical_supplies@clinic"
+            },
+            "field": "quantity",
+            "operator": "gte",
+            "value": 1
+          },
+          {
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "restore_power"
+            },
+            "field": "progress",
+            "operator": "gte",
+            "value": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "set_state",
+            "target": {
+              "type": "goal",
+              "owner_id": "$event_actor",
+              "goal_type": "restore_power"
+            },
+            "field": "status",
+            "value": "completed"
+          }
+        ]
+      }
+    ]
+  }
 }

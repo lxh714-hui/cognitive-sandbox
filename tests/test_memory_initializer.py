@@ -6,16 +6,18 @@ from cognitive_sandbox.application.memory_initializer import MemoryInitializer
 from cognitive_sandbox.domain.memory import InitialMemory
 
 
-def test_doctor_gets_initial_memory():
-    memories = MemoryInitializer(memory_id_factory=lambda: "memory-doctor").initialize("医生")
+def test_scenario_memory_template_is_copied_without_role_inference():
+    memories = MemoryInitializer(memory_id_factory=lambda: "memory-configured").initialize(
+        "角色", templates=({"content": "既有经历", "importance": 0.5},),
+    )
 
-    assert memories == (InitialMemory("memory-doctor", "曾经帮助过一名病人", 0.5),)
+    assert memories == (InitialMemory("memory-configured", "既有经历", 0.5),)
 
 
-def test_soldier_gets_initial_memory():
-    memories = MemoryInitializer(memory_id_factory=lambda: "memory-soldier").initialize("士兵")
+def test_role_without_configured_memories_starts_with_no_inferred_biography():
+    memories = MemoryInitializer(memory_id_factory=lambda: "memory-role").initialize("角色")
 
-    assert memories == (InitialMemory("memory-soldier", "经历过一次战斗", 0.7),)
+    assert memories == ()
 
 
 def test_unknown_role_has_no_initial_memories():

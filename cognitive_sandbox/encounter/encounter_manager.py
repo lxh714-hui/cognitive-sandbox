@@ -38,8 +38,6 @@ class EncounterManager:
     ACTION_EVENTS = frozenset({
         "help_attempt", "protect_attempt", "observe_action", "dialogue_event", "talk_attempt",
         "player_traveled", "travel_completed",
-        "npc_patrolled", "npc_materials_collected", "doctor_repaired_clinic", "npc_socialized",
-        "npc_investigated", "npc_observed", "npc_worked", "npc_rested", "npc_traveled", "npc_organized",
     })
 
     def __init__(self, *, authority_manager=None, relationship_manager=None, relationship_lifecycle_manager=None,

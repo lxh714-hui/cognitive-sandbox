@@ -2,17 +2,17 @@ from datetime import datetime, timezone
 
 from cognitive_sandbox.application.game_launcher import GameLauncher
 from cognitive_sandbox.domain.world_instance import WorldInstance
-from cognitive_sandbox.simulation_test.scenario_probe import AnchorSimulationProbe
-from cognitive_sandbox.simulation_test.agency_probe import AnchorAgencyProbe
-from cognitive_sandbox.simulation_test.simulation_runner import SimulationRunner
+from tools.simulation_test.scenario_probe import AnchorSimulationProbe
+from tools.simulation_test.agency_probe import AnchorAgencyProbe
+from tools.simulation_test.simulation_runner import SimulationRunner
 
 
 def _probe_session():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     session.executor.world_clock.restore(datetime(2026, 1, 1, 20, tzinfo=timezone.utc).isoformat())
     AnchorSimulationProbe._configure_probe(session)
     instance = WorldInstance(
-        session.world_instance_id, "anchor_world", session.world_instance_id,
+        session.world_instance_id, "anchor", session.world_instance_id,
         "锚点", "offline probe", "active", "running", "2026-01-01T20:00:00+00:00", "liangjing",
     )
     SimulationRunner().run(

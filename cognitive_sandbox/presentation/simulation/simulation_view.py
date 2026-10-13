@@ -23,7 +23,7 @@ class SimulationView(QWidget):
         self.day = 0
         self._summary_start = None
         if runner is None and session is not None:
-            from cognitive_sandbox.simulation_test.long_simulation_runner import LongSimulationRunner
+            from tools.simulation_test.long_simulation_runner import LongSimulationRunner
             self.runner = LongSimulationRunner()
         layout = QVBoxLayout(self)
         self.date_label = QLabel("", self)
@@ -57,8 +57,8 @@ class SimulationView(QWidget):
     def advance(self, days):
         if self.paused or self.session is None or self.runner is None:
             return None
-        result = self.runner.run_anchor(checkpoints=(days,), random_seed=self.day, session=self.session,
-                                        enable_player_idle=True)
+        result = self.runner.run_world(checkpoints=(days,), random_seed=self.day, session=self.session,
+                                       enable_player_idle=True)
         self.day += days
         events = tuple(self.session.executor.event_timeline.events)
         self.timeline.set_events(events, start_time=self._story_start())
@@ -79,7 +79,7 @@ class SimulationView(QWidget):
     def _story_start(self):
         if self._summary_start is not None:
             return self._summary_start
-        value = getattr(self.session, "anchor_started_at", None)
+        value = getattr(self.session, "scenario_started_at", None)
         if value:
             self._summary_start = value
         else:

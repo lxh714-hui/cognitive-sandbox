@@ -93,8 +93,8 @@ class WorldGenerator:
             return self._failure(f"world generation provider failed: {self._message(error)}")
         if not isinstance(response, AIGMResponse):
             return self._failure("world generation provider returned an invalid response type.")
-        if response.content.startswith("LLM provider error:"):
-            return self._failure(response.content)
+        if not response.success or response.content.startswith("LLM provider error:"):
+            return self._failure(f"world generation provider failed ({response.error}).")
 
         try:
             content = self._parse_content(response.content)

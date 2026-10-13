@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QApplication
 from cognitive_sandbox.application.game_launcher import GameLauncher
 from cognitive_sandbox.domain.world_instance import WorldInstance
 from cognitive_sandbox.presentation.debug.simulation_replay_inspector import SimulationReplayInspector
-from cognitive_sandbox.simulation_test.simulation_runner import SimulationRunner
+from tools.simulation_test.simulation_runner import SimulationRunner
 
 
 @pytest.fixture
@@ -17,10 +17,10 @@ def qapp():
 
 
 def test_replay_inspector_lists_events_in_time_order_and_does_not_mutate_session(qapp):
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     session.executor.world_clock.restore(datetime(2026, 1, 1, 8, tzinfo=timezone.utc).isoformat())
     instance = WorldInstance(
-        session.world_instance_id, "anchor_world", session.world_instance_id,
+        session.world_instance_id, "anchor", session.world_instance_id,
         "锚点", "offline", "active", "running", "2026-01-01T08:00:00+00:00", "liangjing",
     )
     before_state = dict(session.world_state)

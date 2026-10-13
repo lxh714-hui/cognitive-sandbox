@@ -9,7 +9,7 @@ def test_anchor_world_saves_and_restores_knowledge_threads_cognition_and_authori
     launcher = GameLauncher()
     saves = WorldSaveService(JsonSaveRepository(tmp_path / "saves"))
     library = WorldLibrary(saves, launcher.restore_saved_world)
-    session = launcher.start_anchor_world()
+    session = launcher.start_world("anchor")
     world = library.register(session)
     message = DisplayMessage(MessageType.PLAYER, "观察住所")
     library.save_active((message,))
@@ -19,7 +19,7 @@ def test_anchor_world_saves_and_restores_knowledge_threads_cognition_and_authori
         WorldSaveService(JsonSaveRepository(tmp_path / "saves")), restarted.restore_saved_world
     )
     restored, history = restored_library.activate(world.instance_id)
-    assert restored.scenario.scenario_id == "anchor_world"
+    assert restored.scenario.scenario_id == "anchor"
     assert history == (message,)
     assert restored.authority_manager.player_character_id == "liangjing"
     assert len(restored.executor.cognitive_engine.styles) == 4

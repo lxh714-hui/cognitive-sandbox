@@ -10,6 +10,7 @@ from cognitive_sandbox.domain.roleplay_turn import RoleplayTurn
 from cognitive_sandbox.domain.player_interaction import PlayerInteraction
 from cognitive_sandbox.domain.scenario import Scenario
 from cognitive_sandbox.domain.scenario_content import ScenarioContent
+from cognitive_sandbox.domain.scenario_runtime import ScenarioRuntime
 
 
 class RoleplaySession:
@@ -40,6 +41,7 @@ class RoleplaySession:
         director_history=(),
         authority_manager=None,
         world_memory=None,
+        scenario_runtime: ScenarioRuntime | None = None,
     ) -> None:
         if not isinstance(player_id, str) or not player_id.strip():
             raise ValueError("player_id must not be empty.")
@@ -61,6 +63,8 @@ class RoleplaySession:
             raise TypeError("scenario must be a Scenario or None.")
         if scenario_content is not None and not isinstance(scenario_content, ScenarioContent):
             raise TypeError("scenario_content must be a ScenarioContent or None.")
+        if scenario_runtime is not None and not isinstance(scenario_runtime, ScenarioRuntime):
+            raise TypeError("scenario_runtime must be a ScenarioRuntime or None.")
         if world_instance_id is not None and (
             not isinstance(world_instance_id, str) or not world_instance_id.strip()
         ):
@@ -80,6 +84,7 @@ class RoleplaySession:
         self.conversation_preferences: list[dict[str, str | None]] = []
         self.scenario = scenario or (scenario_content.scenario if scenario_content else None)
         self.scenario_content = scenario_content
+        self.scenario_runtime = scenario_runtime
         contexts = tuple(agent_contexts) or (agent_context,)
         if any(not isinstance(context, AgentContext) for context in contexts):
             raise TypeError("agent_contexts must contain AgentContext values.")

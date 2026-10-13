@@ -13,7 +13,7 @@ def qapp():
 
 
 def test_story_mode_shows_player_facing_world_and_can_advance(qapp):
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     view = StoryView(session)
     before = session.executor.world_clock.current_time()
     assert "锚点" in view.title.text()

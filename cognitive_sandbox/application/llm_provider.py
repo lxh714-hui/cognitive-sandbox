@@ -81,7 +81,7 @@ class LLMProvider:
 
     def complete(self, request: AIGMRequest) -> AIGMResponse:
         if not isinstance(request, AIGMRequest):
-            return AIGMResponse("LLM provider error: request must be an AIGMRequest")
+            return AIGMResponse("LLM provider error: invalid request", False, "invalid_request")
         try:
             headers = {"Content-Type": "application/json"}
             if self._config.api_key:
@@ -125,7 +125,13 @@ class LLMProvider:
             return AIGMResponse(self._extract_content(response))
         except Exception as error:
             detail = str(error).strip() or error.__class__.__name__
-            return AIGMResponse(f"LLM provider error: {detail}")
+            # Keep the legacy content for callers that display provider status,
+            # but mark it as a failure so adapters never treat it as story text.
+            # Details remain available to diagnostics and are not returned as
+            # successful model content.
+            return AIGMResponse(
+                f"LLM provider error: {detail}", False, _error_status(error)
+            )
 
     def _endpoint(self) -> str:
         base_url = self._config.base_url
@@ -162,6 +168,16 @@ class LLMProvider:
             if joined.strip():
                 return joined
         raise ValueError("response content is empty or not text")
+
+
+def _error_status(error: Exception) -> str:
+    if isinstance(error, TimeoutError):
+        return "timeout"
+    if isinstance(error, ConnectionError):
+        return "connection_error"
+    if isinstance(error, (ValueError, TypeError, KeyError, IndexError)):
+        return "invalid_response"
+    return "provider_error"
 
 
 def _to_json_value(value: Any) -> Any:

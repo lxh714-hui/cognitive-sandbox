@@ -7,24 +7,25 @@ from cognitive_sandbox.domain.memory import InitialMemory
 
 
 class MemoryInitializer:
-    """Create a small, static past-memory template from a role description."""
+    """Copy memory templates supplied by a scenario; never infer biography from a role."""
 
     def __init__(self, *, memory_id_factory: Callable[[], str] | None = None) -> None:
         self._memory_id_factory = memory_id_factory or (lambda: f"memory_{uuid4().hex}")
 
-    def initialize(self, role_description: str) -> tuple[InitialMemory, ...]:
+    def initialize(self, role_description: str, *, templates=()) -> tuple[InitialMemory, ...]:
         if not isinstance(role_description, str) or not role_description.strip():
             raise ValueError("role_description must not be empty.")
 
-        description = role_description.casefold()
-        if "医生" in description:
-            content, importance = "曾经帮助过一名病人", 0.5
-        elif "士兵" in description:
-            content, importance = "经历过一次战斗", 0.7
-        else:
-            return ()
-
-        memory_id = self._memory_id_factory()
-        if not isinstance(memory_id, str) or not memory_id.strip():
-            raise ValueError("memory_id_factory must return a non-empty string.")
-        return (InitialMemory(memory_id, content, importance),)
+        result = []
+        for template in templates:
+            content = getattr(template, "content", None)
+            importance = getattr(template, "importance", None)
+            if isinstance(template, dict):
+                content, importance = template.get("content"), template.get("importance", 0.5)
+            if not isinstance(content, str) or not content.strip():
+                raise ValueError("memory templates require non-empty content.")
+            memory_id = self._memory_id_factory()
+            if not isinstance(memory_id, str) or not memory_id.strip():
+                raise ValueError("memory_id_factory must return a non-empty string.")
+            result.append(InitialMemory(memory_id, content, importance))
+        return tuple(result)

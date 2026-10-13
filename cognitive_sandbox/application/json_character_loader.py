@@ -19,7 +19,9 @@ class JsonCharacterLoader:
     def load(self, path: str | Path) -> CharacterCard:
         data = _read_json_object(path, "character")
         missing = sorted(self.REQUIRED_FIELDS - data.keys())
-        unexpected = sorted(data.keys() - self.REQUIRED_FIELDS - {"example_dialogues", "identity_editable"})
+        unexpected = sorted(data.keys() - self.REQUIRED_FIELDS - {
+            "example_dialogues", "identity_editable", "runtime_profile",
+        })
         if missing or unexpected:
             details = []
             if missing:

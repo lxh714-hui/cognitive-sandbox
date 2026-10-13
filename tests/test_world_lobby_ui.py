@@ -11,8 +11,9 @@ def test_lobby_has_world_card_list_and_all_mode_entry_buttons():
     class Library:
         persistence_errors = {}
         def list_worlds(self): return ()
-    panel = WorldLobbyPanel(Library())
+    from cognitive_sandbox.application.scenario_loader import ScenarioLoader
+    panel = WorldLobbyPanel(Library(), ScenarioLoader().registry)
     assert panel.world_list.count() == 0
-    assert panel.anchor_button.text() == "进入《锚点》"
-    assert panel.anchor_simulation_button.text() == "观察《锚点》"
+    assert panel.scenario_list.count() > 0
+    assert panel.start_scenario_button.text() == "创建世界实例"
     panel.close()

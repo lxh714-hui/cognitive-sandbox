@@ -8,6 +8,18 @@ from cognitive_sandbox.domain.action_intent import ActionIntent
 class ActionIntentParser:
     """Small deterministic fallback for common Chinese roleplay phrasing."""
 
+    def __init__(self, entity_aliases=None, location_aliases=None, action_defaults=None):
+        self.entity_aliases = dict(entity_aliases or {})
+        self.location_aliases = dict(location_aliases or {})
+        self.action_defaults = dict(action_defaults or {})
+
+    def with_scenario_config(self, scenario_config):
+        config = scenario_config or {}
+        return ActionIntentParser(
+            config.get("entity_aliases", {}), config.get("location_aliases", {}),
+            config.get("action_defaults", {}),
+        )
+
     def parse(self, actor_id: str, raw_input: str) -> ActionIntent | None:
         if not isinstance(actor_id, str) or not actor_id.strip():
             raise ValueError("actor_id must not be empty.")
@@ -23,16 +35,18 @@ class ActionIntentParser:
         )):
             return ActionIntent(actor_id, raw_input, "seek_guidance")
 
-        if any(term in text for term in (
-            "然后呢", "接下来呢", "我不知道该干什么", "不知道该干什么",
-            "不知道做什么", "我该做什么", "有什么值得注意", "有什么线索",
-        )):
-            return ActionIntent(actor_id, raw_input, "seek_guidance")
-
         intent = self._intent(text)
         if intent is None:
             return None
         target, obj, parameters = self._entities(text, intent)
+        if target is not None:
+            target = self.entity_aliases.get(target.casefold(), target)
+        if obj is not None and intent in {"move", "explore"}:
+            for alias, destinations in self.location_aliases.items():
+                choices = destinations if isinstance(destinations, (tuple, list)) else (destinations,)
+                if alias.casefold() == obj.casefold() and choices:
+                    obj = choices[0]
+                    break
         if intent in {"observe", "inspect"} and any(
             token in text for token in ("偷偷", "悄悄", "暗中", "不被发现")
         ):
@@ -88,22 +102,24 @@ class ActionIntentParser:
             return "use"
         if any(term in text for term in ("检查", "调查", "搜查", "仔细查看")):
             return "inspect"
-        if any(term in text for term in ("钟", "时钟", "钟表")) and any(
-            term in text for term in ("看看", "看一看", "查看", "检查", "观察")
-        ):
-            return "inspect"
+        # Inspect only explicit object-viewing verbs. "偷偷观察某人" remains
+        # an observation action, while "看看钟" is an inspection.
+        for verb in ("看看", "看一看", "查看"):
+            index = text.find(verb)
+            if index < 0:
+                continue
+            remainder = text[index + len(verb):].lstrip("的 ")
+            if remainder and not remainder.startswith(("附近", "周围", "周边", "四周", "这里", "周遭", "前方", "前面", "远处")):
+                return "inspect"
         if any(term in text for term in ("去", "前往", "走到", "赶往", "离开", "进入")):
             if any(term in text for term in ("看看", "观察", "环顾", "查看")):
                 return "move"
             return "move"
-        if any(term in text for term in ("观察", "看看", "查看", "环顾", "瞧瞧")):
-            if any(term in text for term in ("建筑", "房间", "门", "设备", "物品", "箱子")):
-                return "inspect"
+        if any(term in text for term in ("观察", "看看", "看一看", "查看", "环顾", "瞧瞧")):
             return "observe"
         return None
 
-    @staticmethod
-    def _entities(text: str, intent: str) -> tuple[str | None, str | None, dict]:
+    def _entities(self, text: str, intent: str) -> tuple[str | None, str | None, dict]:
         target = None
         object_ref = None
         if intent in {"talk", "ask", "help", "protect", "give", "find"}:
@@ -113,21 +129,20 @@ class ActionIntentParser:
         if intent == "ask" and target is None:
             ask = re.search(r"(?:询问|问问|问一下|问|打听)(.+)", text)
             remainder = ask.group(1) if ask else ""
-            # Fallback support for common role titles, and arbitrary names when
-            # the text clearly separates the person from the topic.
-            match = re.search(r"([\u4e00-\u9fff]{0,4}?(?:医生|士兵|商人|幸存者|护士|警卫|队长))", remainder)
-            if match:
-                target = match.group(1)
-            else:
-                match = re.match(r"([^，。！？\s]{1,8}?)(?:关于|有关|有没有|是否|什么|怎么|为何|为什么)", remainder)
-                if match:
-                    target = match.group(1).strip("的") or None
+            alias = next((name for name in sorted(self.entity_aliases, key=len, reverse=True)
+                          if name and name in remainder), None)
+            if alias is not None:
+                target = self.entity_aliases[alias]
+            match = re.match(r"([^，。！？\s]{1,8}?)(?:关于|有关|有没有|是否|什么|怎么|为何|为什么)", remainder)
+            if target is None and match:
+                target = match.group(1).strip("的") or None
         if intent == "move":
             match = re.search(r"(?:去|前往|走到|赶往|进入)([^，。！？\s]{1,20})", text)
             if match:
                 object_ref = re.sub(r"(看看|观察|环顾|查看)$", "", match.group(1)).strip("的") or None
-            elif "离开房间" in text:
-                object_ref = "街区"
+            elif any(phrase in text for phrase in ("离开房间", "离开这里", "出去")):
+                destination = self.action_defaults.get("leave_destination")
+                object_ref = destination if isinstance(destination, str) and destination.strip() else None
         elif intent == "explore":
             match = re.search(r"(?:去|前往|到|走到|出去)([^，。！？\s]{1,20}?)(?:看看|观察|探索|瞧瞧|找找|$)", text)
             if match:
@@ -148,11 +163,13 @@ class ActionIntentParser:
             topic_match = re.search(r"(?:关于|有关)([^，。！？\s]{1,30})", text)
             topic_text = topic_match.group(1) if topic_match else ""
             if not topic_text and intent == "ask" and target:
-                target_position = text.find(target)
+                target_alias = next((name for name in sorted(self.entity_aliases, key=len, reverse=True)
+                                     if name and name in text), target)
+                target_position = text.find(target_alias)
                 if target_position >= 0:
-                    topic_text = text[target_position + len(target):]
+                    topic_text = text[target_position + len(target_alias):]
             if topic_text:
                 topic = topic_text.strip("的事情吗？?事情况 ")
-                if topic and topic not in {target, "医生", "士兵"}:
+                if topic and topic != target:
                     parameters["topic"] = topic
         return target, object_ref, parameters

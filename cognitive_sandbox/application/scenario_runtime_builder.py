@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from cognitive_sandbox.application.agent_context_builder import AgentContextBuilder
 from cognitive_sandbox.application.character_card_validator import CharacterCardValidator
 from cognitive_sandbox.application.event_card_validator import EventCardValidator
@@ -69,11 +70,83 @@ class ScenarioRuntimeBuilder:
         world_state = self._build_world(content)
         agents = self._build_agents(content, world_state)
         initial_events = self._collect_events(content)
+        config = content.scenario.runtime_config
+        entities = tuple(
+            {"id": card.character_id, "kind": "entity", "name": card.name}
+            for card in content.character_cards
+        )
+        entities += tuple(
+            {"id": item["location_id"], "kind": "location", "name": item.get("name", item["location_id"])}
+            for item in config.get("locations", ())
+            if isinstance(item, Mapping) and isinstance(item.get("location_id"), str)
+        )
+        for kind, collection_key, id_keys in (
+            ("entity", "entities", ("entity_id", "id")),
+            ("item", "items", ("item_id", "id")),
+            ("resource", "resources", ("resource_id", "resource_type", "id")),
+        ):
+            for item in config.get(collection_key, ()):
+                if not isinstance(item, Mapping):
+                    continue
+                identity = next((item.get(key) for key in id_keys if isinstance(item.get(key), str)), None)
+                if identity:
+                    entities += ({"id": identity, "kind": kind, **dict(item)},)
+        metadata = {
+            "name": content.scenario.name,
+            "description": content.scenario.description,
+            "world_id": content.world_document.world_id,
+        }
         return ScenarioRuntime(
             scenario_id=content.scenario.scenario_id,
             world_state=world_state,
             agents=agents,
             initial_events=initial_events,
+            version=str(config.get("package_version") or config.get("version") or "1"),
+            metadata=metadata,
+            entities=entities,
+            rules=tuple(config.get("evolution_rules", ())),
+            assets=config.get("assets", {}),
+            configuration=config,
+            character_cards=content.character_cards,
+            world_document=content.world_document,
+            cognitive_rules=tuple(config.get("cognitive_rules", ())),
+        )
+
+    def build_scenario(self, scenario) -> ScenarioRuntime:
+        """Adapt a legacy in-memory scenario to the same generic runtime contract."""
+        from cognitive_sandbox.domain.scenario import Scenario
+
+        if not isinstance(scenario, Scenario):
+            raise TypeError("scenario must be a Scenario.")
+        world = self._world_bootstrap.create(scenario).world_state
+        contexts = []
+        for item in scenario.character_templates:
+            identity = item.get("character_id", item.get("id"))
+            if not isinstance(identity, str) or not identity.strip():
+                continue
+            character = CharacterState(
+                character_id=identity,
+                name=str(item.get("name", identity)),
+                role=str(item.get("role", "character")),
+                traits=tuple(item.get("traits", ())),
+                goals=tuple(item.get("goals", ())),
+            )
+            contexts.append(self._context_builder.build(
+                character, memories=(), relationships=(), world_state=world.state,
+            ))
+        entities = tuple(dict(item) for item in scenario.character_templates)
+        return ScenarioRuntime(
+            scenario_id=scenario.scenario_id,
+            world_state=world,
+            agents=tuple(AgentRuntimeProfile(item) for item in contexts),
+            initial_events=(),
+            version=str(scenario.runtime_config.get("package_version") or scenario.runtime_config.get("version") or "1"),
+            metadata={"name": scenario.name, "description": scenario.description},
+            entities=entities,
+            rules=tuple(scenario.runtime_config.get("evolution_rules", ())),
+            assets=scenario.runtime_config.get("assets", {}),
+            configuration=scenario.runtime_config,
+            cognitive_rules=tuple(scenario.runtime_config.get("cognitive_rules", ())),
         )
 
     def build_world(self, content: ScenarioContent) -> WorldState:

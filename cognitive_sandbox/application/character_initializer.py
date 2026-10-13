@@ -27,25 +27,11 @@ class CharacterInitializer:
             raise TypeError("request must be a CharacterInitializationRequest.")
 
         prompt = request.prompt.strip()
-        normalized = prompt.casefold()
-        if any(keyword in normalized for keyword in ("医生", "doctor", "physician")):
-            role = "医生"
-            traits = ("谨慎", "富有同情心")
-            goals = ("帮助他人",)
-            fears = ("无法及时救助他人",)
-            memories: tuple[str, ...] = ()
-        elif any(keyword in normalized for keyword in ("士兵", "军人", "soldier")):
-            role = "士兵"
-            traits = ("勇敢", "纪律性")
-            goals = ("保护同伴", "完成职责")
-            fears = ("失去战友",)
-            memories = ()
-        else:
-            role = "普通居民"
-            traits = ("适应力强",)
-            goals = ("维持日常生活",)
-            fears = ()
-            memories = ()
+        role = "普通居民"
+        traits = ("适应力强",)
+        goals = ("维持日常生活",)
+        fears: tuple[str, ...] = ()
+        memories: tuple[str, ...] = ()
 
         character_id = self._character_id_factory()
         if not isinstance(character_id, str) or not character_id.strip():

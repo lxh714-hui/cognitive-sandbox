@@ -3,7 +3,7 @@ from cognitive_sandbox.domain.world_events import WorldEvent
 
 
 def test_anchor_runtime_propagates_only_public_observed_clues():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     event = WorldEvent("anchor-info-probe", "main", session.executor.world_id,
                        "anomaly_observed", "liangjing",
                        {"description": "梁景在附近听见钟声异常。", "importance": .7},

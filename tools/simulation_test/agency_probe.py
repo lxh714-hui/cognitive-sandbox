@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from cognitive_sandbox.simulation_test.scenario_probe import AnchorSimulationProbe
+from tools.simulation_test.scenario_probe import AnchorSimulationProbe
 
 
 @dataclass(frozen=True)

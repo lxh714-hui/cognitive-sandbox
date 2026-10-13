@@ -1,15 +1,18 @@
-from cognitive_sandbox.application.anchor_world_loader import AnchorWorldLoader
+from pathlib import Path
+from cognitive_sandbox.application.scenario_package_loader import ScenarioPackageLoader
 from cognitive_sandbox.application.game_launcher import GameLauncher
 
 
 def test_anchor_initial_knowledge_is_private_per_character():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     store = session.knowledge_store
     liangjing = {record.known_content for record, _fact in store.query("liangjing")}
     liuyiyi = {record.known_content for record, _fact in store.query("liuyiyi")}
     song = {record.known_content for record, _fact in store.query("song")}
     pei = {record.known_content for record, _fact in store.query("pei")}
-    configured = AnchorWorldLoader().load().initial_knowledge
+    configured = ScenarioPackageLoader().load(
+        Path(__file__).parents[1] / "assets" / "scenarios" / "anchor"
+    ).scenario.runtime_config["initial_knowledge"]
     assert liangjing == {item["content"] for item in configured["liangjing"]}
     assert liuyiyi == {item["content"] for item in configured["liuyiyi"]}
     assert song == {item["content"] for item in configured["song"]}

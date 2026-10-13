@@ -12,6 +12,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from cognitive_sandbox.application.game_launcher import GameLauncher
+from cognitive_sandbox.application.scenario_rule_resolver import ScenarioRuleResolver
 from cognitive_sandbox.character_presence import EntryRule, PresenceState
 from cognitive_sandbox.domain.world_events import WorldEvent
 from cognitive_sandbox.event.event_pipeline import EventPipeline
@@ -30,14 +31,43 @@ from cognitive_sandbox.world_evolution import (
 
 
 def _event(event_type, event_id="event-1", actor="doctor", payload=None, timestamp="day-1"):
-    return WorldEvent(event_id, "main", "world-1", event_type, actor, payload or {}, 1, timestamp=timestamp)
+    payload = payload or {}
+    parameters = payload.get("parameters", {})
+    location = payload.get("location") or parameters.get("location") or "clinic"
+    return WorldEvent(event_id, "main", "world-1", event_type, actor, payload, 1,
+                      location=location, timestamp=timestamp)
+
+
+def _scenario_rules():
+    return (
+        {"event_type": "npc_patrolled", "effects": [{"type": "modify_value", "target": {"type": "location", "id": "$event_location"}, "field": "safety", "delta": 5, "maximum": 100}]},
+        {"event_type": "npc_materials_collected", "effects": [
+            {"type": "modify_value", "target": {"type": "resource", "id": "medical_supplies@clinic"}, "field": "quantity", "delta": 1},
+            {"type": "modify_value", "target": {"type": "goal", "owner_id": "$event_actor", "goal_type": "collect_materials"}, "field": "progress", "delta": .2, "maximum": 1},
+            {"type": "set_state", "target": {"type": "goal", "owner_id": "$event_actor", "goal_type": "restore_power"}, "field": "status", "value": "active"},
+        ]},
+        {"event_type": "doctor_repaired_clinic", "when": [{"target": {"type": "resource", "id": "medical_supplies@clinic"}, "field": "quantity", "operator": "gte", "value": 1}], "effects": [
+            {"type": "modify_value", "target": {"type": "resource", "id": "medical_supplies@clinic"}, "field": "quantity", "delta": -1},
+            {"type": "modify_value", "target": {"type": "location", "id": "clinic"}, "field": "repair_progress", "delta": 20, "maximum": 100},
+            {"type": "modify_value", "target": {"type": "goal", "owner_id": "$event_actor", "goal_type": "restore_power"}, "field": "progress", "delta": .2},
+        ]},
+        {"event_type": "doctor_repaired_clinic", "when": [{"target": {"type": "location", "id": "clinic"}, "field": "repair_progress", "operator": "gte", "value": 100}], "effects": [
+            {"type": "set_state", "target": {"type": "location", "id": "clinic"}, "field": "power", "value": True},
+            {"type": "set_state", "target": {"type": "location", "id": "clinic"}, "field": "status", "value": "operational"},
+        ]},
+        {"event_type": "doctor_repaired_clinic", "when": [{"target": {"type": "location", "id": "clinic"}, "field": "repair_progress", "operator": "lt", "value": 100}], "effects": [
+            {"type": "set_state", "target": {"type": "location", "id": "clinic"}, "field": "power", "value": False},
+            {"type": "set_state", "target": {"type": "location", "id": "clinic"}, "field": "status", "value": "under_repair"},
+        ]},
+    )
 
 
 def test_event_pipeline_applies_evolution_before_history_and_is_idempotent():
     timeline = EventTimeline()
     resources = ResourceManager()
     locations = LocationManager((LocationState("clinic", "医疗站", safety=10),))
-    engine = WorldEvolutionEngine(resource_manager=resources, location_manager=locations)
+    engine = WorldEvolutionEngine(resource_manager=resources, location_manager=locations,
+                                  rule_resolver=ScenarioRuleResolver(_scenario_rules()))
     pipeline = EventPipeline(event_timeline=timeline, world_evolution_engine=engine)
 
     event = _event("npc_patrolled", payload={"parameters": {"location": "clinic"}})
@@ -51,7 +81,8 @@ def test_event_pipeline_applies_evolution_before_history_and_is_idempotent():
 
 def test_frozen_nested_action_parameters_are_used_for_location_evolution():
     locations = LocationManager((LocationState("clinic", "医疗站"),))
-    engine = WorldEvolutionEngine(location_manager=locations)
+    engine = WorldEvolutionEngine(location_manager=locations,
+                                  rule_resolver=ScenarioRuleResolver(_scenario_rules()))
 
     engine.handle_event(_event("npc_patrolled", payload={"parameters": {"location": "clinic"}}))
 
@@ -67,7 +98,8 @@ def test_resources_locations_and_goal_tree_evolve_deterministically():
     ))
     resources = ResourceManager()
     locations = LocationManager((LocationState("clinic", "医疗站", status="damaged", power=False),))
-    engine = WorldEvolutionEngine(goal_manager=goals, resource_manager=resources, location_manager=locations)
+    engine = WorldEvolutionEngine(goal_manager=goals, resource_manager=resources, location_manager=locations,
+                                  rule_resolver=ScenarioRuleResolver(_scenario_rules()))
 
     engine.handle_event(_event("npc_materials_collected", "collect-1"))
     assert resources.quantity("medical_supplies", location_id="clinic") == 1
@@ -88,7 +120,10 @@ def test_location_safety_is_bounded_and_custom_resource_rules_apply():
     engine = WorldEvolutionEngine(
         location_manager=locations,
         resource_manager=resources,
-        rules=(EvolutionRule("supply_arrived", "resource", "quantity", "increment", 3, "补给到达"),),
+        rule_resolver=ScenarioRuleResolver(({"event_type": "supply_arrived", "effects": [{"type": "modify_value",
+                "target": {"type": "resource", "id": "food@clinic"},
+                "field": "quantity", "delta": 3, "reason": "补给到达"}]},
+               *_scenario_rules())),
     )
 
     engine.handle_event(_event("npc_patrolled", "patrol-1", payload={"location": "gate"}))
@@ -107,7 +142,8 @@ def test_world_chronicle_is_read_only_and_shows_events_with_state_changes():
     )
     timeline.record_event(event)
     locations = LocationManager((LocationState("clinic", "医疗站", safety=5),))
-    engine = WorldEvolutionEngine(location_manager=locations)
+    engine = WorldEvolutionEngine(location_manager=locations,
+                                  rule_resolver=ScenarioRuleResolver(_scenario_rules()))
     engine.handle_event(event)
 
     panel = WorldChroniclePanel(timeline, engine.state_changes, location_manager=locations)
@@ -156,7 +192,8 @@ def test_state_change_and_location_models_are_immutable():
     state = LocationState("clinic", "医疗站")
     with pytest.raises(FrozenInstanceError):
         state.power = True
-    change = WorldEvolutionEngine(location_manager=LocationManager((state,))).handle_event(
+    change = WorldEvolutionEngine(location_manager=LocationManager((state,)),
+                                  rule_resolver=ScenarioRuleResolver(_scenario_rules())).handle_event(
         _event("npc_patrolled")
     )[0]
     with pytest.raises(FrozenInstanceError):

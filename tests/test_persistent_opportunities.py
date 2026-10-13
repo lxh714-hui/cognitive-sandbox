@@ -12,7 +12,7 @@ from cognitive_sandbox.persistence.world_serializer import WorldSerializer
 
 
 def test_creating_opportunity_does_not_change_world_or_create_world_event():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     world_before = dict(session.world_state)
     events_before = tuple(session.executor.event_timeline.events)
     opportunity = next(item for item in session.opportunity_service.snapshot()
@@ -39,10 +39,10 @@ def test_opportunity_is_immutable_and_internal_context_is_deeply_read_only():
 
 
 def test_opportunities_and_world_tree_round_trip_in_world_save():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     metadata = SaveMetadata(
-        session.world_instance_id, session.executor.world_id, "anchor_world", "锚点",
-        "世界简介", session.anchor_started_at,
+        session.world_instance_id, session.executor.world_id, "anchor", "锚点",
+        "世界简介", session.scenario_started_at,
         session.executor.world_clock.current_time().isoformat(),
         player_character_id=session.player_id,
     )
@@ -59,10 +59,10 @@ def test_opportunities_and_world_tree_round_trip_in_world_save():
 
 
 def test_old_saves_default_to_empty_opportunity_and_tree_state():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     metadata = SaveMetadata(
-        session.world_instance_id, session.executor.world_id, "anchor_world", "锚点",
-        "世界简介", session.anchor_started_at,
+        session.world_instance_id, session.executor.world_id, "anchor", "锚点",
+        "世界简介", session.scenario_started_at,
         session.executor.world_clock.current_time().isoformat(),
         player_character_id=session.player_id,
     )

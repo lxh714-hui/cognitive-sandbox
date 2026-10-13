@@ -25,6 +25,10 @@ def _package(root):
             "character_templates": [
                 {"id": "doctor", "name": "林夏", "role": "医生", "traits": ["compassionate"], "goals": ["救助患者"]}
             ],
+            "runtime_config": {
+                "entity_aliases": {"医生": "doctor"},
+                "action_durations": {"work": 42},
+            },
         },
     )
     _write(
@@ -63,6 +67,8 @@ def test_package_loader_reads_complete_content_bundle_and_does_not_edit_files(tm
     assert content.world_document.world_id == "harbor"
     assert [card.character_id for card in content.character_cards] == ["doctor"]
     assert [card.event_id for card in content.event_cards] == ["hospital_power_failure"]
+    assert content.scenario.runtime_config["entity_aliases"]["医生"] == "doctor"
+    assert content.scenario.runtime_config["action_durations"]["work"] == 42
     assert {path.relative_to(root): path.read_bytes() for path in root.rglob("*.json")} == files_before
 
 

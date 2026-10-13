@@ -1,0 +1,7 @@
+{
+  "world_id": "post_apocalypse_city",
+  "name": "末日城市",
+  "description": "一座在灾后艰难维持生活的城市，危险与资源短缺并存。",
+  "history": [],
+  "rules": ["资源有限", "居民需要合作"]
+}

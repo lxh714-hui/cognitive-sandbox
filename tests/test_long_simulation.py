@@ -1,11 +1,11 @@
 from cognitive_sandbox.application.game_launcher import GameLauncher
-from cognitive_sandbox.simulation_test.long_simulation_runner import LongSimulationRunner
-from cognitive_sandbox.simulation_test.simulation_comparison import SimulationComparator
+from tools.simulation_test.long_simulation_runner import LongSimulationRunner
+from tools.simulation_test.simulation_comparison import SimulationComparator
 
 
 def test_long_runner_advances_cumulative_natural_checkpoints_without_probe_injection():
-    session = GameLauncher().start_anchor_world()
-    result = LongSimulationRunner().run_anchor(checkpoints=(1, 4), random_seed=11, session=session)
+    session = GameLauncher().start_world("anchor")
+    result = LongSimulationRunner().run_world(checkpoints=(1, 4), random_seed=11, session=session)
     assert result.checkpoints == (1, 4)
     assert len(result.reports) == 2
     assert sum(event.event_type.startswith("npc_") for event in result.reports[0].events) > 0

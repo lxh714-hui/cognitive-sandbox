@@ -38,16 +38,16 @@ def qapp():
 
 def test_anchor_is_a_world_package_without_demo_product_naming():
     root = Path(__file__).resolve().parents[1]
-    assert (root / "worlds" / "anchor" / "world_card.json").is_file()
-    loader = (root / "cognitive_sandbox" / "application" / "anchor_world_loader.py").read_text(encoding="utf-8")
+    assert (root / "assets" / "scenarios" / "anchor" / "scenario.json").is_file()
+    assert not (root / "cognitive_sandbox" / "application" / "anchor_world_loader.py").exists()
     lobby = (root / "cognitive_sandbox" / "presentation" / "world_lobby.py").read_text(encoding="utf-8")
-    assert "anchor_world" in loader
-    assert "进入《锚点》" in lobby
+    assert 'world_data["world_id"]' not in lobby
+    assert "start_anchor_world" not in lobby
 
 
 def test_world_menu_saves_and_exits_to_lobby_without_closing_window(qapp, monkeypatch):
     launcher = GameLauncher()
-    session = launcher.start_anchor_world()
+    session = launcher.start_world("anchor")
     window = FoundationMainWindow()
     window.show()
     window.set_game_launcher(launcher)
@@ -218,7 +218,7 @@ def test_player_action_parser_recognizes_common_everyday_actions():
 
 
 def test_scenario_opening_is_grounded_in_world_and_player(qapp):
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     opening = ScenarioPresenter().opening(session)
     assert "锚点" in opening
     assert "梁景" in opening

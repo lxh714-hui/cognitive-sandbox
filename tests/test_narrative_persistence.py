@@ -6,7 +6,7 @@ from cognitive_sandbox.character_presence import CharacterPresence, EntryRule, P
 from cognitive_sandbox.motivation import CharacterMotivation
 from cognitive_sandbox.narrative.conflict_detector import Conflict
 from cognitive_sandbox.narrative.event_planner import CandidateEvent
-from cognitive_sandbox.narrative.narrative_anchor import NarrativeConstraint
+from cognitive_sandbox.narrative.narrative_constraint_validator import NarrativeConstraint
 from cognitive_sandbox.narrative.narrative_pressure import NarrativePressure
 from cognitive_sandbox.narrative.narrative_state import NarrativeState
 from cognitive_sandbox.narrative.narrative_thread import NarrativeThread, NarrativeThreadStatus

@@ -73,7 +73,7 @@ class NarrativeReplay(QWidget):
                 elif fact_id.startswith("info:clue:"):
                     visible_event_ids.add(fact_id.split(":", 2)[2].rsplit(":", 1)[0])
         from datetime import datetime
-        start_value = getattr(self.session, "anchor_started_at", None)
+        start_value = getattr(self.session, "scenario_started_at", None)
         try:
             start = datetime.fromisoformat(start_value) if start_value else datetime.fromisoformat(executor.event_timeline.events[0].timestamp)
         except (ValueError, IndexError, AttributeError):

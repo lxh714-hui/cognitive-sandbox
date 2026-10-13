@@ -21,7 +21,6 @@ class NarrativeFormatter:
         "npc_restrain": ("控制行动", "角色试图控制持武者。"),
         "npc_respond": ("角色回应", "角色对眼前的情况作出回应。"),
         "npc_patrolled": ("区域巡查", "有人开始巡查周边区域。"),
-        "npc_materials_collected": ("收集物资", "有人开始收集修复医疗站所需的材料。"),
     }
     _ENVIRONMENT_LABELS = {
         "weather": "天气",

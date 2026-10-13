@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from cognitive_sandbox.domain.world_instance import WorldInstance
-from cognitive_sandbox.simulation_test.simulation_runner import SimulationRunner
+from tools.simulation_test.simulation_runner import SimulationRunner
 
 
 @dataclass(frozen=True)
@@ -60,17 +60,17 @@ class LongSimulationRunner:
         self.launcher = launcher
         self.runner = runner or SimulationRunner()
 
-    def run_anchor(self, *, checkpoints=None, random_seed=0, enable_player_idle=True, session=None):
+    def run_world(self, *, checkpoints=None, random_seed=0, enable_player_idle=True, session=None):
         checkpoints = tuple(checkpoints or self.DEFAULT_CHECKPOINTS)
         if any(isinstance(day, bool) or not isinstance(day, int) or day < 1 for day in checkpoints):
             raise ValueError("checkpoints must be positive integer day counts")
         if tuple(sorted(set(checkpoints))) != checkpoints:
             raise ValueError("checkpoints must be strictly increasing")
-        session = session or self.launcher.start_anchor_world()
+        session = session or self.launcher.start_world("anchor")
         self._prepare_routine_presence(session)
         clock = session.executor.world_clock
         instance = WorldInstance(
-            session.world_instance_id, "anchor_world", session.world_instance_id, "锚点",
+            session.world_instance_id, "anchor", session.world_instance_id, "锚点",
             "自然自主模拟检查点。", "active", "running", clock.current_time().isoformat(), session.player_id,
         )
         reports, checkpoint_results, previous = [], [], 0
@@ -93,7 +93,7 @@ class LongSimulationRunner:
                     for actor_id in event.actor_ids:
                         action_counts[actor_id] = action_counts.get(actor_id, 0) + 1
             from dataclasses import replace
-            from cognitive_sandbox.simulation_test.story_emergence_report import StoryEmergenceAnalyzer
+            from tools.simulation_test.story_emergence_report import StoryEmergenceAnalyzer
             emergence = StoryEmergenceAnalyzer().analyze(replace(report, events=timeline), session)
             checkpoint_results.append(LongSimulationCheckpoint(
                 day, report, len(timeline), tuple(sorted(action_counts.items())),
@@ -120,7 +120,7 @@ class LongSimulationRunner:
 
         presence = session.presence_manager
         now = session.executor.world_clock.current_time()
-        routines = getattr(session, "anchor_routines", {}) or {}
+        routines = getattr(session, "scenario_routines", {}) or {}
         for character_id, routine in routines.items():
             if character_id == session.player_id:
                 continue

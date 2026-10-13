@@ -9,10 +9,12 @@ def test_only_recipient_gets_cognitive_interpretation_of_new_information():
         {"investigator": CognitiveStyle(suspicious=.9, analytical=.8)},
         {"investigator": ReasoningProfile(reasoning_depth=.8)},
         {"investigator": AttentionProfile(temporal_pattern=.9)},
+        rules=({"pattern": "异常声音", "category": "risk_signal",
+                "interpretation": "该报告可能指向值得核实的信息。", "confidence": .7},),
     )
     manager = InformationManager(knowledge_store=KnowledgeStore(), cognitive_engine=cognitive)
     manager.handle_event(WorldEvent("e", event_type="report", actor_id="investigator",
                                     payload={"description": "有人听见午夜的异常声音"}, timestamp="t"))
     assert cognitive.thoughts["investigator"][-1].character_id == "investigator"
-    assert "异常线索" in cognitive.thoughts["investigator"][-1].interpretation
+    assert cognitive.thoughts["investigator"][-1].interpretation == "该报告可能指向值得核实的信息。"
     assert "other" not in cognitive.thoughts

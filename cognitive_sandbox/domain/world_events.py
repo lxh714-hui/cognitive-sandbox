@@ -99,6 +99,18 @@ class WorldEvent:
         return self.actor_id
 
     @property
+    def id(self) -> str:
+        return self.event_id
+
+    @property
+    def type(self) -> str:
+        return self.event_type
+
+    @property
+    def source(self) -> str:
+        return self.actor_id
+
+    @property
     def target(self) -> str | None:
         """Alias used by event-oriented application code."""
         return self.target_id

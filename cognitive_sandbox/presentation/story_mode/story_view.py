@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
 
 from cognitive_sandbox.presentation.story_mode.story_timeline import StoryTimeline
 from cognitive_sandbox.presentation.story_mode.conflict_view import ConflictView
-from cognitive_sandbox.simulation_test.long_simulation_runner import LongSimulationRunner
+from tools.simulation_test.long_simulation_runner import LongSimulationRunner
 
 
 class StoryView(QWidget):
@@ -21,7 +21,8 @@ class StoryView(QWidget):
         self.conflict_view = ConflictView(session, self)
         self.opportunity_summary = QLabel("", self)
         self.opportunity_summary.setObjectName("storyOpportunitySummary")
-        self.player_choice = QPushButton("切换到玩家模式，以梁景身份行动", self)
+        player_name = getattr(getattr(session.agent_context, "character_state", None), "name", "当前角色")
+        self.player_choice = QPushButton(f"以{player_name}身份行动", self)
         self.player_choice.setObjectName("storyPlayerModeChoice")
         layout = QVBoxLayout(self)
         layout.addWidget(self.title)
@@ -34,8 +35,8 @@ class StoryView(QWidget):
         self._refresh_opportunities()
 
     def advance_day(self):
-        self.runner.run_anchor(checkpoints=(1,), session=self.session, random_seed=0,
-                               enable_player_idle=True)
+        self.runner.run_world(checkpoints=(1,), session=self.session, random_seed=0,
+                              enable_player_idle=True)
         result = self.timeline.refresh()
         self.conflict_view.refresh()
         self._refresh_opportunities()

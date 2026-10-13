@@ -17,8 +17,18 @@ def test_guard_patrol_and_doctor_collect_materials_on_world_tick():
     ))
     scheduler = NpcScheduler(
         {"guard": object(), "doctor": object()}, goals, clock=clock,
-        action_generator=NpcActionGenerator(),
-        action_executor=NpcActionExecutor(world_id="w", id_factory=iter(("1", "2")).__next__),
+        action_generator=NpcActionGenerator((
+            {"goal_type": "repair_clinic", "action_type": "collect", "reason": "configured collection"},
+            {"goal_type": "protect_city", "action_type": "patrol", "reason": "configured patrol"},
+        )),
+        action_executor=NpcActionExecutor(
+            world_id="w", id_factory=iter(("1", "2")).__next__,
+            event_types={"collect": "npc_materials_collected", "patrol": "npc_patrolled"},
+        ),
+        goal_evaluator=__import__("cognitive_sandbox.goal.goal_evaluator", fromlist=["GoalEvaluator"]).GoalEvaluator({
+            "patrol_time": {"type": "time_window", "start_hour": 18, "end_hour": 6},
+            "materials_needed": True,
+        }),
     )
     tick = WorldEvent("tick-1", "main", "w", "world_tick", "system", {}, 1, timestamp=clock.current_time().isoformat())
     context = type("Context", (), {"world_clock": clock, "world_state": {"location": "north"}})()

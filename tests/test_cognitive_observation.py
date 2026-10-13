@@ -1,5 +1,11 @@
 from types import SimpleNamespace
 
+RULES = (
+    {"pattern": "神情紧张", "category": "social_signal", "interpretation": "visible social detail", "confidence": .6},
+    {"pattern": "外壳有裂痕", "category": "physical_detail", "interpretation": "visible physical detail", "confidence": .6},
+    {"pattern": "只剩一盒", "category": "resource_signal", "interpretation": "visible resource detail", "confidence": .6},
+)
+
 from cognitive_sandbox.cognition import AttentionProfile, CognitiveEngine
 from cognitive_sandbox.application.actions.observe_handler import ObserveHandler
 from cognitive_sandbox.domain.agent_context import AgentContext
@@ -12,7 +18,7 @@ def test_attention_profiles_produce_character_specific_observation_order():
     engine = CognitiveEngine(attention_profiles={
         "social": AttentionProfile(social_signal=.95, emotional_signal=.9),
         "resource": AttentionProfile(resource_signal=.95),
-    })
+    }, rules=RULES)
     social = engine.attend("social", details)
     resource = engine.attend("resource", details)
     assert social[0] == "医生神情紧张"
@@ -31,7 +37,7 @@ def test_observe_handler_records_personalized_focus_without_expanding_visibility
     for cid, profile in (("social", AttentionProfile(social_signal=.95, emotional_signal=.9)),
                          ("resource", AttentionProfile(resource_signal=.95))):
         context = AgentContext(cid, CharacterState(cid, cid, "居民", (), (), (), ()), (), (), {})
-        engine = CognitiveEngine(attention_profiles={cid: profile})
+        engine = CognitiveEngine(attention_profiles={cid: profile}, rules=RULES)
         runtime = SimpleNamespace(
             world_state={"visible_events": visible}, agent_context=context,
             agent_contexts=(context,), turn=SimpleNamespace(turn_id=f"turn-{cid}"),

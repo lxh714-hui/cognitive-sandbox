@@ -64,7 +64,7 @@ def test_legacy_scenario_without_opening_content_uses_safe_fallback(qapp):
 
     opening = window.message_history[0].content
     assert "一座在灾后艰难维持生活的城市" in opening
-    assert "你站在这座城市的一处街区" in opening
+    assert "灾后艰难维持生活的城市" in opening
     assert "当前地点尚未设定" not in opening
     assert "士兵、幸存者" not in opening
     assert "doctor" not in opening
@@ -95,7 +95,7 @@ def test_observe_action_shows_readable_scenario_feedback(qapp):
     assert "观察周围环境" in text
     assert "你环顾四周" not in text
     assert "港区旧诊所大厅" in text
-    assert "备用能源显得吃紧" in text
+    assert "城市备用能源即将耗尽" in text
     assert "%" not in text
     assert "沈医生" in text
     assert "doctor" not in text

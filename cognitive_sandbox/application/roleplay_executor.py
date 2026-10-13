@@ -62,13 +62,15 @@ class RoleplayExecutor:
         emotion_engine=None,
         authority_manager=None,
         cognitive_engine=None,
+        scenario_config=None,
     ) -> None:
         self._parser = player_action_parser
         self.last_action_intent: ActionIntent | None = None
         self._simulation_tick = simulation_tick
         self._narrative_formatter = narrative_formatter
         self._dialogue_generator = dialogue_generator
-        self._generic_action_handler = GenericActionHandler()
+        self._scenario_config = dict(scenario_config or {})
+        self._generic_action_handler = GenericActionHandler(runtime_config=self._scenario_config)
         self.action_semantic_mapper = ActionSemanticMapper()
         self.branch_action_candidates = ()
         self.last_action_branch_mapping = None
@@ -341,24 +343,34 @@ class RoleplayExecutor:
             if parsed is not None:
                 if not isinstance(parsed, ActionIntent):
                     raise TypeError("interpret_action must return ActionIntent or None")
-                return parsed
+                return self._normalize_scenario_entities(parsed)
         parse_open = getattr(self._parser, "parse_action_intent", None)
         if callable(parse_open):
             parsed = parse_open(actor_id, raw_input)
             if parsed is not None:
                 if not isinstance(parsed, ActionIntent):
                     raise TypeError("parse_action_intent must return ActionIntent or None")
-                return parsed
+                return self._normalize_scenario_entities(parsed)
         parse_legacy = getattr(self._parser, "parse", None)
         if callable(parse_legacy):
             legacy = parse_legacy(actor_id, raw_input)
             if isinstance(legacy, ActionIntent):
-                return legacy
+                return self._normalize_scenario_entities(legacy)
             if isinstance(legacy, PlayerAction):
-                return ActionIntent(actor_id, raw_input, legacy.intent, legacy.target)
+                return self._normalize_scenario_entities(
+                    ActionIntent(actor_id, raw_input, legacy.intent, legacy.target)
+                )
             if legacy is not None:
                 raise TypeError("parser must return ActionIntent, PlayerAction, or None")
         return None
+
+    def _normalize_scenario_entities(self, action: ActionIntent) -> ActionIntent:
+        aliases = {str(key).casefold(): str(value)
+                   for key, value in dict(self._scenario_config.get("entity_aliases", {})).items()}
+        target = aliases.get(action.target.casefold(), action.target) if action.target else None
+        return action if target == action.target else ActionIntent(
+            action.actor_id, action.raw_input, action.intent, target, action.object, action.parameters
+        )
 
     def _add_npc_responses(self, result: RoleplayResult, context: ActionExecutionContext):
         simulation = result.simulation_result

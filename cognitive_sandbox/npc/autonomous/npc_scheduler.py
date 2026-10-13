@@ -180,8 +180,6 @@ class NpcScheduler:
         elif effect.get("result") in {"progress", "effective", "success", "failed", "no_new_information"}:
             result = effect["result"]
             effectiveness = float(effect.get("effectiveness", .25 if result in {"failed", "no_new_information"} else .7))
-        elif action_type == "investigate":
-            result, effectiveness = "no_new_information", .2
         else:
             result, effectiveness = "ineffective", _action_effectiveness(action_type, ())
         self.goal_lifecycle_manager.record_action_feedback(
@@ -264,7 +262,7 @@ class NpcScheduler:
             goal_state = self.goal_lifecycle_manager.state_for(current_goal.goal_id) \
                 if self.goal_lifecycle_manager is not None else None
             stagnation = getattr(goal_state, "stagnation_level", 0.0)
-            information_need = 1.0 if relevant_clue_from(visible) else 0.0
+            information_need = min(1.0, len(visible) / 5.0)
             adjusted_candidates = []
             for candidate in goal_candidates:
                 development_bonus = .25 * (self.development_engine.get(owner_id).tendency(
@@ -292,9 +290,7 @@ class NpcScheduler:
         generated.extend(self._conflict_agency_candidates(
             owner_id, context, now, emotion=emotion, cognition=cognition,
         ))
-        # Keep the established deterministic handlers for goals such as clinic
-        # repair and patrol. The agency layer ranks them alongside open-ended
-        # candidates instead of removing those already working behaviors.
+        # Scenario-defined deterministic actions are ranked alongside open-ended candidates.
         if self.action_generator is not None and now is not None:
             legacy = self.action_generator.generate_for(
                 owner_id, goals, current_time=now, world_state=state,
@@ -306,16 +302,13 @@ class NpcScheduler:
                     action, .7, "goal", current_goal.priority if current_goal else .5,
                 ))
             legacy_action_types = {item.action_type for item in legacy}
-        relevant_clue = any(
-            word in " ".join(getattr(item, "known_content", "") for item in visible).casefold()
-            for word in ("异常", "线索", "调查")
-        )
+        has_visible_information = bool(visible)
         tendency = self.agency_evaluator.evaluate(
             agency, goal=current_goal, emotion=emotion, current_time=now,
             recent_actions=self.agency_manager.snapshot().autonomous_action_history,
-            environment={"relevant_clue": relevant_clue}, motivation=motivation, cognition=cognition,
+            environment={"has_visible_information": has_visible_information}, motivation=motivation, cognition=cognition,
             current_pressure=getattr(context, "narrative_pressure", None),
-            information_need=1.0 if relevant_clue else 0.0,
+            information_need=min(1.0, len(visible) / 5.0),
         )
         if self.opportunity_service is not None:
             generated.extend(self._opportunity_candidates(
@@ -505,31 +498,14 @@ class NpcScheduler:
             if callable(self.narrative_update):
                 self.narrative_update(self.narrative_state)
 
-    @staticmethod
-    def _lifecycle_allows(action, timeline, now):
-        from cognitive_sandbox.npc.autonomous.npc_action_executor import NpcActionExecutor
+    def _lifecycle_allows(self, action, timeline, now):
         parameters = action.parameters
-        event_type = NpcActionExecutor.EVENT_TYPES.get(action.action_type)
+        executor = getattr(self.action_executor, "npc_event_executor", None)
+        event_type = executor.event_type_for(action.action_type) if executor is not None else None
         if event_type is None:
             return True
-        lifecycle = parameters.get("event_lifecycle")
-        defaults = {
-            "npc_worked": ("REPEATABLE", 2),
-            "npc_rested": ("REPEATABLE", 1),
-            "npc_organized": ("REPEATABLE", 4),
-            "npc_observed": ("REPEATABLE", 2),
-            "npc_socialized": ("REPEATABLE", 2),
-            "npc_investigated": ("REPEATABLE", 3),
-            "npc_traveled": ("REPEATABLE", 2),
-            "npc_patrolled": ("REPEATABLE", 2),
-            # Goal progress handlers may need several small deterministic steps
-            # in the same simulation window, so they do not share routine cooldowns.
-            "npc_materials_collected": ("REPEATABLE", 0),
-            "doctor_repaired_clinic": ("REPEATABLE", 0),
-        }
-        default_lifecycle, cooldown = defaults.get(event_type, ("REPEATABLE", 0))
-        lifecycle = lifecycle or default_lifecycle
-        cooldown = parameters.get("cooldown_days", cooldown)
+        lifecycle = parameters.get("event_lifecycle", "REPEATABLE")
+        cooldown = parameters.get("cooldown_days", 0)
         # The history stores the lifecycle marker in metadata. Older records remain valid.
         return EventLifecyclePolicy.can_generate(
             lifecycle=lifecycle, event_type=event_type, actor_id=action.actor_id,
@@ -537,17 +513,12 @@ class NpcScheduler:
             lifecycle_key=parameters.get("lifecycle_key", event_type),
         )
 
-def relevant_clue_from(visible):
-    text = " ".join(getattr(item, "known_content", "") for item in visible).casefold()
-    return any(word in text for word in ("异常", "线索", "调查"))
-
-
 def _action_effectiveness(action_type, visible):
     if action_type == "investigate":
-        return 0.25 if not relevant_clue_from(visible) else 0.4
+        return 0.25 if not visible else 0.4
     if action_type in {"observe", "socialize"}:
         return 0.45
-    if action_type in {"work", "repair_clinic", "collect_material", "patrol"}:
+    if action_type in {"work", "repair", "collect", "patrol"}:
         return 0.7
     if action_type == "organize":
         return 0.3
@@ -558,8 +529,8 @@ def _response_type_for_action(action_type):
     return {
         "rest": "avoid", "travel": "avoid", "observe": "avoid",
         "ask": "negotiate", "socialize": "negotiate", "investigate": "negotiate",
-        "organize": "cooperate", "work": "cooperate", "repair_clinic": "cooperate",
-        "collect_material": "compete", "patrol": "compete", "protect": "escalate",
+        "organize": "cooperate", "work": "cooperate", "repair": "cooperate",
+        "collect": "compete", "patrol": "compete", "protect": "escalate",
     }.get(str(action_type).casefold())
 
 

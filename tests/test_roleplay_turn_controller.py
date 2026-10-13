@@ -3,12 +3,16 @@ from dataclasses import FrozenInstanceError
 import pytest
 
 from cognitive_sandbox.application.roleplay_turn_controller import RoleplayTurnController
+from cognitive_sandbox.application.player_action_parser import PlayerActionParser
 from cognitive_sandbox.domain.player_action import PlayerAction
 from cognitive_sandbox.domain.roleplay_turn import RoleplayTurn
 
 
 def _controller():
-    return RoleplayTurnController(turn_id_factory=lambda: "turn-1")
+    return RoleplayTurnController(
+        PlayerActionParser(entity_aliases={"医生": "doctor", "士兵": "soldier"}),
+        turn_id_factory=lambda: "turn-1",
+    )
 
 
 def test_create_turn_starts_waiting_for_input():

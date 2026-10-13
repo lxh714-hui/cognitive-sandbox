@@ -125,9 +125,9 @@ def test_button_wait_generates_wait_interaction_without_ai_call(qapp):
 
 
 def test_talk_runs_as_action_and_uses_target_scoped_knowledge(qapp):
-    parsed_question = ActionIntentParser().parse("player", "我问医生备用电源的情况")
+    parsed_question = ActionIntentParser({"医生": "doctor"}).parse("player", "我问医生备用电源的情况")
     assert parsed_question.intent == "ask"
-    assert parsed_question.target == "医生"
+    assert parsed_question.target == "doctor"
     assert parsed_question.parameters["topic"] == "备用电源"
     store = KnowledgeStore()
     fact = WorldFact("fact_energy", "备用电源已经接近耗尽", "observation", "now")
@@ -147,7 +147,7 @@ def test_talk_runs_as_action_and_uses_target_scoped_knowledge(qapp):
             return DialogueLine(speaker.character_id, "电源快撑不住了。", "concerned")
 
     dialogue = RecordingDialogue()
-    session = _session(store=store)
+    session = _session(store=store, parser=ActionIntentParser({"医生": "doctor", "沈医生": "doctor"}))
     session.executor._dialogue_generator = dialogue
     session.start()
     session.submit_input("我问医生备用电源的情况")

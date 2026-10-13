@@ -41,7 +41,15 @@ def _tick(decision_engine=None):
     action_ids = iter(("action-doctor", "action-doctor-observe", "action-soldier", "action-soldier-observe"))
     memory_ids = iter(("new-memory-doctor", "new-memory-soldier"))
     return SimulationTick(
-        decision_engine or ActionDecisionEngine(action_id_factory=action_ids.__next__),
+        decision_engine or ActionDecisionEngine(
+            action_id_factory=action_ids.__next__,
+            action_rules=(
+                {"role_aliases": ("医生",), "situation_aliases": ("受伤",),
+                 "intent": "help", "motivation": "care"},
+                {"role_aliases": ("士兵",), "situation_aliases": ("危险",),
+                 "intent": "protect", "motivation": "duty"},
+            ),
+        ),
         ActionResolver(),
         ActionEventAdapter(
             world_id="world-1",

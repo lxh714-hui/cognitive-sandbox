@@ -16,6 +16,11 @@ class ConsistencyChecker:
     _MAGIC = ("魔法师", "法师", "魔法", "施法")
     _RETROACTIVE = ("一直", "早已", "自古", "从一开始", "过去就")
 
+    def __init__(self, known_location_terms=()):
+        self.known_location_terms = tuple(
+            item for item in known_location_terms if isinstance(item, str) and item.strip()
+        )
+
     def check(
         self,
         patch: WorldPatch,
@@ -101,7 +106,7 @@ class ConsistencyChecker:
                 fact_day = next((int(value) for value in self._DAY.findall(fact)), None)
                 if fact_day is None:
                     continue
-                if any(location in fact and location in claim for location in ("医疗中心", "医院", "避难所", "车站", "港口")):
+                if any(location in fact and location in claim for location in self.known_location_terms):
                     if not claim_days or min(claim_days) < fact_day:
                         return f"角色的追溯性经历与既有事实冲突：{fact}"
         return None

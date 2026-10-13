@@ -14,7 +14,7 @@ def qapp():
 
 
 def test_replay_is_character_filtered_and_hides_unowned_private_event(qapp):
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     visible = WorldEvent("player_note", "main", session.executor.world_id, "observe_action", "liangjing",
                         {"description": "我留意到窗边的钟慢了一分钟。"}, 0,
                         location="liangjing_home", timestamp=session.executor.world_clock.current_time().isoformat())

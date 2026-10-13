@@ -3,7 +3,7 @@ from pathlib import Path
 
 project_root = Path(SPECPATH).resolve()
 datas = []
-for resource_name in ("resources", "worlds", "characters", "configs"):
+for resource_name in ("resources", "characters", "configs"):
     resource_dir = project_root / resource_name
     if resource_dir.is_dir():
         datas.append((str(resource_dir), resource_name))
@@ -12,11 +12,6 @@ for resource_name in ("resources", "worlds", "characters", "configs"):
 scenario_packages = project_root / "assets" / "scenarios"
 if scenario_packages.is_dir():
     datas.append((str(scenario_packages), "assets/scenarios"))
-
-# Anchor is an application world package (not part of the user-authored assets).
-anchor_world_package = project_root / "worlds" / "anchor"
-if anchor_world_package.is_dir() and not any(destination == "worlds" for _, destination in datas):
-    datas.append((str(anchor_world_package.parent), "worlds"))
 
 # Keep test suites out of the frozen application even if a future application
 # module imports a test helper by mistake. The source tests remain untouched.

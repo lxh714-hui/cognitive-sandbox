@@ -10,21 +10,17 @@ class WorldChroniclePanel(QWidget):
     """Read-only player-facing timeline of events and deterministic state changes."""
 
     _EVENT_TEXT = {
-        "npc_patrolled": "守卫巡查了周边区域。",
-        "npc_materials_collected": "医生收集了修复医疗站所需的材料。",
-        "doctor_repaired_clinic": "医生使用材料修复医疗站。",
-        "npc_clinic_repaired": "医生使用材料修复医疗站。",
+        "npc_patrolled": "有人巡查了周边区域。",
         "wait_elapsed": "你等待了一段时间。",
     }
     _FIELD_TEXT = {
         "safety": "安全度",
         "power": "供电",
         "status": "地点状态",
-        "repair_progress": "修复进度",
         "quantity": "资源数量",
         "progress": "目标进度",
     }
-    _TARGET_TEXT = {"clinic": "医疗站", "resource": "物资", "goal": "目标", "location": "地点"}
+    _TARGET_TEXT = {"resource": "资源", "goal": "目标", "location": "地点"}
 
     def __init__(self, event_timeline=None, state_changes=(), *, location_manager=None, goal_manager=None, parent=None):
         super().__init__(parent)
@@ -81,7 +77,7 @@ class WorldChroniclePanel(QWidget):
             goal = self.goal_manager.by_id(change.target_id) if self.goal_manager else None
             target = goal.description if goal else "角色目标"
         elif change.target_type == "resource":
-            target = "医疗物资" if "medical_supplies" in change.target_id else "世界资源"
+            target = "资源"
         else:
             target = self._TARGET_TEXT.get(change.target_type, "世界")
         return f"世界变化：{target}的{field} {self._render(change.old_value)} → {self._render(change.new_value)}。"

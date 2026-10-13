@@ -80,7 +80,7 @@ class DirectorManager:
             goals, motivations, resources,
             world_state=public_world_state, presence=presences, locations=locations, current_time=current_time,
             pressure=getattr(self.session, "narrative_pressure", None),
-            anchors=(*getattr(self.session, "narrative_constraints", ()), *narrative_constraints),
+            constraints=(*getattr(self.session, "narrative_constraints", ()), *narrative_constraints),
         )
         existing_keys = {(item.event_type, item.participants, item.conditions) for item in state.candidates}
         active_constraints = tuple(item for item in (*self.constraints, constraint)

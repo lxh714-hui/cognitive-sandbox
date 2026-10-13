@@ -16,8 +16,16 @@ def context_for(role):
     return AgentContext("agent-1", character, (), (), {})
 
 
+WORLD_RULES = (
+    {"role_aliases": ["医生", "doctor"], "situation_aliases": ["病人", "受伤", "救助"],
+     "intent": "help", "motivation": "compassion"},
+    {"role_aliases": ["士兵", "soldier"], "situation_aliases": ["危险", "攻击", "敌人"],
+     "intent": "protect", "motivation": "duty"},
+)
+
+
 def test_doctor_generates_help_candidate_for_patient_situation():
-    engine = ActionDecisionEngine(action_id_factory=lambda: "act-help")
+    engine = ActionDecisionEngine(action_id_factory=lambda: "act-help", action_rules=WORLD_RULES)
 
     candidates = engine.generate(ActionDecisionInput(context_for("医生"), "病人受伤了"))
 
@@ -29,7 +37,7 @@ def test_doctor_generates_help_candidate_for_patient_situation():
 
 
 def test_soldier_generates_protect_candidate_for_danger():
-    candidates = ActionDecisionEngine().generate(
+    candidates = ActionDecisionEngine(action_rules=WORLD_RULES).generate(
         ActionDecisionInput(context_for("士兵"), "敌人发起攻击，周围很危险")
     )
 
@@ -48,7 +56,7 @@ def test_unknown_situation_generates_observe_candidate():
 
 
 def test_action_candidate_and_decision_input_are_immutable():
-    candidate = ActionDecisionEngine().generate(
+    candidate = ActionDecisionEngine(action_rules=WORLD_RULES).generate(
         ActionDecisionInput(context_for("医生"), "有人受伤")
     )[0]
     with pytest.raises(FrozenInstanceError):
@@ -69,7 +77,7 @@ def test_action_candidate_and_decision_input_are_immutable():
 
 
 def test_matching_situation_returns_specific_and_general_candidates():
-    candidates = ActionDecisionEngine().generate(
+    candidates = ActionDecisionEngine(action_rules=WORLD_RULES).generate(
         ActionDecisionInput(context_for("医生"), "救助受伤病人")
     )
 

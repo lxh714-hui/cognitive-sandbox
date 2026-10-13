@@ -17,14 +17,14 @@ def test_encounter_snapshot_round_trips_and_legacy_default_is_empty():
 
 def test_world_save_restores_encounter_trajectory_and_legacy_empty_state():
     launcher = GameLauncher()
-    session = launcher.start_anchor_world()
+    session = launcher.start_world("anchor")
     now = session.executor.world_clock.current_time().isoformat()
     session.encounter_manager.handle_event(WorldEvent(
         "trajectory-save", "main", session.executor.world_id, "observe_action", "liangjing",
         {"description": "玩家观察周围"}, 0, location="梁景住所", timestamp=now,
     ))
     metadata = SaveMetadata(
-        session.world_instance_id, session.executor.world_id, "anchor_world", "锚点", "测试存档",
+        session.world_instance_id, session.executor.world_id, "anchor", "锚点", "测试存档",
         now, now, player_character_id="liangjing",
     )
     serializer = WorldSerializer()

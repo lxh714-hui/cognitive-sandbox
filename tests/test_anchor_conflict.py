@@ -1,9 +1,9 @@
 from cognitive_sandbox.application.game_launcher import GameLauncher
-from cognitive_sandbox.simulation_test.simulation_runner import SimulationRunner
+from tools.simulation_test.simulation_runner import SimulationRunner
 
 
 def test_anchor_reports_conflict_snapshots_without_leaking_other_knowledge():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     report = SimulationRunner().run(session, tick_count=2, random_seed=413)
     assert report.ticks == 2
     assert hasattr(report.metrics, "active_conflicts")

@@ -6,13 +6,14 @@
 
 ## 启动
 
-在桌面应用的“世界大厅”中选择“进入《锚点》”。也可以在 Python 中调用 `GameLauncher.start_anchor_world()`。
+在桌面应用的“世界大厅”中选择《锚点》。也可以在 Python 中调用 `GameLauncher.start_world("anchor")`。
 
 初始事件 `WorldInitialized` 仅作为世界启动记录，不会直接推进剧情或产生事件结果。
 
 ## 包结构
 
-- `world_card.json`：世界规则与启动状态
+- `scenario.json`：场景元数据、启动状态与场景规则
+- `world.json`：世界设定与规则
 - `characters/`：角色卡、认知倾向、初始情绪与权限配置
 - `locations/`：地点与地点属性
 - `knowledge/initial_knowledge.json`：按角色隔离的初始知识

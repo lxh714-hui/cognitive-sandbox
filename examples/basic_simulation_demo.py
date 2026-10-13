@@ -28,11 +28,16 @@ def run_demo() -> dict[str, Any]:
         "social_trust": 0.5,
         "danger_level": 0.5,
     }
-    character = CharacterInitializer(character_id_factory=lambda: "doctor-1").initialize(
-        CharacterInitializationRequest("医生")
+    character = CharacterInitializer(character_id_factory=lambda: "agent-1").initialize(
+        CharacterInitializationRequest("resident")
     )
-    memories = MemoryInitializer(memory_id_factory=lambda: "memory-initial").initialize("医生")
-    relationships = RelationshipInitializer().initialize("医生", source_id=character.character_id)
+    memories = MemoryInitializer(memory_id_factory=lambda: "memory-initial").initialize(
+        "角色", templates=({"content": "曾有帮助他人的经历", "importance": .5},),
+    )
+    relationships = RelationshipInitializer().initialize(
+        "角色", source_id=character.character_id,
+        relationships=({"target_id": "person-2", "relation_type": "care", "trust": .6},),
+    )
     dynamic_state = AgentDynamicState(
         character_id=character.character_id,
         confidence=0.5,
@@ -49,7 +54,13 @@ def run_demo() -> dict[str, Any]:
     )
 
     tick = SimulationTick(
-        ActionDecisionEngine(action_id_factory=iter(("action-help", "action-observe")).__next__),
+        ActionDecisionEngine(
+            action_id_factory=iter(("action-help", "action-observe")).__next__,
+            action_rules=({
+                "role_aliases": ["普通居民"], "situation_aliases": ["受伤", "救助"],
+                "intent": "help", "motivation": "compassion",
+            },),
+        ),
         ActionResolver(),
         ActionEventAdapter(
             world_id="demo-world",

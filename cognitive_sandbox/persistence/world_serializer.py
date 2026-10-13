@@ -22,7 +22,9 @@ from cognitive_sandbox.domain.relationship import RelationshipState
 from cognitive_sandbox.domain.roleplay_turn import RoleplayTurn
 from cognitive_sandbox.domain.scenario import Scenario
 from cognitive_sandbox.domain.scenario_content import ScenarioContent
+from cognitive_sandbox.domain.scenario_runtime import AgentRuntimeProfile, ScenarioRuntime
 from cognitive_sandbox.domain.world_document import WorldDocument
+from cognitive_sandbox.domain.world_state import WorldState
 from cognitive_sandbox.domain.world_instance import WorldInstance
 from cognitive_sandbox.domain.story import StoryBranch
 from cognitive_sandbox.domain.world_events import WorldEvent
@@ -54,7 +56,7 @@ from cognitive_sandbox.narrative.narrative_state import NarrativeState
 from cognitive_sandbox.narrative.conflict_detector import Conflict
 from cognitive_sandbox.narrative.narrative_pressure import NarrativePressure
 from cognitive_sandbox.narrative.event_planner import CandidateEvent
-from cognitive_sandbox.narrative.narrative_anchor import NarrativeConstraint
+from cognitive_sandbox.narrative.narrative_constraint_validator import NarrativeConstraint
 from cognitive_sandbox.narrative.opportunity.narrative_opportunity import (
     NarrativeOpportunity, OpportunitySourceType, OpportunityStatus,
 )
@@ -102,6 +104,7 @@ _TYPES = {
         ActionCandidate, StoryBranch, NarrativeOpportunity,
         PatchValidationResult, RelationshipState, RoleplayTurn, Scenario, ScenarioContent,
         WorldDocument, WorldInstance, CharacterAddition, WorldPatch, WorldEvent, KnowledgeRecord,
+        AgentRuntimeProfile, ScenarioRuntime, WorldState,
         KnowledgeSource, KnowledgeVisibility, WorldFact, DisplayMessage, SaveMetadata, WorldEventRecord,
         CharacterGoal, WorldClockState, ScheduledWorldEvent,
         StateChange, WorldResource, LocationState,
@@ -226,18 +229,21 @@ class WorldSerializer:
             "conflicts": getattr(
                 getattr(session, "conflict_manager", None), "snapshot", lambda: ConflictSnapshot(),
             )(),
-            "world_package": {
-                "content_version": getattr(session, "anchor_content_version", None),
-                "started_at": getattr(session, "anchor_started_at", None),
+            "scenario_package": {
+                "scenario_id": getattr(session, "scenario_id", None)
+                or getattr(getattr(session, "scenario", None), "scenario_id", None),
+                "scenario_version": getattr(session, "scenario_version", None),
+                "started_at": getattr(session, "scenario_started_at", None),
                 "summary": {
                     "event_count": len(getattr(getattr(executor, "event_timeline", None), "events", ())),
                     "last_event_id": (getattr(executor.event_timeline, "events", ())[-1].event_id
                                       if getattr(getattr(executor, "event_timeline", None), "events", ()) else None),
                 },
                 "replay_index": len(getattr(getattr(executor, "event_timeline", None), "events", ())),
-                "settings": dict(getattr(session, "anchor_world_settings", {})),
-                "location_relations": getattr(session, "anchor_location_relations", ()),
-                "routines": getattr(session, "anchor_routines", {}),
+                "locations": getattr(session, "scenario_locations", ()),
+                "settings": dict(getattr(session, "scenario_settings", {})),
+                "location_relations": getattr(session, "scenario_location_relations", ()),
+                "routines": getattr(session, "scenario_routines", {}),
             },
         }
         payload = {
@@ -252,6 +258,7 @@ class WorldSerializer:
                 "situation": session.situation,
                 "scenario": session.scenario,
                 "scenario_content": session.scenario_content,
+                "scenario_runtime": getattr(session, "scenario_runtime", None),
                 "world_instance_id": session.world_instance_id,
                 "player_character_id": getattr(session, "player_character_id", session.player_id),
             }),
@@ -408,12 +415,22 @@ class WorldSerializer:
         autonomous.setdefault("encounters", EncounterSnapshot())
         autonomous.setdefault("information", InformationSnapshot())
         autonomous.setdefault("conflicts", ConflictSnapshot())
-        # Migrate saves written with the legacy package metadata key.
-        if "world_package" not in autonomous:
-            autonomous["world_package"] = autonomous.pop(
-                "demo", {"content_version": None, "started_at": None,
-                         "summary": {}, "replay_index": 0, "settings": {}}
-            )
+        # Migrate older saves to scenario-neutral package metadata.
+        if "scenario_package" not in autonomous:
+            legacy_package = autonomous.pop("world_package", autonomous.pop("demo", {}))
+            if not isinstance(legacy_package, Mapping):
+                legacy_package = {}
+            autonomous["scenario_package"] = {
+                "scenario_id": legacy_package.get("scenario_id"),
+                "scenario_version": legacy_package.get("scenario_version", legacy_package.get("content_version")),
+                "started_at": legacy_package.get("started_at"),
+                "summary": legacy_package.get("summary", {}),
+                "replay_index": legacy_package.get("replay_index", 0),
+                "locations": legacy_package.get("locations", ()),
+                "settings": legacy_package.get("settings", {}),
+                "location_relations": legacy_package.get("location_relations", ()),
+                "routines": legacy_package.get("routines", {}),
+            }
         autonomous.setdefault("goals", ())
         autonomous.setdefault("pending_events", ())
         autonomous.setdefault("state_changes", ())
@@ -467,8 +484,8 @@ class WorldSerializer:
             raise ValueError("world save contains invalid information network state.")
         if not isinstance(autonomous["conflicts"], ConflictSnapshot):
             raise ValueError("world save contains invalid conflict state.")
-        if not isinstance(autonomous["world_package"], Mapping):
-            raise ValueError("world save contains invalid world package metadata.")
+        if not isinstance(autonomous["scenario_package"], Mapping):
+            raise ValueError("world save contains invalid scenario package metadata.")
         result["autonomous"] = autonomous
         narrative = result["narrative"]
         if not isinstance(narrative, Mapping):

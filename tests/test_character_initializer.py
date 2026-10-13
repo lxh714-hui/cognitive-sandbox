@@ -9,28 +9,28 @@ from cognitive_sandbox.application.character_initializer import (
 from cognitive_sandbox.domain.character import CharacterState
 
 
-def test_young_doctor_uses_doctor_template():
+def test_user_description_does_not_select_a_world_specific_template():
     character = CharacterInitializer(character_id_factory=lambda: "doctor-1").initialize(
         CharacterInitializationRequest("年轻医生")
     )
 
     assert character.character_id == "doctor-1"
     assert character.name == "年轻医生"
-    assert character.role == "医生"
-    assert character.traits == ("谨慎", "富有同情心")
-    assert character.goals == ("帮助他人",)
-    assert character.fears
+    assert character.role == "普通居民"
+    assert character.traits == ("适应力强",)
+    assert character.goals == ("维持日常生活",)
+    assert character.fears == ()
     assert character.memories == ()
 
 
-def test_soldier_template_preserves_multiple_traits_and_goals():
+def test_occupation_text_does_not_inject_character_traits_or_goals():
     character = CharacterInitializer(character_id_factory=lambda: "soldier-1").initialize(
         CharacterInitializationRequest("士兵")
     )
 
-    assert character.role == "士兵"
-    assert character.traits == ("勇敢", "纪律性")
-    assert character.goals == ("保护同伴", "完成职责")
+    assert character.role == "普通居民"
+    assert character.traits == ("适应力强",)
+    assert character.goals == ("维持日常生活",)
 
 
 def test_unknown_description_uses_generic_character_template():

@@ -30,7 +30,7 @@ def test_story_view_shows_only_significant_player_visible_opportunities():
     app = QApplication.instance() or QApplication([])
     from cognitive_sandbox.application.game_launcher import GameLauncher
 
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     significant = NarrativeOpportunity(
         "op-story", "INFORMATION", visibility="owner", visible_character_ids=(session.player_id,),
         description="一条你亲自听到的传闻值得核实。", importance=.8,

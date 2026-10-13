@@ -2,15 +2,15 @@ from datetime import datetime, timezone
 
 from cognitive_sandbox.application.game_launcher import GameLauncher
 from cognitive_sandbox.domain.world_instance import WorldInstance
-from cognitive_sandbox.simulation_test.scenario_probe import AnchorSimulationProbe
-from cognitive_sandbox.simulation_test.simulation_runner import SimulationRunner
+from tools.simulation_test.scenario_probe import AnchorSimulationProbe
+from tools.simulation_test.simulation_runner import SimulationRunner
 
 
 def test_anchor_npc_autonomously_investigates_through_executor_and_pipeline():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     session.executor.world_clock.restore(datetime(2026, 1, 1, 20, tzinfo=timezone.utc).isoformat())
     AnchorSimulationProbe._configure_probe(session)
-    instance = WorldInstance(session.world_instance_id, "anchor_world", session.world_instance_id,
+    instance = WorldInstance(session.world_instance_id, "anchor", session.world_instance_id,
                              "锚点", "probe", "active", "running", "d1", "liangjing")
     SimulationRunner().run(instance, session=session, tick_count=0,
                            on_start=AnchorSimulationProbe._trigger_probe_clue)
@@ -27,7 +27,7 @@ def test_anchor_npc_autonomously_investigates_through_executor_and_pipeline():
 
 
 def test_scheduler_keeps_characters_outside_story_presence_inactive():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     assert session.presence_manager.get("song").availability.value == "UNKNOWN"
     assert session.presence_manager.get("pei").availability.value == "UNKNOWN"
 
@@ -35,7 +35,7 @@ def test_scheduler_keeps_characters_outside_story_presence_inactive():
 def test_agency_inspector_shows_candidates_without_private_knowledge_dump():
     from cognitive_sandbox.presentation.debug.agency_inspector import AgencyInspector
 
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     inspection = AgencyInspector().inspect(session, "liuyiyi")
     assert inspection.current_drive == "寻找异常线索"
     assert any(item.action_type == "investigate" for item in inspection.candidates)

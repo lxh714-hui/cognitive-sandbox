@@ -30,7 +30,7 @@ def test_protect_keywords_create_protect_action(text):
 
 
 def test_target_is_detected_from_role_keywords():
-    parser = PlayerActionParser()
+    parser = PlayerActionParser(entity_aliases={"医生": "doctor", "士兵": "soldier"})
 
     assert parser.parse("player-1", "帮助医生").target == "doctor"
     assert parser.parse("player-1", "保护士兵").target == "soldier"

@@ -1,0 +1,160 @@
+{
+  "scenario_id": "post_apocalypse_city",
+  "name": "末日城市",
+  "description": "一座在灾后艰难维持生活的城市，危险与资源短缺并存。",
+  "initial_world_state": {
+    "danger_level": 0.5,
+    "resource_level": 0.3
+  },
+  "character_templates": [
+    {
+      "id": "doctor",
+      "name": "医生",
+      "role": "doctor",
+      "traits": [
+        "compassionate"
+      ],
+      "goals": [
+        "help others"
+      ]
+    },
+    {
+      "id": "soldier",
+      "name": "士兵",
+      "role": "soldier",
+      "traits": [
+        "brave"
+      ],
+      "goals": [
+        "protect others"
+      ]
+    },
+    {
+      "id": "survivor",
+      "name": "幸存者",
+      "role": "survivor",
+      "traits": [
+        "adaptive"
+      ],
+      "goals": []
+    }
+  ],
+  "runtime_config": {
+    "action_aliases": {
+      "观察": "observe",
+      "看看": "observe",
+      "查看": "observe",
+      "帮助": "help",
+      "救助": "help",
+      "救": "help",
+      "保护": "protect",
+      "守护": "protect"
+    },
+    "entity_aliases": {
+      "医生": "doctor",
+      "doctor": "doctor",
+      "士兵": "soldier",
+      "soldier": "soldier"
+    },
+    "action_decision_rules": [
+      {
+        "role_aliases": [
+          "医生",
+          "doctor",
+          "physician"
+        ],
+        "situation_aliases": [
+          "受伤",
+          "病人",
+          "救助"
+        ],
+        "intent": "help",
+        "motivation": "compassion"
+      },
+      {
+        "role_aliases": [
+          "士兵",
+          "军人",
+          "soldier"
+        ],
+        "situation_aliases": [
+          "危险",
+          "攻击",
+          "敌人"
+        ],
+        "intent": "protect",
+        "motivation": "duty"
+      }
+    ],
+    "location_aliases": {
+      "街上": [
+        "街区",
+        "附近街区",
+        "neighborhood"
+      ],
+      "街道": [
+        "街区",
+        "附近街区",
+        "neighborhood"
+      ],
+      "便利店": [
+        "convenience_store"
+      ]
+    },
+    "action_durations": {
+      "wake": 5,
+      "eat": 20,
+      "work": 60,
+      "go_home": 15,
+      "move": 15,
+      "find": 10,
+      "inspect": 5,
+      "explore": 20
+    },
+    "goal_defaults": [
+      {
+        "role_aliases": [
+          "医生",
+          "doctor"
+        ],
+        "goal_type": "care_for_people",
+        "description": "照料有需要的人",
+        "priority": 0.8
+      },
+      {
+        "role_aliases": [
+          "guard",
+          "soldier",
+          "士兵",
+          "守卫"
+        ],
+        "goal_type": "protect_city",
+        "description": "保护并巡查所在区域",
+        "priority": 0.8,
+        "conditions": [
+          "patrol_time"
+        ]
+      }
+    ],
+    "goal_condition_definitions": {
+      "patrol_time": {
+        "type": "time_window",
+        "start_hour": 18,
+        "end_hour": 6
+      }
+    },
+    "npc_action_rules": [
+      {
+        "goal_type": "protect_city",
+        "action_type": "patrol",
+        "parameters": {
+          "location": "$world.location"
+        },
+        "reason": "按目标巡查区域",
+        "event_lifecycle": "REPEATABLE",
+        "cooldown_days": 2
+      }
+    ],
+    "locations": []
+  }
+}

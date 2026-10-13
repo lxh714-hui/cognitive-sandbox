@@ -1,5 +1,5 @@
-from cognitive_sandbox.simulation_test.simulation_metrics import SimulationMetrics
-from cognitive_sandbox.simulation_test.simulation_report import (
+from tools.simulation_test.simulation_metrics import SimulationMetrics
+from tools.simulation_test.simulation_report import (
     CharacterSimulationSummary, NarrativeThreadSummary, SimulationReport,
 )
 

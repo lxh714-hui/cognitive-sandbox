@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from cognitive_sandbox.domain.actions import ActionCandidate
 from cognitive_sandbox.domain.agent_context import AgentContext
+from cognitive_sandbox.application.scenario_runtime_defaults import DEFAULT_ACTION_DECISION_RULES
 
 
 @dataclass(frozen=True)
@@ -23,8 +24,9 @@ class ActionDecisionInput:
 class ActionDecisionEngine:
     """Generate immutable action candidates from role and situation keywords."""
 
-    def __init__(self, *, action_id_factory: Callable[[], str] | None = None) -> None:
+    def __init__(self, *, action_id_factory: Callable[[], str] | None = None, action_rules=None) -> None:
         self._action_id_factory = action_id_factory or (lambda: f"action_{uuid4().hex}")
+        self._action_rules = tuple(DEFAULT_ACTION_DECISION_RULES if action_rules is None else action_rules)
 
     def generate(self, decision_input: ActionDecisionInput) -> tuple[ActionCandidate, ...]:
         if not isinstance(decision_input, ActionDecisionInput):
@@ -33,15 +35,14 @@ class ActionDecisionEngine:
         context = decision_input.agent_context
         situation = decision_input.situation.casefold()
         role = context.character_state.role.casefold()
-        specific: tuple[str, str] | None = None
-        if any(role_key in role for role_key in ("医生", "doctor", "physician")) and any(
-            keyword in situation for keyword in ("受伤", "病人", "救助")
-        ):
-            specific = ("help", "compassion")
-        elif any(role_key in role for role_key in ("士兵", "军人", "soldier")) and any(
-            keyword in situation for keyword in ("危险", "攻击", "敌人")
-        ):
-            specific = ("protect", "duty")
+        specific = None
+        for rule in self._action_rules:
+            role_aliases = tuple(str(item).casefold() for item in rule.get("role_aliases", ()))
+            situation_aliases = tuple(str(item).casefold() for item in rule.get("situation_aliases", ()))
+            if (any(alias in role for alias in role_aliases)
+                    and any(keyword in situation for keyword in situation_aliases)):
+                specific = (str(rule["intent"]), str(rule.get("motivation", "goal")))
+                break
 
         candidates: list[ActionCandidate] = []
         if specific is not None:

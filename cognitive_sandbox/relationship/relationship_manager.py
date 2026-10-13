@@ -11,7 +11,7 @@ class RelationshipManager:
     """Maintain directional relationships and update them from deterministic rules."""
 
     DEFAULT_RULES = (
-        RelationshipRule(("help_attempt", "player_helped_doctor", "player_helped"), trust_delta=20, respect_delta=10, direction="both"),
+        RelationshipRule(("help_attempt", "player_helped"), trust_delta=20, respect_delta=10, direction="both"),
         RelationshipRule(("player_lied", "lied"), trust_delta=-20),
         RelationshipRule(("player_threatened", "weapon_threat"), fear_delta=20, hostility_delta=10, direction="target_to_actor"),
         RelationshipRule(("weapon_drawn", "weapon_draw"), fear_delta=8, hostility_delta=4, direction="target_to_actor"),

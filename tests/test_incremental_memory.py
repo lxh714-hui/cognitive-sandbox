@@ -34,8 +34,9 @@ def test_event_produces_delta_and_history_without_changing_world():
     assert session.world_memory.history.event_history[0].source_id == event.event_id
     delta = session.world_memory.event_deltas[0]
     assert (delta.source, delta.change_type, delta.before, delta.after) == (
-        event.event_id, "help_attempt", 0.2, 0.3,
+        event.event_id, "event_applied", None, {"type": "help_attempt"},
     )
+    assert session.world_memory.history.event_history[0].summary == "Event applied"
     assert session.world_memory.history.relationship_history
 
 

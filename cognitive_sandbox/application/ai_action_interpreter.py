@@ -9,6 +9,7 @@ from cognitive_sandbox.application.action_intent_parser import ActionIntentParse
 from cognitive_sandbox.domain.action_intent import ActionIntent
 from cognitive_sandbox.domain.player_action import PlayerAction
 from cognitive_sandbox.domain.player_intent import PlayerIntent
+from cognitive_sandbox.application.scenario_runtime_defaults import LEGACY_ENTITY_ALIASES
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class AIActionInterpreter:
         self,
         ai_adapter: AIGMAdapter | None = None,
         fallback_parser: PlayerActionParser | None = None,
+        scenario_config=None,
     ) -> None:
         if ai_adapter is not None and not callable(
             getattr(ai_adapter, "parse_player_action", None)
@@ -35,8 +37,25 @@ class AIActionInterpreter:
         ):
             raise TypeError("fallback_parser must provide parse.")
         self._ai_adapter = ai_adapter
-        self._fallback_parser = fallback_parser or PlayerActionParser()
-        self._action_intent_fallback = ActionIntentParser()
+        self.scenario_config = dict(scenario_config or {})
+        self._fallback_parser = fallback_parser or PlayerActionParser(
+            entity_aliases=self.scenario_config.get("entity_aliases", {})
+        )
+        self._action_intent_fallback = ActionIntentParser(
+            self.scenario_config.get("entity_aliases", {}),
+            self.scenario_config.get("location_aliases", {}),
+            self.scenario_config.get("action_defaults", {}),
+        )
+
+    def with_scenario_config(self, scenario_config):
+        """Create a session-scoped interpreter while reusing stateless adapters."""
+        config = scenario_config or {}
+        fallback_parser = PlayerActionParser(
+            entity_aliases=config.get("entity_aliases", {}),
+            location_aliases=config.get("location_aliases", {}),
+            action_defaults=config.get("action_defaults", {}),
+        )
+        return AIActionInterpreter(self._ai_adapter, fallback_parser, scenario_config=scenario_config)
 
     def interpret_action(self, actor_id: str, raw_input: str) -> ActionIntent | None:
         """Return an open-vocabulary intent; no world state is provided to the AI."""
@@ -52,7 +71,7 @@ class AIActionInterpreter:
         method = getattr(self._ai_adapter, "parse_action_intent", None)
         if callable(method):
             try:
-                action = method(raw_input, _player_authority_context(actor_id))
+                action = method(raw_input, _player_authority_context(actor_id, self.scenario_config))
                 if action is not None:
                     if not isinstance(action, ActionIntent):
                         raise TypeError("AI adapter must return ActionIntent or None.")
@@ -91,7 +110,7 @@ class AIActionInterpreter:
             try:
                 action = self._ai_adapter.parse_player_action(
                     raw_input,
-                    _player_authority_context(player_id),
+                    _player_authority_context(player_id, self.scenario_config),
                 )
                 intent = self._to_intent(action, player_id, raw_input)
                 if intent is not None:
@@ -165,7 +184,10 @@ def _redact_sensitive_text(value: str) -> str:
     return re.sub(r"\bsk-[A-Za-z0-9_-]{12,}\b", "[REDACTED]", value)
 
 
-def _player_authority_context(player_id: str) -> dict:
+def _player_authority_context(player_id: str, scenario_config=None) -> dict:
     # Keep the long-standing adapter input contract. AIGMAdapter adds its
     # authority projection before constructing the actual provider request.
-    return {"player_id": player_id}
+    result = {"player_id": player_id}
+    if scenario_config:
+        result["scenario_config"] = scenario_config
+    return result

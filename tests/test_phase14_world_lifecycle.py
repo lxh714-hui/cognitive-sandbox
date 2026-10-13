@@ -74,7 +74,7 @@ def test_mappingproxy_nested_state_can_be_snapshotted_after_an_action():
 def test_playable_anchor_flow_guides_observes_and_talks_without_duplicate_echo(qapp):
     window = FoundationMainWindow()
     window.set_game_launcher(GameLauncher(action_interpreter=ActionIntentParser()))
-    session = window.game_launcher.start_anchor_world()
+    session = window.game_launcher.start_world("anchor")
     window._attach_roleplay_session(session)
     opening = window.narrative_display.toPlainText()
     assert "梁景" in opening

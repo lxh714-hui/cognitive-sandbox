@@ -5,7 +5,7 @@ from cognitive_sandbox.cognition import CognitiveEngine, CognitiveStyle
 from cognitive_sandbox.domain.character_mind import KnowledgeContext
 
 
-def test_cognitive_interpretation_changes_ranked_action_tendency():
+def test_cognitive_style_changes_scoring_without_engine_authored_meaning():
     engine = CognitiveEngine(styles={
         "analyst": CognitiveStyle(analytical=.9, suspicious=.9),
         "pragmatist": CognitiveStyle(analytical=.2, suspicious=.1, pragmatic=.9),
@@ -20,4 +20,5 @@ def test_cognitive_interpretation_changes_ranked_action_tendency():
         KnowledgeContext(owner_id=cid), event, thought_pattern=thought, cognitive_style=engine.style_for(cid),
     ) for cid, thought in zip(("analyst", "pragmatist"), thoughts)]
     assert ranked[0][0].action_type == "investigate"
-    assert ranked[1][0].action_type != ranked[0][0].action_type
+    assert ranked[1][0].action_type == "investigate"
+    assert ranked[0][0].parameters["action_probability"] != ranked[1][0].parameters["action_probability"]

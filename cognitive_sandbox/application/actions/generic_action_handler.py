@@ -6,16 +6,22 @@ from cognitive_sandbox.domain.narrative_event import NarrativeEvent
 from cognitive_sandbox.domain.roleplay_result import RoleplayResult
 from cognitive_sandbox.domain.simulation_result import SimulationTickResult
 from cognitive_sandbox.domain.world_events import WorldEvent
+from cognitive_sandbox.application.scenario_runtime_defaults import DEFAULT_ACTION_DURATIONS
 
 
 class GenericActionHandler:
     """Resolve a small set of grounded everyday actions without inventing facts."""
 
     _ACTIONS = {"wake", "eat", "work", "go_home", "move", "find", "inspect", "explore"}
-    _DURATION = {"wake": 5, "eat": 20, "work": 60, "go_home": 15, "move": 15, "find": 10, "inspect": 5, "explore": 20}
-
-    def __init__(self, *, id_factory=None):
+    def __init__(self, *, id_factory=None, runtime_config=None):
         self._id_factory = id_factory or (lambda: uuid4().hex)
+        runtime_config = runtime_config or {}
+        configured_durations = runtime_config.get("action_durations", {})
+        self._durations = {**DEFAULT_ACTION_DURATIONS, **dict(configured_durations)}
+        self._location_aliases = {
+            str(key).casefold(): tuple(value) for key, value in
+            dict(runtime_config.get("location_aliases", {})).items()
+        }
 
     @classmethod
     def supports(cls, intent):
@@ -67,7 +73,7 @@ class GenericActionHandler:
             if intent == "work":
                 state["work_status"] = "worked_recently"
 
-        minutes = self._DURATION[intent]
+        minutes = int(self._durations[intent])
         state["elapsed_minutes"] = state.get("elapsed_minutes", 0) + minutes
         clock = context.world_clock
         now = clock.advance(minutes) if clock is not None else None
@@ -120,9 +126,7 @@ class GenericActionHandler:
         if not isinstance(requested, str) or not requested.strip():
             return None
         query = requested.casefold().strip()
-        aliases = {"街上": ("街区", "附近街区", "neighborhood"), "街道": ("街区", "附近街区", "neighborhood"),
-                   "便利店": ("便利店", "convenience_store")}
-        candidates = (query, *aliases.get(query, ()))
+        candidates = (query, *self._location_aliases.get(query, ()))
         return next((item for item in locations
                      if any(candidate in {item.location_id.casefold(), item.name.casefold()}
                             or candidate in item.name.casefold() for candidate in candidates)), None)

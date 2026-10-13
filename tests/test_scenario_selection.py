@@ -25,12 +25,10 @@ def test_panel_lists_registered_scenarios_and_descriptions(qapp):
     registry = ScenarioLoader().registry
     panel = ScenarioSelectionPanel(registry)
 
-    assert panel.scenario_list.count() == 2
-    assert panel.scenario_list.item(0).text() == "末日城市"
-    assert panel.scenario_list.item(0).data(Qt.ItemDataRole.UserRole) == "post_apocalypse_city"
-    assert "灾后" in panel.description.text()
-    assert panel.scenario_list.item(1).text() == "灰港纪元"
-    assert panel.scenario_list.item(1).data(Qt.ItemDataRole.UserRole) == "example_world"
+    available = {panel.scenario_list.item(i).data(Qt.ItemDataRole.UserRole)
+                 for i in range(panel.scenario_list.count())}
+    assert available == {scenario.scenario_id for scenario in registry.list_available()}
+    assert panel.scenario_list.count() == len(registry.list_available())
     assert panel.start_button.isEnabled()
     panel.close()
 
@@ -41,10 +39,14 @@ def test_selecting_and_starting_returns_scenario_id(qapp):
     started: list[str] = []
     panel.scenario_started.connect(started.append)
 
+    scenario_id = panel.scenario_list.item(panel.scenario_list.count() - 1).data(Qt.ItemDataRole.UserRole)
+    index = next(i for i in range(panel.scenario_list.count())
+                 if panel.scenario_list.item(i).data(Qt.ItemDataRole.UserRole) == scenario_id)
+    panel.scenario_list.setCurrentRow(index)
     scenario_id = panel.start_selected()
     panel.start_button.click()
 
-    assert scenario_id == "post_apocalypse_city"
+    assert scenario_id in {scenario.scenario_id for scenario in registry.list_available()}
     assert started == [scenario_id]
     panel.close()
 

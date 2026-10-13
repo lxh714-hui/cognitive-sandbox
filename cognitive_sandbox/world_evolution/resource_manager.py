@@ -79,6 +79,20 @@ class ResourceManager:
                 break
         return tuple(changed)
 
+    def set_quantity(self, resource_type: str, quantity: float, *, location_id: str | None = None):
+        """Set a scoped resource total while preserving an existing resource ID."""
+        if not isinstance(resource_type, str) or not resource_type.strip():
+            raise ValueError("resource_type must not be empty.")
+        if isinstance(quantity, bool) or not isinstance(quantity, (int, float)) or quantity < 0:
+            raise ValueError("quantity must be non-negative.")
+        existing = self.query(resource_type, location_id=location_id)
+        resource_id = existing[0].resource_id if existing else None
+        for item in existing:
+            self._resources.pop(item.resource_id, None)
+        if quantity == 0:
+            return None
+        return self.add(resource_type, quantity, location_id=location_id, resource_id=resource_id)
+
     def transfer(self, resource_type: str, quantity: float, *, from_location_id: str | None, to_location_id: str | None):
         self.consume(resource_type, quantity, location_id=from_location_id)
         return self.add(resource_type, quantity, location_id=to_location_id)

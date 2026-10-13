@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 from collections.abc import Mapping
 
-from cognitive_sandbox.narrative.narrative_anchor import NarrativeAnchorValidator, NarrativeConstraint
+from cognitive_sandbox.narrative.narrative_constraint_validator import NarrativeConstraintValidator, NarrativeConstraint
 
 from .director_constraint import DirectorConstraint, DirectorConstraintStatus
 from .constraint_type import ConstraintType
@@ -13,8 +13,8 @@ from .constraint_explanation import ConstraintExplanation
 class DirectorConstraintEvaluator:
     """Validate a soft direction against public presence and causal-travel rules."""
 
-    def __init__(self, anchor_validator=None):
-        self.anchor_validator = anchor_validator or NarrativeAnchorValidator()
+    def __init__(self, constraint_validator=None):
+        self.constraint_validator = constraint_validator or NarrativeConstraintValidator()
 
     def to_narrative_constraints(self, constraint: DirectorConstraint):
         targets = tuple(item for item in (constraint.target or "world").split(",") if item) or ("world",)
@@ -60,10 +60,10 @@ class DirectorConstraintEvaluator:
     def evaluate(self, constraint, *, presences=(), current_location=None, reachable_locations=()):
         if not isinstance(constraint, DirectorConstraint):
             raise TypeError("constraint must be DirectorConstraint.")
-        anchors = self.to_narrative_constraints(constraint)
-        validations = tuple(self.anchor_validator.validate(
-            anchor, presences, current_location=current_location, reachable_locations=reachable_locations
-        ) for anchor in anchors)
+        constraints = self.to_narrative_constraints(constraint)
+        validations = tuple(self.constraint_validator.validate(
+            item, presences, current_location=current_location, reachable_locations=reachable_locations
+        ) for item in constraints)
         rejected = next((item for item in validations if not item.accepted), None)
         if rejected is not None:
             return replace(constraint, status=DirectorConstraintStatus.BLOCKED), rejected.reason

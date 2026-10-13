@@ -12,7 +12,7 @@ from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from cognitive_sandbox.application.service import SandboxService
-from cognitive_sandbox.domain.sample_world import SAMPLE_AGENT, SAMPLE_MEMORIES, SAMPLE_WORLD
+from examples.sample_world import SAMPLE_AGENT, SAMPLE_MEMORIES, SAMPLE_WORLD
 from cognitive_sandbox.infrastructure.ollama import DemoProvider
 from cognitive_sandbox.infrastructure.sqlite_store import SQLiteEventStore
 from cognitive_sandbox.infrastructure.static_sprites import StaticSpriteRenderer

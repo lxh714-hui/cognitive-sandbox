@@ -160,13 +160,10 @@ class WorldLibrary:
             item = next((world for world in self.list_worlds() if world.instance_id == instance_id), None)
             if item is None:
                 return {}
-            is_anchor = item.scenario_id == "anchor_world"
-            return {"version": "0.2" if is_anchor else "未标注",
-                    "character_count": 4 if is_anchor else "—", "day": None,
+            return {"version": "未标注", "character_count": "—", "day": None,
                     "recent_summary": item.world_status or "尚无近期事件"}
         session = record.session
-        package = getattr(session, "anchor_world_package", None)
-        version = getattr(getattr(package, "world_card", None), "content_version", None)
+        version = getattr(session, "scenario_version", None)
         cards = getattr(getattr(session, "scenario_content", None), "character_cards", ())
         events = getattr(getattr(getattr(session, "executor", None), "event_timeline", None), "events", ())
         recent = next((event.metadata.get("public_description") or event.metadata.get("description")

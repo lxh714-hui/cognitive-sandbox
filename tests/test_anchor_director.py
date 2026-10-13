@@ -4,7 +4,7 @@ from cognitive_sandbox.director.director_intent import DirectorIntent, DirectorI
 
 
 def test_anchor_director_goal_uses_causal_path_without_creating_world_event():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     before = dict(session.world_state)
     result = session.director_manager.submit_intent(DirectorIntent(
         DirectorIntentType.CHARACTER_ENTRY, "liuyiyi", "希望柳依依早点出现"

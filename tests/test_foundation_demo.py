@@ -16,7 +16,7 @@ def test_demo_tick_generates_expected_event():
 
     assert len(result.events) == 1
     assert result.events[0].event_type == "help_attempt"
-    assert result.events[0].actor_id == "doctor-1"
+    assert result.events[0].actor_id == "agent-1"
 
 
 def test_demo_tick_changes_world_state():

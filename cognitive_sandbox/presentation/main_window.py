@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         self.service, self.world, self.agent, self.renderer = service, world, agent, renderer
         self._thread: QThread | None = None
         self._worker: TurnWorker | None = None
-        self.setWindowTitle("Cognitive Sandbox · 暮港来信")
+        self.setWindowTitle("Cognitive Sandbox")
         self.resize(1180, 760)
         self.setMinimumSize(520, 420)
         self._settings = QSettings("CognitiveSandbox", "CognitiveSandbox")
@@ -109,8 +109,8 @@ class MainWindow(QMainWindow):
         header = QHBoxLayout()
         brand = QLabel("COGNITIVE SANDBOX")
         brand.setObjectName("eyebrow")
-        scene = QLabel("第一章  ·  灯塔亮起之前")
-        scene.setObjectName("chapter")
+        scene = QLabel(self.world.name)
+        scene.setObjectName("worldName")
         header.addWidget(brand)
         header.addStretch()
         header.addWidget(scene)
@@ -170,7 +170,7 @@ class MainWindow(QMainWindow):
         input_row = QHBoxLayout()
         self.input = QLineEdit()
         self.input.setObjectName("input")
-        self.input.setPlaceholderText("和林夏说些什么……")
+        self.input.setPlaceholderText("描述你的行动或想说的话……")
         self.input.returnPressed.connect(self._submit)
         self.send_button = QPushButton("发送  ↗")
         self.send_button.setObjectName("sendButton")
@@ -251,7 +251,7 @@ class MainWindow(QMainWindow):
         )
         self.input.setEnabled(roleplay)
         self.send_button.setEnabled(roleplay and bool(self.input.text().strip()) and self._thread is None)
-        self.input.setPlaceholderText("和林夏说些什么……")
+        self.input.setPlaceholderText("描述你的行动或想说的话……")
         self.input.setAccessibleName("人物扮演对话输入" if roleplay else "剧情推演模式对话输入已停用")
         self.send_button.setAccessibleName("\u53d1\u9001\u5bf9\u8bdd")
 
@@ -341,8 +341,10 @@ class MainWindow(QMainWindow):
         self.transcript.clear()
         history = self.service.history(self.world)
         if not history:
-            self.transcript.append("<span style='color:#f0c8a2'>傍晚的海风吹进灯塔值班室。</span>")
-            self.transcript.append("林夏把一封泛黄的信放在桌上，抬头看向你。<br>“你来得正好。我一直在想，这封信该不该寄出去。”")
+            if self.world.description.strip():
+                self.transcript.append(self._escape(self.world.description))
+            if self.agent.persona.strip():
+                self.transcript.append(self._escape(self.agent.persona))
             return
         for event in history:
             if event.kind == "player":
@@ -414,7 +416,7 @@ QPushButton#sidebarHandleButton { background: #27272c; border: 1px solid #4a474c
 QPushButton#sidebarHandleButton:hover { background: #343036; border-color: #b88a61; color: #f1e9df; }
 QPushButton#sidebarHandleButton:focus { border: 2px solid #c48e6b; }
 QLabel#eyebrow { color: #cba888; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
-QLabel#chapter { color: #a6a0a0; font-size: 11px; }
+QLabel#worldName { color: #a6a0a0; font-size: 11px; }
 QPushButton#modeButton { background: #292a30; border: 1px solid #414148; border-radius: 8px; padding: 7px 13px; color: #b9b1ad; font-size: 11px; }
 QPushButton#modeButton:hover { border-color: #8d6a55; color: #f1e9df; }
 QPushButton#modeButton:checked { background: #c48e6b; border-color: #c48e6b; color: #171719; font-weight: 700; }
@@ -904,7 +906,7 @@ class FoundationMainWindow(QMainWindow):
         dialog.setWindowTitle("世界大厅")
         dialog.setObjectName("worldLobbyDialog")
         layout = QVBoxLayout(dialog)
-        panel = WorldLobbyPanel(self.world_library, dialog)
+        panel = WorldLobbyPanel(self.world_library, self.scenario_registry, dialog)
         if self.current_world_instance_id is not None:
             for index in range(panel.world_list.count()):
                 item = panel.world_list.item(index)
@@ -931,34 +933,22 @@ class FoundationMainWindow(QMainWindow):
         panel.create_requested.connect(
             lambda: (dialog.accept(), QTimer.singleShot(0, self.open_ai_world_creation))
         )
-        def _create_anchor() -> None:
+        def _start_scenario(scenario_id: str) -> None:
             try:
-                session = self.game_launcher.start_anchor_world()
-                self.mode_selector.setCurrentIndex(self.mode_selector.findData("roleplay"))
+                session = self.game_launcher.start_world(scenario_id)
+                if self._requested_entry_mode == "simulation":
+                    session.scenario_settings = {**session.scenario_settings,
+                                                 "mode": "simulation_observation"}
+                self.mode_selector.setCurrentIndex(self.mode_selector.findData(self._requested_entry_mode))
                 self._attach_roleplay_session(session)
                 self.set_mode(self._requested_entry_mode)
                 dialog.accept()
             except Exception as error:
-                logger.exception("Could not start Anchor world")
+                logger.exception("Could not start scenario package")
                 self.append_system_message("无法启动这个世界，请稍后重试。")
                 panel.refresh()
 
-        panel.anchor_requested.connect(_create_anchor)
-        def _observe_anchor() -> None:
-            try:
-                session = self.game_launcher.start_anchor_world()
-                session.anchor_world_settings = {**session.anchor_world_settings,
-                                                "mode": "simulation_observation"}
-                self.mode_selector.setCurrentIndex(self.mode_selector.findData("simulation"))
-                self._attach_roleplay_session(session)
-                self.set_mode("simulation")
-                dialog.accept()
-            except Exception as error:
-                logger.exception("Could not open Anchor world observation")
-                self.append_system_message("无法打开模拟观察，请稍后重试。")
-                panel.refresh()
-
-        panel.anchor_simulation_requested.connect(_observe_anchor)
+        panel.scenario_requested.connect(_start_scenario)
         panel.extend_requested.connect(
             lambda instance_id: (dialog.accept(), QTimer.singleShot(0, lambda: self.open_world_extension(instance_id)))
         )
@@ -1328,7 +1318,7 @@ class FoundationMainWindow(QMainWindow):
             location_name = session.world_state.get("location_name") or session.world_state.get("current_location_name")
         if not location_name:
             location_name = "所在地点"
-        started = getattr(session, "anchor_started_at", None)
+        started = getattr(session, "scenario_started_at", None)
         day_number = 1
         saved_day = session.world_state.get("day", session.world_state.get("day_number"))
         if isinstance(saved_day, int) and not isinstance(saved_day, bool) and saved_day > 0:

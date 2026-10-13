@@ -119,12 +119,25 @@ class EventPipeline:
             seen.add(current.event_id)
             published.append(current)
             results = self.bus.publish(current, context, exclude=() if allow_npc else ("npc_response",))
+            self._record_state_deltas(results)
             for listener_name, value in results:
                 if listener_name == "npc_response" and not allow_npc:
                     continue
                 for child in _world_events(value):
                     pending.append((child, False if listener_name in {"scheduler", "autonomous_npc", "npc_response"} else True))
         return tuple(published)
+
+    def _record_state_deltas(self, results):
+        memory = self.world_memory
+        if memory is None:
+            return
+        for listener_name, value in results:
+            if listener_name != "world_evolution" or value is None:
+                continue
+            changes = value if isinstance(value, (tuple, list)) else (value,)
+            for change in changes:
+                if all(hasattr(change, name) for name in ("target_id", "field", "old_value", "new_value")):
+                    memory.record_state_change(change)
 
     def _handle_npc(self, event, context):
         if self.npc_response_service is None or context is None:

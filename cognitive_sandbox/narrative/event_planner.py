@@ -37,7 +37,7 @@ class EventPlanner:
         self.conflict_detector = conflict_detector or ConflictDetector()
 
     def plan_from_state(self, goals=(), motivations=(), resources=(), *, world_state=None,
-                        presence=(), locations=(), current_time=None, pressure=None, anchors=(), maximum=3):
+                        presence=(), locations=(), current_time=None, pressure=None, constraints=(), maximum=3):
         """Build candidates from a current snapshot and explicit conflict sources."""
         conflicts = self.conflict_detector.detect(goals, motivations, resources)
         if pressure is None and isinstance(world_state, dict):
@@ -46,10 +46,10 @@ class EventPlanner:
             from cognitive_sandbox.narrative.narrative_pressure import NarrativePressureCalculator
             pressure = NarrativePressureCalculator().calculate(conflicts, danger=danger)
         return self.plan(conflicts, presence=presence, locations=locations, current_time=current_time,
-                         pressure=pressure, anchors=anchors, maximum=maximum)
+                         pressure=pressure, constraints=constraints, maximum=maximum)
 
     def plan(self, conflicts=(), *, presence=(), locations=(), current_time=None,
-             pressure: NarrativePressure | None = None, anchors=(), maximum=3):
+             pressure: NarrativePressure | None = None, constraints=(), maximum=3):
         conflicts = tuple(conflicts)
         presences = {item.character_id: item for item in presence}
         location_ids = {getattr(item, "location_id", None) or getattr(item, "id", None) for item in locations}
@@ -93,16 +93,16 @@ class EventPlanner:
                     + (pressure.conflict_pressure * 0.2 if pressure else 0.0)),
             )
             result.append(event)
-        # Anchor objectives can shape candidates, but only if causal conditions are represented.
-        for anchor in anchors:
-            target = getattr(anchor, "target", None)
+        # Director constraints shape candidates only when causal conditions are represented.
+        for constraint in constraints:
+            target = getattr(constraint, "target", None)
             if target in presences and getattr(presences[target].availability, "value", None) in {"UNKNOWN", "LEFT"}:
                 continue
             result.append(CandidateEvent(
-                f"candidate:anchor:{target}:{len(result)}", "objective_opportunity",
+                f"candidate:constraint:{target}:{len(result)}", "objective_opportunity",
                 (target,) if target else (), None, ("world_conditions_must_allow", "no_teleportation"),
-                f"导演约束作为软目标等待因果条件：{anchor.objective}", (),
-                min(1.0, max(0.0, getattr(anchor, "priority", 0) / 10)),
+                f"导演约束作为软目标等待因果条件：{constraint.objective}", (),
+                min(1.0, max(0.0, getattr(constraint, "priority", 0) / 10)),
             ))
         result.sort(key=lambda item: (-item.pressure, item.candidate_id))
         return tuple(result[:max(0, int(maximum))])

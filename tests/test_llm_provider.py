@@ -78,6 +78,8 @@ def test_provider_returns_clear_error_response_for_api_errors(response, message)
 
     assert result.content.startswith("LLM provider error:")
     assert message in result.content
+    assert not result.success
+    assert result.error in {"invalid_response", "provider_error"}
 
 
 def test_provider_converts_transport_exception_to_error_response():
@@ -86,6 +88,8 @@ def test_provider_converts_transport_exception_to_error_response():
     response = provider.complete(AIGMRequest("test", {}))
 
     assert response.content == "LLM provider error: request timed out"
+    assert not response.success
+    assert response.error == "timeout"
 
 
 def test_provider_does_not_modify_request_or_nested_input_data():

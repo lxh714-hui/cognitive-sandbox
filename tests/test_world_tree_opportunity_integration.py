@@ -7,7 +7,7 @@ def _play(session, text):
 
 
 def test_world_tree_only_records_selected_opportunity_after_action_event():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     service = session.opportunity_service
     tree = session.executor.world_tree_manager
     before_state = dict(session.world_state)
@@ -26,7 +26,7 @@ def test_world_tree_only_records_selected_opportunity_after_action_event():
 
     # A fresh Anchor instance chooses the clock possibility and only then gets
     # the ordinary action event from the existing action handler.
-    selected_session = GameLauncher().start_anchor_world()
+    selected_session = GameLauncher().start_world("anchor")
     result = _play(selected_session, "看看钟")
     assert result.action_executed
     assert result.simulation_result.events
@@ -36,7 +36,7 @@ def test_world_tree_only_records_selected_opportunity_after_action_event():
 
 
 def test_unselected_opportunity_does_not_publish_an_event():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     service = session.opportunity_service
     events_before = tuple(session.executor.event_timeline.events)
     state_before = dict(session.world_state)

@@ -34,7 +34,15 @@ class AIGMRequest:
 @dataclass(frozen=True)
 class AIGMResponse:
     content: str
+    success: bool = True
+    error: str | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.content, str) or not self.content.strip():
-            raise ValueError("content must not be empty.")
+        if not isinstance(self.content, str):
+            raise TypeError("content must be a string.")
+        if not isinstance(self.success, bool):
+            raise TypeError("success must be a bool.")
+        if self.success and not self.content.strip():
+            raise ValueError("successful response content must not be empty.")
+        if not self.success and (not isinstance(self.error, str) or not self.error.strip()):
+            raise ValueError("failed responses require a non-empty error status.")

@@ -65,7 +65,7 @@ class NarrativeState:
             locations=locations,
             current_time=current_time,
             pressure=pressure,
-            anchors=constraints,
+            constraints=constraints,
             maximum=maximum_candidates,
         )
         return cls(tuple(threads), candidates, pressure)

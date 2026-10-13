@@ -2,7 +2,7 @@ from cognitive_sandbox.application.game_launcher import GameLauncher
 
 
 def test_anchor_runtime_exposes_scoped_opportunities_without_changing_world_or_creating_events():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     before_state = dict(session.world_state)
     before_events = tuple(session.executor.event_timeline.events)
     service = session.opportunity_service
@@ -17,7 +17,7 @@ def test_anchor_runtime_exposes_scoped_opportunities_without_changing_world_or_c
 
 
 def test_player_may_ignore_all_opportunities_without_simulation_effect():
-    session = GameLauncher().start_anchor_world()
+    session = GameLauncher().start_world("anchor")
     world_before = dict(session.world_state)
     event_count = len(session.executor.event_timeline.events)
     _visible = session.opportunity_service.for_character(session.player_id)

@@ -18,14 +18,7 @@ from cognitive_sandbox.presentation.theme import apply_theme
 def _smoke_test_ui(app: QApplication, window: FoundationMainWindow) -> int:
     """Exercise the empty lobby and a visible roleplay response offscreen."""
     status = {"code": 10}
-    package_ok = False
-
-    try:
-        from cognitive_sandbox.application.anchor_world_loader import AnchorWorldLoader
-        package = AnchorWorldLoader().load()
-        package_ok = package.world_card.content_version == "0.2" and bool(package.scenario_content.character_cards)
-    except Exception:
-        package_ok = False
+    package_ok = bool(window.scenario_registry and window.scenario_registry.list_available())
 
     def verify_lobby_and_roleplay() -> None:
         dialog = next(
@@ -48,7 +41,13 @@ def _smoke_test_ui(app: QApplication, window: FoundationMainWindow) -> int:
         # The smoke harness explicitly chooses a built-in scenario after verifying
         # startup did not create one implicitly.
         try:
-            window.start_new_game("post_apocalypse_city")
+            available = window.scenario_registry.list_available()
+            if not available:
+                status["code"] = 13
+                window.close()
+                app.quit()
+                return
+            window.start_new_game(available[0].scenario_id)
             window.player_input.setPlainText("观察周围")
             if not window.confirm_button.isEnabled():
                 status["code"] = 15

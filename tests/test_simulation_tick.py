@@ -29,7 +29,13 @@ def make_context():
 
 def make_tick(engine=None):
     return SimulationTick(
-        engine or ActionDecisionEngine(action_id_factory=iter(("act-help", "act-observe")).__next__),
+        engine or ActionDecisionEngine(
+            action_id_factory=iter(("act-help", "act-observe")).__next__,
+            action_rules=({
+                "role_aliases": ("医生",), "situation_aliases": ("病人受伤", "病人"),
+                "intent": "help", "motivation": "care",
+            },),
+        ),
         ActionResolver(),
         ActionEventAdapter(
             world_id="world-1",

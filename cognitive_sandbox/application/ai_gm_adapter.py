@@ -21,6 +21,9 @@ from cognitive_sandbox.domain.dialogue import DialogueLine
 from cognitive_sandbox.domain.narrative_event import NarrativeEvent
 from cognitive_sandbox.domain.player_action import PlayerAction
 from cognitive_sandbox.domain.world_events import WorldEvent
+from cognitive_sandbox.application.scenario_runtime_defaults import (
+    DEFAULT_ACTION_ALIASES, LEGACY_ENTITY_ALIASES,
+)
 
 
 class AIGMProvider(Protocol):
@@ -43,7 +46,9 @@ class MockAIProvider:
         if not isinstance(request, AIGMRequest):
             raise TypeError("request must be an AIGMRequest.")
         if request.request_type == "parse_player_action":
-            return AIGMResponse(self._parse_action(request.context["player_text"]))
+            return AIGMResponse(self._parse_action(
+                request.context["player_text"], request.context.get("scenario_config", {})
+            ))
         if request.request_type == "parse_action_intent":
             from cognitive_sandbox.application.action_intent_parser import ActionIntentParser
 
@@ -65,7 +70,7 @@ class MockAIProvider:
         raise ValueError(f"Unsupported AI GM request type: {request.request_type}")
 
     @staticmethod
-    def _parse_action(player_text: str) -> str:
+    def _parse_action(player_text: str, scenario_config=None) -> str:
         if any(word in player_text for word in ("观察", "看看", "查看")):
             intent = "observe"
         elif any(word in player_text for word in ("帮助", "救")):
@@ -74,7 +79,7 @@ class MockAIProvider:
             intent = "protect"
         else:
             return json.dumps({"intent": None, "target": None}, ensure_ascii=False)
-        target = "doctor" if "医生" in player_text else "soldier" if "士兵" in player_text else None
+        target = _infer_target(player_text, _entity_aliases(scenario_config))
         return json.dumps({"intent": intent, "target": target}, ensure_ascii=False)
 
     @staticmethod
@@ -119,6 +124,7 @@ class AIGMAdapter:
         if not isinstance(player_text, str) or not player_text.strip():
             raise ValueError("player_text must not be empty.")
         player_id = self._player_id(context)
+        scenario_config = context.get("scenario_config", {}) if isinstance(context, Mapping) else {}
         response = self._call(
             AIGMRequest(
                 "parse_player_action",
@@ -149,7 +155,7 @@ class AIGMAdapter:
             if not raw_intent.strip():
                 return None
 
-            intent = _normalise_action_label(raw_intent)
+            intent = _normalise_action_label(raw_intent, scenario_config)
             if intent is None:
                 raise ActionResponseParseError(
                     raw_response, f"unsupported action label: {raw_intent!r}."
@@ -159,23 +165,25 @@ class AIGMAdapter:
             if target is not None and not isinstance(target, str):
                 raise ActionResponseParseError(raw_response, "target must be a string or null.")
             target = (
-                _normalise_target(target)
+                _normalise_target(target, _entity_aliases(scenario_config))
                 if target is not None
-                else _infer_target(raw_response) or _infer_target(player_text)
+                else _infer_target(raw_response, _entity_aliases(scenario_config))
+                     or _infer_target(player_text, _entity_aliases(scenario_config))
             )
             if target is not None and not target.strip():
                 raise ActionResponseParseError(raw_response, "target must not be empty.")
             return PlayerAction(player_id, player_text, intent, target)
 
         # Recover a single known label from legacy prose-only model output,
-        # such as "开始观察\\n...\\ndoctor". Ambiguous prose is rejected.
-        intent = _infer_action_from_text(raw_response)
+        # such as narration followed by an unstructured entity identifier. Ambiguous prose is rejected.
+        intent = _infer_action_from_text(raw_response, scenario_config)
         if intent is not None:
             return PlayerAction(
                 player_id,
                 player_text,
                 intent,
-                _infer_target(raw_response) or _infer_target(player_text),
+                _infer_target(raw_response, _entity_aliases(scenario_config))
+                or _infer_target(player_text, _entity_aliases(scenario_config)),
             )
         raise ActionResponseParseError(raw_response, extraction_reason)
 
@@ -201,7 +209,11 @@ class AIGMAdapter:
         raw_intent = _first_present(parsed, "intent", "action_type", "action")
         if not isinstance(raw_intent, str) or not raw_intent.strip():
             raise ActionResponseParseError(raw_response, "intent must be a non-empty string.")
-        intent = raw_intent.strip().casefold() if raw_intent.isascii() else raw_intent.strip()
+        scenario_config = context.get("scenario_config", {}) if isinstance(context, Mapping) else {}
+        aliases = {**DEFAULT_ACTION_ALIASES,
+                   **dict((scenario_config or {}).get("action_aliases", {}))}
+        normalized_label = raw_intent.strip().casefold() if raw_intent.isascii() else raw_intent.strip()
+        intent = aliases.get(normalized_label, normalized_label)
         target = parsed.get("target")
         object_ref = parsed.get("object", parsed.get("object_ref"))
         if target is not None and not isinstance(target, str):
@@ -307,6 +319,12 @@ class AIGMAdapter:
         response = self._provider.complete(request)
         if not isinstance(response, AIGMResponse):
             raise TypeError("AI GM provider must return an AIGMResponse.")
+        if not response.success:
+            raise AIGMProviderError(response.error or "provider_error")
+        if response.content.startswith("LLM provider error:"):
+            # Compatibility guard for third-party and test providers predating
+            # AIGMResponse.success. Legacy error text is never generated content.
+            raise AIGMProviderError("legacy_provider_error")
         return response
 
     @staticmethod
@@ -318,6 +336,14 @@ class AIGMAdapter:
             if isinstance(player_id, str) and player_id.strip():
                 return player_id
         raise ValueError("context must provide a valid player_id.")
+
+
+class AIGMProviderError(RuntimeError):
+    """Explicit provider failure; never expose its payload as generated text."""
+
+    def __init__(self, status: str) -> None:
+        self.status = status
+        super().__init__(f"AI provider request failed ({status}).")
 
 
 def _authority_from_context(context, character_id):
@@ -423,29 +449,10 @@ def _first_present(payload: dict, *keys: str):
     return None
 
 
-_ACTION_ALIASES = {
-    "observe": "observe",
-    "observation": "observe",
-    "look": "observe",
-    "inspect": "observe",
-    "观察": "observe",
-    "看看": "observe",
-    "查看": "observe",
-    "help": "help",
-    "assist": "help",
-    "帮助": "help",
-    "救": "help",
-    "救助": "help",
-    "protect": "protect",
-    "guard": "protect",
-    "保护": "protect",
-    "守护": "protect",
-}
-
-
-def _normalise_action_label(label: str) -> str | None:
+def _normalise_action_label(label: str, scenario_config=None) -> str | None:
     normalized = label.strip().strip("`\"'，。:： ").casefold()
-    exact = _ACTION_ALIASES.get(normalized)
+    aliases = {**DEFAULT_ACTION_ALIASES, **dict((scenario_config or {}).get("action_aliases", {}))}
+    exact = aliases.get(normalized)
     if exact is not None:
         return exact
 
@@ -453,7 +460,7 @@ def _normalise_action_label(label: str) -> str | None:
     # words in an explanation (for example, "do not observe").
     english_label = normalized.replace("_", " ").replace("-", " ")
     if re.fullmatch(r"(?:observe|observation|look|inspect|help|assist|protect|guard)(?: action)?", english_label):
-        return _ACTION_ALIASES[english_label.removesuffix(" action")]
+        return aliases[english_label.removesuffix(" action")]
 
     # Chinese models often return short action phrases instead of enum values.
     # Reject negated prose and any line that mentions more than one action kind.
@@ -461,13 +468,13 @@ def _normalise_action_label(label: str) -> str | None:
         return None
     matches = {
         action
-        for alias, action in _ACTION_ALIASES.items()
+        for alias, action in aliases.items()
         if not alias.isascii() and alias in normalized
     }
     return next(iter(matches)) if len(matches) == 1 else None
 
 
-def _infer_action_from_text(raw_response: str) -> str | None:
+def _infer_action_from_text(raw_response: str, scenario_config=None) -> str | None:
     found: set[str] = set()
     for line in raw_response.splitlines():
         candidate = line.strip().strip("`*#>- ")
@@ -477,31 +484,35 @@ def _infer_action_from_text(raw_response: str) -> str | None:
             flags=re.IGNORECASE,
         )
         label = field_match.group(1).strip() if field_match else candidate
-        intent = _normalise_action_label(label)
+        intent = _normalise_action_label(label, scenario_config)
         if intent is not None:
             found.add(intent)
     if not found:
         # Handle a one-line prose answer, but reject answers mentioning
         # multiple possible actions.
-        intent = _normalise_action_label(raw_response)
+        intent = _normalise_action_label(raw_response, scenario_config)
         if intent is not None:
             found.add(intent)
     return next(iter(found)) if len(found) == 1 else None
 
 
-def _normalise_target(target: str) -> str:
+def _entity_aliases(scenario_config=None):
+    configured = (scenario_config or {}).get("entity_aliases", {})
+    aliases = LEGACY_ENTITY_ALIASES if not scenario_config else {}
+    return {**aliases, **dict(configured)}
+
+
+def _normalise_target(target: str, aliases=None) -> str:
     normalized = target.strip().casefold()
-    if normalized in {"doctor", "医生"}:
-        return "doctor"
-    if normalized in {"soldier", "士兵"}:
-        return "soldier"
-    return target.strip()
+    aliases = aliases or LEGACY_ENTITY_ALIASES
+    return aliases.get(normalized, target.strip())
 
 
-def _infer_target(raw_response: str) -> str | None:
+def _infer_target(raw_response: str, aliases=None) -> str | None:
     normalized = raw_response.casefold()
-    if re.search(r"\bdoctor\b", normalized) or "医生" in normalized:
-        return "doctor"
-    if re.search(r"\bsoldier\b", normalized) or "士兵" in normalized:
-        return "soldier"
+    aliases = aliases or LEGACY_ENTITY_ALIASES
+    for alias, entity_id in aliases.items():
+        if (re.search(rf"\b{re.escape(alias.casefold())}\b", normalized)
+                if alias.isascii() else alias.casefold() in normalized):
+            return entity_id
     return None

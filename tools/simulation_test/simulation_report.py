@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Mapping
 
-from cognitive_sandbox.simulation_test.simulation_metrics import SimulationMetrics
+from tools.simulation_test.simulation_metrics import SimulationMetrics
 
 
 @dataclass(frozen=True)

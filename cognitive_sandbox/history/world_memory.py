@@ -37,6 +37,7 @@ class WorldDelta:
     before: object = None
     after: object = None
     cause: str = ""
+    field: str = ""
 
     def __post_init__(self):
         for name in ("id", "timestamp", "source", "target", "change_type"):
@@ -47,6 +48,8 @@ class WorldDelta:
         object.__setattr__(self, "after", _freeze(self.after))
         if not isinstance(self.cause, str):
             raise TypeError("cause must be a string.")
+        if not isinstance(self.field, str):
+            raise TypeError("field must be a string.")
 
 
 @dataclass(frozen=True)
@@ -148,37 +151,49 @@ class WorldMemory:
         return WorldMemorySnapshot(self._current_snapshot, self.history)
 
     def record_delta(self, *, source, target, change_type, before=None, after=None,
-                     cause="", timestamp=None, record_id=None):
+                     cause="", timestamp=None, record_id=None, field=""):
         delta = WorldDelta(record_id or f"delta_{uuid4().hex}", _timestamp(timestamp), str(source),
-                           str(target), str(change_type), before, after, cause)
+                           str(target), str(change_type), before, after, cause, field)
         self._histories["event_deltas"].append(delta)
         return delta
+
+    def record_state_change(self, change):
+        """Append an already-applied generic state delta received from the event pipeline."""
+        required = ("target_id", "field", "old_value", "new_value")
+        if any(not hasattr(change, name) for name in required):
+            raise TypeError("change must expose a generic state-change record")
+        return self.record_delta(
+            source=str(getattr(change, "event_id", None) or "world"),
+            target=str(change.target_id),
+            field=str(change.field),
+            change_type="state_change",
+            before=change.old_value,
+            after=change.new_value,
+            cause="state changed by event",
+            timestamp=getattr(change, "timestamp", None),
+        )
 
     def record_event(self, event, context=None):
         event_id = str(getattr(event, "event_id", ""))
         if not event_id or event_id in self._recorded_events:
             return None
         event_type = str(getattr(event, "event_type", "world_event"))
-        payload = getattr(event, "payload", {}) or {}
         actor = getattr(event, "actor_id", None) or "world"
         target = getattr(event, "target_id", None) or "world"
         timestamp = getattr(event, "timestamp", None) or _timestamp()
-        description = payload.get("description", "") if isinstance(payload, Mapping) else ""
-        summary = description.strip() if isinstance(description, str) and description.strip() else event_type
         record = WorldHistoryRecord(
-            f"event:{event_id}", _timestamp(timestamp), "event_applied", event_id, summary,
+            f"event:{event_id}", _timestamp(timestamp), "event_applied", event_id, "Event applied",
             {"event_type": event_type, "actor_id": actor, "target_id": target,
              "location": getattr(event, "location", None)},
         )
         self._histories["event_history"].append(record)
         self._recorded_events.add(event_id)
-        # The event notification records what was applied; it does not infer or
-        # execute any state change. Explicit before/after values are preserved.
+        # Persist only the generic event envelope. Payload prose and world-owned
+        # fields remain in their owning systems, not in the engine's memory log.
         self.record_delta(
-            source=event_id, target=str(target), change_type=event_type,
-            before=payload.get("before") if isinstance(payload, Mapping) else None,
-            after=payload.get("after", payload) if isinstance(payload, Mapping) else None,
-            cause=summary, timestamp=timestamp, record_id=f"event-delta:{event_id}",
+            source=event_id, target=str(target), change_type="event_applied",
+            before=None, after={"type": event_type}, cause="event applied",
+            timestamp=timestamp, record_id=f"event-delta:{event_id}",
         )
         return record
 
@@ -191,31 +206,38 @@ class WorldMemory:
 
     def record_conflict(self, conflict_id, action, *, before=None, after=None,
                         timestamp=None, cause="", metadata=None):
+        safe_before = _conflict_values(before)
+        safe_after = _conflict_values(after)
         self.record_delta(source=str(conflict_id), target=str(conflict_id),
-                          change_type=f"conflict_{action}", before=before, after=after,
-                          cause=cause or action, timestamp=timestamp)
+                          change_type="conflict_state_changed", before=safe_before, after=safe_after,
+                          cause="conflict state changed", timestamp=timestamp, field="status_or_pressure")
+        safe_metadata = {}
+        for key in ("status", "participants", "before", "after"):
+            if isinstance(metadata, Mapping) and key in metadata:
+                safe_metadata[key] = (_conflict_values(metadata[key]) if key in {"before", "after"}
+                                      else metadata[key])
         return self._record_lifecycle("conflict_history", "conflict", conflict_id,
-                                      action, timestamp, cause, metadata)
+                                      action, timestamp, "conflict state changed", safe_metadata)
 
     def record_decision(self, actor_id, decision, *, timestamp=None, reason_context="",
                         target=None, metadata=None):
         details = dict(metadata or {})
         details.update({"actor_id": str(actor_id), "decision": str(decision),
-                        "target": target, "reason_context": reason_context})
+                        "target": target})
         return self._record_lifecycle("decision_history", "decision", str(actor_id),
-                                      str(decision), timestamp, reason_context or str(decision), details)
+                                      str(decision), timestamp, "decision recorded", details)
 
     def record_relationship(self, source_id, target_id, *, before=None, after=None,
                             timestamp=None, cause=""):
         record = self._record_lifecycle(
             "relationship_history", "relationship", f"{source_id}->{target_id}",
-            "changed", timestamp, cause or "relationship state changed",
+            "changed", timestamp, "relationship state changed",
             {"source_id": str(source_id), "target_id": str(target_id),
              "before": before, "after": after},
         )
         self.record_delta(source=f"{source_id}->{target_id}", target=str(target_id),
                           change_type="relationship_changed", before=before, after=after,
-                          cause=cause or "relationship state changed", timestamp=timestamp)
+                          cause="relationship state changed", timestamp=timestamp)
         return record
 
     def record_world_tree(self, action, branch_id, *, timestamp=None, cause="", metadata=None):
@@ -227,7 +249,7 @@ class WorldMemory:
         action = str(action)
         record = WorldHistoryRecord(
             f"{record_type}:{source_id}:{action}:{uuid4().hex}", _timestamp(timestamp),
-            f"{record_type}_{action}", source_id, str(cause or action),
+            f"{record_type}_{action}", source_id, f"{record_type} {action}",
             {"action": action, **dict(metadata or {})},
         )
         self._histories[bucket].append(record)
@@ -235,3 +257,10 @@ class WorldMemory:
 
 
 __all__ = ["WorldDelta", "WorldHistoryRecord", "WorldHistory", "WorldMemorySnapshot", "WorldMemory"]
+
+
+def _conflict_values(value):
+    if not isinstance(value, Mapping):
+        return None
+    allowed = ("status", "intensity", "pressure")
+    return {key: value[key] for key in allowed if key in value}

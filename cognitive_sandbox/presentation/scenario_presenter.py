@@ -46,9 +46,7 @@ class ScenarioPresenter:
         if player_role:
             identity += f"你是{player_role}。"
         lines = []
-        if "刑满释放" in player_background and player_name:
-            lines.append(f"刑满释放后，{player_name}正试着重新开始生活。")
-        elif player_name and player_background:
+        if player_name and player_background:
             clean_background = player_background.rstrip("。.!！?？")
             if clean_background.startswith(player_name):
                 lines.append(clean_background + "。")
@@ -79,7 +77,7 @@ class ScenarioPresenter:
         return " ".join(safe_lines)
 
     def _opening_environment(self, session, fallback: str, location: str) -> str:
-        for item in getattr(session, "anchor_locations", ()):
+        for item in getattr(session, "scenario_locations", ()):
             if not isinstance(item, Mapping):
                 continue
             if item.get("name") == location:
@@ -90,7 +88,7 @@ class ScenarioPresenter:
         return fallback
 
     def _notable_location_detail(self, session, location: str) -> str:
-        for item in getattr(session, "anchor_locations", ()):
+        for item in getattr(session, "scenario_locations", ()):
             if isinstance(item, Mapping) and item.get("name") == location:
                 description = self._text(item.get("description", ""))
                 if description and self._player_safe(description, session):
@@ -147,35 +145,20 @@ class ScenarioPresenter:
             return explicit
         if location:
             return f"你来到了{location}。"
-        context = f"{world_name} {background}"
-        if any(word in context for word in ("未来", "智能", "科技", "赛博")):
-            return "你站在一处未来街区，传统建筑与智能设备交织在城市景观中。"
-        if any(word in context for word in ("城市", "街区", "街道", "港城", "港口")):
-            return "你站在这座城市的一处街区，周围仍留有生活与活动的痕迹。"
         if background:
-            return f"你置身于这个世界之中。{background}"
+            return background
         return "你身处一个陌生环境，周围的信息还需要进一步探索。"
 
     def _grounded_opening_details(self, session, state, player_id: str) -> list[str]:
-        lines: list[str] = []
-        energy = state.get("energy_level")
-        if isinstance(energy, (int, float)) and not isinstance(energy, bool) and energy <= 0.3:
-            lines.append("备用能源显得吃紧，照明和设备随时可能受到影响。")
-        # An initial event is mentioned only when its stated condition is supported
-        # by visible state and the player is one of its participants.
-        content = getattr(session, "scenario_content", None)
-        for event in getattr(content, "event_cards", ()) if content is not None else ():
-            if event.event_type != "initial" or player_id not in event.participants:
-                continue
-            condition_text = " ".join(event.conditions)
-            condition_matches = (
-                "能源" in condition_text and isinstance(energy, (int, float)) and energy <= 0.3
-            )
-            if condition_matches:
-                description = self._text(event.description)
-                if description and description not in lines:
-                    lines.append(description)
-        return lines
+        # Runtime details are surfaced only when a scenario explicitly marks
+        # them as visible prose; engine fields are never inferred into story text.
+        values = state.get("visible_details", ())
+        if isinstance(values, str):
+            values = (values,)
+        if not isinstance(values, (tuple, list, set, frozenset)):
+            return []
+        return [text for value in values if (text := self._text(value))
+                and self._player_safe(text, session)]
 
     def _visible_characters(self, session, state) -> list[str]:
         names = self.display_names(session)
@@ -194,24 +177,6 @@ class ScenarioPresenter:
                 detail = ""
             if name:
                 rendered.append(f"{name}{'，' + detail if detail else '在附近。'}")
-        # When there is no explicit visibility list, mention only characters tied
-        # to an active, player-participating initial event with a satisfied condition.
-        if not rendered:
-            content = getattr(session, "scenario_content", None)
-            player = getattr(session, "agent_context", None)
-            player_id = self._text(getattr(player, "character_id", ""))
-            energy = state.get("energy_level")
-            for event in getattr(content, "event_cards", ()) if content is not None else ():
-                if event.event_type != "initial" or player_id not in event.participants:
-                    continue
-                condition_text = " ".join(event.conditions)
-                active = "能源" in condition_text and isinstance(energy, (int, float)) and energy <= 0.3
-                if not active:
-                    continue
-                for identifier in event.participants:
-                    name = names.get(identifier)
-                    if name and identifier != player_id:
-                        rendered.append(f"附近有{ name }。")
         return rendered
 
     def _visible_objects(self, state) -> list[str]:

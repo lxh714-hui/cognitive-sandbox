@@ -31,7 +31,7 @@ class WorldInspector(QWidget):
         clock = getattr(executor, "world_clock", None)
         now = clock.current_time().isoformat() if clock is not None else "unavailable"
         state = session.world_state if isinstance(session.world_state, Mapping) else {}
-        stage = _first(state, "current_stage", "stage", "chapter", "phase")
+        stage = _first(state, "current_stage", "stage", "phase")
 
         locations = tuple(
             MappingProxyType({
@@ -40,7 +40,7 @@ class WorldInspector(QWidget):
                 "status": location.status,
                 "safety": location.safety,
                 "power": location.power,
-                "repair_progress": location.repair_progress,
+                "properties": dict(location.properties),
             })
             for location in getattr(getattr(executor, "location_manager", None), "locations", ())
         )
@@ -88,7 +88,7 @@ class WorldInspector(QWidget):
         _section(self.tree, "地点", snapshot["locations"], lambda row: (
             ("名称", row["name"]), ("ID", row["id"]), ("状态", row["status"]),
             ("安全度", row["safety"]), ("供电", _display(row["power"])),
-            ("修复进度", row["repair_progress"]),
+            ("场景属性", row["properties"]),
         ))
         _section(self.tree, "资源", snapshot["resources"], lambda row: (
             ("类型", row["type"]), ("数量", row["quantity"]),

@@ -38,6 +38,7 @@ class ScenarioExporter:
                 "description": content.scenario.description,
                 "initial_world_state": _json_value(content.scenario.initial_world_state),
                 "character_templates": _json_value(content.scenario.character_templates),
+                "runtime_config": _json_value(content.scenario.runtime_config),
             },
         )
         document = content.world_document

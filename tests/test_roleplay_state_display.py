@@ -15,7 +15,7 @@ def test_active_session_header_shows_world_character_location_and_day():
     window = FoundationMainWindow()
     launcher = GameLauncher()
     window.set_game_launcher(launcher)
-    session = launcher.start_anchor_world()
+    session = launcher.start_world("anchor")
     window._attach_roleplay_session(session)
 
     text = window.world_context_label.text()

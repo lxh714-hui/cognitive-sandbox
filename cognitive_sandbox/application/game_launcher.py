@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import replace
 from uuid import uuid4
 
@@ -21,17 +22,21 @@ from cognitive_sandbox.application.roleplay_executor import RoleplayExecutor
 from cognitive_sandbox.application.roleplay_session import RoleplaySession
 from cognitive_sandbox.application.roleplay_turn_controller import RoleplayTurnController
 from cognitive_sandbox.application.scenario_runtime_builder import ScenarioRuntimeBuilder
+from cognitive_sandbox.scenario.loader import ScenarioRuntimeLoader
 from cognitive_sandbox.application.scenario_loader import ScenarioLoader
 from cognitive_sandbox.application.simulation_tick import SimulationTick
 from cognitive_sandbox.application.world_bootstrap import WorldBootstrap
 from cognitive_sandbox.application.world_state_applier import WorldStateApplier
 from cognitive_sandbox.application.world_state_updater import WorldStateUpdater
 from cognitive_sandbox.domain.scenario_content import ScenarioContent
+from cognitive_sandbox.domain.scenario_runtime import AgentRuntimeProfile, ScenarioRuntime
+from cognitive_sandbox.domain.world_state import WorldState
 from cognitive_sandbox.knowledge.storage.knowledge_store import KnowledgeStore
 from cognitive_sandbox.knowledge.retrieval.knowledge_retriever import KnowledgeRetriever
 from cognitive_sandbox.time.world_clock import WorldClock, WorldClockState
 from cognitive_sandbox.time.time_scheduler import TimeScheduler
 from cognitive_sandbox.goal.character_goal import CharacterGoal
+from cognitive_sandbox.goal.goal_evaluator import GoalEvaluator
 from cognitive_sandbox.goal.goal_manager import GoalManager
 from cognitive_sandbox.npc.autonomous.npc_action_generator import NpcActionGenerator
 from cognitive_sandbox.npc.autonomous.npc_action_executor import NpcActionExecutor
@@ -68,150 +73,222 @@ class GameLauncher:
     def start_scenario(self, scenario_id: str) -> RoleplaySession:
         load_content = getattr(self.scenario_loader, "load_content", None)
         content = load_content(scenario_id) if callable(load_content) else None
+        runtime_loader = ScenarioRuntimeLoader(runtime_builder=self.scenario_runtime_builder)
         if content is not None:
             return self.start_scenario_content(content)
+        else:
+            scenario = self.scenario_loader.load(scenario_id)
+            if scenario is None:
+                raise ValueError(f"unknown scenario: {scenario_id}")
+            runtime = runtime_loader.load_scenario(scenario)
+        return self.start_runtime(runtime)
 
-        scenario = self.scenario_loader.load(scenario_id)
-        if scenario is None:
-            raise ValueError(f"unknown scenario: {scenario_id}")
+    def start_world(self, scenario_id: str) -> RoleplaySession:
+        """Start a new instance from the generic scenario runtime contract."""
+        return self.start_scenario(scenario_id)
 
-        bootstrap = self.world_bootstrap.create(scenario)
-        if not bootstrap.agent_contexts:
-            raise ValueError(f"scenario has no playable characters: {scenario_id}")
-        session = self._create_roleplay_session(
-            bootstrap.agent_contexts[0], bootstrap.world_state.world_id,
-            bootstrap.world_state.state, scenario.description,
-            scenario=scenario, agent_contexts=bootstrap.agent_contexts,
-        )
-        self.current_session = session
-        return session
     def start_scenario_content(self, content: ScenarioContent, *, player_character_id=None) -> RoleplaySession:
-        """Start a validated content bundle; initial event cards remain unexecuted."""
+        """Compatibility boundary: compile package content, then consume only its runtime."""
         if not isinstance(content, ScenarioContent):
             raise TypeError("content must be a ScenarioContent.")
-        world_instance_id = f"world_{uuid4().hex}"
-        runtime_content = content
-        if content.world_document is not None:
-            runtime_content = replace(
-                content,
-                world_document=replace(content.world_document, world_id=world_instance_id),
-            )
-        runtime = self.scenario_runtime_builder.build(runtime_content)
+        runtime = ScenarioRuntimeLoader(runtime_builder=self.scenario_runtime_builder).load_content(content)
+        return self.start_runtime(runtime, player_character_id=player_character_id)
+
+    def start_runtime(self, runtime: ScenarioRuntime, *, player_character_id=None) -> RoleplaySession:
+        """Compose services from an already compiled, immutable scenario runtime."""
+        if not isinstance(runtime, ScenarioRuntime):
+            raise TypeError("runtime must be a ScenarioRuntime.")
+        instance_id = f"world_{uuid4().hex}"
+        world = runtime.world_state
+        runtime = replace(
+            runtime,
+            world_state=WorldState(
+                instance_id, world.name, world.state, world.description, world.history, world.rules,
+            ),
+            metadata={**dict(runtime.metadata), "world_id": instance_id},
+        )
+        if runtime.world_document is not None:
+            runtime = replace(runtime, world_document=replace(runtime.world_document, world_id=instance_id))
+        config = runtime.configuration
         if not runtime.agent_contexts:
-            raise ValueError(f"scenario has no playable characters: {content.scenario.scenario_id}")
-        selected_player = player_character_id or runtime.agent_contexts[0].character_id
+            raise ValueError(f"scenario has no playable characters: {runtime.scenario_id}")
+        configured_player = player_character_id or config.get("player_character_id")
+        selected_player = configured_player or runtime.agent_contexts[0].character_id
         player_context = next((item for item in runtime.agent_contexts
                                if item.character_id == selected_player), None)
         if player_context is None:
             raise ValueError("所选玩家角色不在当前世界中。")
-        description = (
-            content.world_document.description
-            if content.world_document is not None
-            else content.scenario.description
-        )
-        session = self._create_roleplay_session(
-            player_context, runtime.world_state.world_id,
-            runtime.world_state.state, description,
-            scenario=content.scenario, scenario_content=content,
-            agent_contexts=runtime.agent_contexts,
-            world_instance_id=runtime.world_state.world_id,
-        )
-        self.current_session = session
-        return session
+        contexts = runtime.agent_contexts
 
-    def start_anchor_world(self, loader=None) -> RoleplaySession:
-        """Create a fresh runtime instance from the Anchor world package."""
-        from dataclasses import replace
-        from uuid import uuid4
-        from cognitive_sandbox.application.anchor_world_loader import AnchorWorldLoader
         from cognitive_sandbox.authority.authority_level import AuthorityLevel
-        from cognitive_sandbox.domain.world_document import WorldDocument
+        from cognitive_sandbox.authority.character_authority import CharacterAuthority
+        from cognitive_sandbox.cognition import AttentionProfile, CognitiveStyle, ReasoningProfile
         from cognitive_sandbox.emotion.emotional_state import EmotionalState
         from cognitive_sandbox.goal.character_goal import CharacterGoal
+        from cognitive_sandbox.goal.lifecycle import GoalTransitionRule
+        from cognitive_sandbox.motivation.character_motivation import CharacterMotivation
+        from cognitive_sandbox.narrative.narrative_state import NarrativeState
+        from cognitive_sandbox.narrative.narrative_thread import NarrativeThread
+
+        profiles = config.get("character_profiles", {})
+        profiles = profiles if isinstance(profiles, Mapping) else {}
+        authorities = []
+        styles, reasoning, attention, emotions, motivations = {}, {}, {}, {}, []
+        for context in contexts:
+            profile = profiles.get(context.character_id, {})
+            profile = profile if isinstance(profile, Mapping) else {}
+            authority_name = profile.get(
+                "authority", "PLAYER" if context.character_id == selected_player else "IMPORTANT_CHARACTER"
+            )
+            level = AuthorityLevel[authority_name] if isinstance(authority_name, str) else AuthorityLevel.IMPORTANT_CHARACTER
+            if level is AuthorityLevel.PLAYER:
+                authorities.append(CharacterAuthority.player(context.character_id))
+            elif level is AuthorityLevel.BACKGROUND_CHARACTER:
+                authorities.append(CharacterAuthority.background_character(context.character_id))
+            else:
+                authorities.append(CharacterAuthority.important_character(context.character_id))
+            cognition = profile.get("cognition", {})
+            cognition = cognition if isinstance(cognition, Mapping) else {}
+            style_keys = ("analytical", "intuitive", "creative", "suspicious", "pragmatic", "emotional", "strategic")
+            reasoning_keys = ("reasoning_depth", "reflection_tendency", "causal_search", "future_prediction")
+            styles[context.character_id] = CognitiveStyle(**{key: cognition[key] for key in style_keys if key in cognition})
+            reasoning[context.character_id] = ReasoningProfile(**{key: cognition[key] for key in reasoning_keys if key in cognition})
+            attention_values = dict(cognition.get("attention", {}))
+            pattern_recognition = cognition.get("pattern_recognition")
+            if isinstance(pattern_recognition, (int, float)) and not isinstance(pattern_recognition, bool):
+                attention_values["temporal_pattern"] = max(
+                    float(attention_values.get("temporal_pattern", .5)), float(pattern_recognition)
+                )
+            attention[context.character_id] = AttentionProfile(**attention_values)
+            emotions[context.character_id] = EmotionalState(**profile.get("emotion", {}))
+            motivation = profile.get("motivation")
+            if isinstance(motivation, Mapping) and motivation:
+                motivations.append(CharacterMotivation(context.character_id, **motivation))
+
+        thread_items = config.get("narrative_threads", ())
+        threads = tuple(NarrativeThread(
+            item["id"], item["title"], tuple(item.get("participants", ())), item["conflict"],
+            item.get("pressure", 0), item.get("progress", 0), item.get("status", "DORMANT"),
+        ) for item in thread_items if isinstance(item, Mapping))
+        narrative_state = NarrativeState(threads) if threads else NarrativeState()
+
+        goals = []
+        cards_by_id = {card.character_id: card for card in runtime.character_cards}
+        for item in config.get("autonomous_goals", ()):
+            if not isinstance(item, Mapping):
+                continue
+            card = cards_by_id.get(item.get("character_id"))
+            goal_descriptions = tuple(getattr(card, "goals", ()))
+            index = int(item.get("description_index", 0))
+            if card is not None and 0 <= index < len(goal_descriptions):
+                goals.append(CharacterGoal(
+                    card.character_id, goal_descriptions[index], item["goal_type"],
+                    item.get("priority", .5), tuple(item.get("conditions", ())),
+                ))
+        agency_profiles = config.get("agency_profiles", {})
+        agency_profiles = agency_profiles if isinstance(agency_profiles, Mapping) else {}
         from cognitive_sandbox.agency.character_agency import CharacterAgency
         from cognitive_sandbox.agency.agency_state import AgencyState
+        npc_ids = tuple(item.character_id for item in contexts if item.character_id != selected_player)
+        agencies = tuple(CharacterAgency(
+            character_id,
+            initiative=agency_profiles.get(character_id, {}).get("initiative", .5)
+            if isinstance(agency_profiles.get(character_id, {}), Mapping) else .5,
+            motivation_strength=next((goal.priority for goal in goals if goal.owner_id == character_id), .45),
+            goal_focus=next((goal.priority for goal in goals if goal.owner_id == character_id), .45),
+        ) for character_id in npc_ids)
+        transition_rules = tuple(GoalTransitionRule(
+            item["source_goal"], item["condition"], item["result"],
+            item.get("result_description", ""), item.get("result_priority", .7),
+            tuple(item.get("result_conditions", ())),
+        ) for item in config.get("goal_transition_rules", ()) if isinstance(item, Mapping))
+
+        state = dict(runtime.world_state.state)
+        initial_location_name = config.get("initial_location_name")
+        if isinstance(initial_location_name, str) and initial_location_name.strip():
+            state.setdefault("location", initial_location_name)
+        if "initial_visible_objects" in config:
+            state.setdefault("visible_objects", tuple(config["initial_visible_objects"]))
+        for visibility_key in ("visible_characters", "visible_objects", "visible_details", "visible_events"):
+            config_key = f"initial_{visibility_key}"
+            if config_key in config:
+                state.setdefault(visibility_key, tuple(config[config_key]))
+        situation = (
+            runtime.world_document.description if runtime.world_document
+            else str(runtime.metadata.get("description", "当前场景"))
+        )
+        # Legacy presentation/save consumers receive a projection derived from the
+        # runtime contract; package files and source content are not consulted here.
+        from cognitive_sandbox.domain.scenario import Scenario
+        runtime_scenario = Scenario(
+            runtime.scenario_id,
+            str(runtime.metadata.get("name", runtime.world_state.name)),
+            str(runtime.metadata.get("description", runtime.world_state.description)),
+            runtime.world_state.state,
+            tuple({
+                "character_id": item.character_id,
+                "name": getattr(item.character_state, "name", item.character_id),
+                "role": getattr(item.character_state, "role", "character"),
+                "traits": tuple(getattr(item.character_state, "traits", ())),
+                "goals": tuple(getattr(item.character_state, "goals", ())),
+            } for item in contexts),
+            runtime.configuration,
+        )
+        runtime_content = ScenarioContent(
+            runtime_scenario, runtime.world_document,
+            runtime.character_cards, runtime.initial_events,
+        )
+        session = self._create_roleplay_session(
+            player_context, runtime.world_state.world_id, state, situation,
+            scenario=runtime_scenario, scenario_content=runtime_content,
+            agent_contexts=contexts,
+            scenario_runtime=runtime,
+            world_instance_id=instance_id,
+            autonomous_state={
+                "current_location_id": config.get("initial_location_id"),
+                "goals": tuple(goals), "agency_state": AgencyState(agencies),
+                "routines": config.get("routines", {}),
+                "goal_transition_rules": transition_rules,
+            },
+            narrative_data={"state": narrative_state, "motivations": tuple(motivations)},
+            emotion_data={"states": emotions},
+            cognition_data={"styles": styles, "reasoning_profiles": reasoning,
+                            "attention_profiles": attention},
+            authority_data={"player_character_id": selected_player,
+                            "authorities": tuple(authorities)},
+        )
+
+        store = session.knowledge_store
+        initial_knowledge = config.get("initial_knowledge", {})
         from cognitive_sandbox.knowledge.models.knowledge_record import KnowledgeRecord, KnowledgeType
         from cognitive_sandbox.knowledge.models.knowledge_source import KnowledgeSource
         from cognitive_sandbox.knowledge.models.world_fact import WorldFact
-        from cognitive_sandbox.narrative.narrative_state import NarrativeState
-        from cognitive_sandbox.world_evolution.location_state import LocationState
+        if isinstance(initial_knowledge, Mapping):
+            for character_id, records in initial_knowledge.items():
+                if character_id not in {item.character_id for item in contexts}:
+                    continue
+                for record in records if isinstance(records, (tuple, list)) else ():
+                    if not isinstance(record, Mapping):
+                        continue
+                    fact_id = f"{runtime.scenario_id}:{character_id}:{record['id']}"
+                    fact = WorldFact(fact_id, record["content"], "initial_knowledge", "day-1",
+                                     (character_id,), record.get("confidence", .7))
+                    store.add_fact(fact)
+                    store.add_knowledge(KnowledgeRecord(
+                        character_id, fact_id, KnowledgeType(record["type"]),
+                        KnowledgeSource(f"source:{fact_id}", "scenario_package", "角色初始知识"),
+                        record.get("confidence", .5), "day-1", record["content"],
+                    ))
 
-        package = (loader or AnchorWorldLoader()).load()
-        instance_id = f"anchor_{uuid4().hex}"
-        content = replace(
-            package.scenario_content,
-            world_document=replace(package.scenario_content.world_document, world_id=instance_id),
-        )
-        runtime = self.scenario_runtime_builder.build(content)
-        player_id = "liangjing"
-        contexts = tuple(profile.agent_context for profile in runtime.agents)
-        player_context = next((item for item in contexts if item.character_id == player_id), None)
-        if player_context is None:
-            raise ValueError("Anchor package is missing its Player Character 'liangjing'.")
-        locations = tuple(LocationState(
-            item["location_id"], item["name"], "active", float(item.get("safety", 0)),
-            item.get("power"), tuple(item.get("attributes", ())),
-        ) for item in package.locations)
-        state = _thaw_mapping(runtime.world_state.state)
-        state["location"] = "梁景住所"
-        state["visible_objects"] = ({
-            "object_id": "clock", "name": "墙上的钟", "description": "指针停在12:03。",
-        },)
-        goals = tuple(CharacterGoal(
-            character_id, card.goals[0], "investigate_anomaly" if character_id == "liuyiyi" else "observe_changes", .7 if character_id == "liuyiyi" else .55,
-        ) for character_id in ("liuyiyi", "song", "pei")
-            for card in content.character_cards if card.character_id == character_id and card.goals)
-        agency_state = AgencyState(tuple(
-            CharacterAgency(
-                character_id,
-                initiative=.68 if character_id == "liuyiyi" else .52,
-                motivation_strength=next((goal.priority for goal in goals if goal.owner_id == character_id), .45),
-                goal_focus=next((goal.priority for goal in goals if goal.owner_id == character_id), .45),
-            ) for character_id in ("liuyiyi", "song", "pei")
-        ))
-        from cognitive_sandbox.goal.lifecycle import GoalTransitionRule
-        session = self._create_roleplay_session(
-            player_context, instance_id, state, content.world_document.description,
-            scenario=content.scenario, scenario_content=content, agent_contexts=contexts,
-            world_instance_id=instance_id,
-            autonomous_state={"locations": locations, "current_location_id": "liangjing_home", "goals": goals,
-                              "agency_state": agency_state,
-                              "routines": package.routines,
-                              "goal_transition_rules": (GoalTransitionRule(
-                                  "investigate_anomaly", "progress>=0.2", "confirm_anomaly",
-                                  "确认异常真实性", .82, ("anomaly_evidence",),
-                              ),)},
-            narrative_data={"state": package.narrative_state,
-                            "motivations": package.motivations},
-            emotion_data={"states": dict(package.emotion_states)},
-            cognition_data={"styles": dict(package.cognitive_styles),
-                            "reasoning_profiles": dict(package.reasoning_profiles),
-                            "attention_profiles": dict(package.attention_profiles)},
-            authority_data={"player_character_id": player_id,
-                            "authorities": tuple(package.authorities.values())},
-        )
-        for character_id, records in package.initial_knowledge.items():
-            for data in records:
-                fact_id = f"anchor:{character_id}:{data['id']}"
-                fact = WorldFact(fact_id, data["content"], "initial_knowledge", "day-1",
-                                 (character_id,), .7)
-                session.knowledge_store.add_fact(fact)
-                session.knowledge_store.add_knowledge(KnowledgeRecord(
-                    character_id, fact_id, KnowledgeType(data["type"]),
-                    KnowledgeSource(f"source:{fact_id}", "initial_world_package", "角色初始知识"),
-                    data.get("confidence", .5), "day-1", data["content"],
-                ))
-        # Initial event cards remain world-package background. The offline
-        # long-run runner may publish them at the first simulated tick through
-        # the ordinary pipeline; creating a session itself does not execute an
-        # event or reveal information to every character.
-        session.anchor_world_package_id = "anchor_world"
-        session.anchor_locations = package.locations
-        session.anchor_content_version = package.world_card.content_version
-        session.anchor_started_at = session.executor.world_clock.current_time().isoformat()
-        session.anchor_world_settings = {"mode": "roleplay", "natural_simulation": True}
-        session.anchor_location_relations = package.location_relations
-        session.anchor_routines = package.routines or {}
+        session.scenario_id = runtime.scenario_id
+        session.scenario_version = runtime.version
+        session.scenario_started_at = session.executor.world_clock.current_time().isoformat()
+        session.scenario_settings = dict(config.get("settings", {"mode": "roleplay", "natural_simulation": True}))
+        session.scenario_locations = tuple(config.get("locations", ()))
+        session.scenario_location_relations = tuple(config.get("location_relations", ()))
+        session.scenario_routines = config.get("routines", {})
+        session.initial_events = runtime.initial_events
+        session.scenario_runtime = runtime
         self.current_session = session
         return session
 
@@ -247,9 +324,32 @@ class GameLauncher:
         cognition_data=None,
         agency_data=None,
         world_memory_data=None,
+        scenario_runtime=None,
     ) -> RoleplaySession:
+        if scenario_runtime is None:
+            runtime_world = world_state if isinstance(world_state, WorldState) else WorldState(
+                str(world_id), "World", world_state, situation,
+            )
+            scenario_runtime = ScenarioRuntime(
+                scenario_id=str(world_id), world_state=runtime_world,
+                agents=tuple(AgentRuntimeProfile(item) for item in agent_contexts),
+                initial_events=(), metadata={"name": runtime_world.name, "description": situation},
+            )
+        saved_profiles = {profile.agent_id: profile.constraints for profile in scenario_runtime.agents}
+        runtime_world = (world_state if isinstance(world_state, WorldState) else WorldState(
+            str(world_id), scenario_runtime.world_state.name, world_state,
+            scenario_runtime.world_state.description, scenario_runtime.world_state.history,
+            scenario_runtime.world_state.rules,
+        ))
+        scenario_runtime = replace(
+            scenario_runtime,
+            world_state=runtime_world,
+            agents=tuple(AgentRuntimeProfile(item, saved_profiles.get(item.character_id, ()))
+                         for item in agent_contexts),
+        )
+        scenario_config = scenario_runtime.configuration
         tick = SimulationTick(
-            ActionDecisionEngine(),
+            ActionDecisionEngine(action_rules=scenario_config.get("action_decision_rules", ())),
             ActionResolver(),
             ActionEventAdapter(
                 world_id=world_id,
@@ -265,6 +365,8 @@ class GameLauncher:
             AgentContextBuilder(),
         )
         action_interpreter = self.action_interpreter or self.ai_runtime_wiring.create_action_interpreter()
+        if callable(getattr(action_interpreter, "with_scenario_config", None)):
+            action_interpreter = action_interpreter.with_scenario_config(scenario_config)
         known_entities = set()
         for context in agent_contexts:
             known_entities.add(context.character_id)
@@ -274,14 +376,13 @@ class GameLauncher:
                 known_entities.add(character_name)
             if role:
                 known_entities.add(role)
-        if scenario_content is not None:
-            for card in scenario_content.character_cards:
-                known_entities.update((card.character_id, card.name))
-                if card.occupation:
-                    known_entities.add(card.occupation)
+        for card in scenario_runtime.character_cards:
+            known_entities.update((card.character_id, card.name))
+            if card.occupation:
+                known_entities.add(card.occupation)
         character_minds = {
             card.character_id: CharacterMindBuilder().build(card)
-            for card in (scenario_content.character_cards if scenario_content is not None else ())
+            for card in scenario_runtime.character_cards
         }
         narrative_data = narrative_data or {}
         emotion_data = emotion_data or {}
@@ -347,6 +448,7 @@ class GameLauncher:
             cognitive_styles, reasoning_profiles, attention_profiles,
             cognition_data.get("beliefs", {}), cognition_data.get("memories", {}),
             cognition_data.get("thoughts", {}),
+            rules=scenario_runtime.cognitive_rules if scenario_runtime is not None else (),
         )
         autonomous_state = autonomous_state or {}
         agency_data = agency_data or autonomous_state.get("agency_state")
@@ -372,26 +474,54 @@ class GameLauncher:
             autonomous_state.get("development_processed_event_ids", ()),
         )
         if not goals:
+            goal_defaults = tuple(scenario_config.get("goal_defaults", ()))
             for context in tuple(agent_contexts):
                 if context.character_id == player_context.character_id:
                     continue
                 role = str(getattr(context.character_state, "role", "")).casefold()
                 character_id = context.character_id.casefold()
-                if any(token in role or token in character_id for token in ("doctor", "医生")):
-                    _add_clinic_goal_tree(goal_manager, context.character_id)
-                elif any(token in role or token in character_id for token in ("guard", "soldier", "士兵", "守卫")):
-                    goal_manager.add(CharacterGoal(context.character_id, "保护并巡查所在区域", "protect_city", 0.8, ("patrol_time",)))
+                for rule in goal_defaults:
+                    aliases = tuple(str(value).casefold() for value in rule.get("role_aliases", ()))
+                    if not any(alias in role or alias in character_id for alias in aliases):
+                        continue
+                    goal_type = str(rule.get("goal_type", "general"))
+                    description = str(rule.get("description", goal_type))
+                    priority = float(rule.get("priority", .5))
+                    conditions = tuple(rule.get("conditions", ()))
+                    goal_tree = rule.get("goal_tree")
+                    if isinstance(goal_tree, Mapping):
+                        _add_configured_goal_tree(goal_manager, context.character_id, rule, goal_tree)
+                    else:
+                        goal_manager.add(CharacterGoal(
+                            context.character_id, description, goal_type, priority, conditions
+                        ))
+                    break
         for existing_goal in tuple(goal_manager.goals):
-            if existing_goal.goal_type == "repair_clinic" and not existing_goal.subgoals:
-                goal_manager = _upgrade_clinic_goal_tree(goal_manager, existing_goal)
+            tree_rule = next((item for item in scenario_config.get("goal_trees", ())
+                              if item.get("goal_type") == existing_goal.goal_type), None)
+            tree = tree_rule.get("goal_tree") if tree_rule else None
+            if isinstance(tree, Mapping) and not existing_goal.subgoals:
+                _upgrade_configured_goal_tree(goal_manager, existing_goal, tree)
         # Some legacy scenario defaults are added after manager construction.
         # Seed lifecycle snapshots for the complete initial goal set.
         goal_lifecycle_manager.goal_manager = goal_manager
         goal_lifecycle_manager.evaluate()
         resource_manager = ResourceManager(autonomous_state.get("resources", ()))
+        saved_locations = tuple(autonomous_state.get("locations", ()))
+        saved_location_ids = {item.location_id for item in saved_locations}
+        configured_locations = tuple(
+            LocationState(
+                item["location_id"], item.get("name", item["location_id"]),
+                item.get("status", "active"), item.get("safety", 0),
+                item.get("power"), tuple(item.get("tags", ())),
+                tuple(sorted(dict(item.get("properties", {})).items())),
+            ) for item in scenario_config.get("locations", ())
+            if item.get("location_id") not in saved_location_ids
+        )
         location_manager = LocationManager(
-            autonomous_state.get("locations", ()),
-            current_location_id=autonomous_state.get("current_location_id"),
+            (*saved_locations, *configured_locations),
+            current_location_id=autonomous_state.get("current_location_id")
+            or scenario_config.get("current_location_id"),
         )
         if not location_manager.locations:
             current_place = world_state.get("location") if hasattr(world_state, "get") else None
@@ -401,17 +531,24 @@ class GameLauncher:
                     safety=_safety_scale(world_state.get("safety", 0)),
                     power=world_state.get("power") if isinstance(world_state.get("power"), bool) else None,
                 ))
-            if any(goal.goal_type == "repair_clinic" for goal in goal_manager.goals) and location_manager.get("clinic") is None:
-                location_manager.add(LocationState("clinic", "医疗站", "damaged", 0, False, ("clinic",)))
+        from cognitive_sandbox.application.scenario_rule_resolver import ScenarioRuleResolver
         world_evolution_engine = WorldEvolutionEngine(
             resource_manager=resource_manager,
             location_manager=location_manager,
             goal_manager=goal_manager,
+            rule_resolver=(ScenarioRuleResolver.from_runtime(scenario_runtime)
+                           if scenario_runtime is not None else ScenarioRuleResolver(())),
+            scenario_runtime=scenario_runtime,
             state_changes=autonomous_state.get("state_changes", ()),
             processed_event_ids=autonomous_state.get("processed_evolution_event_ids", ()),
         )
         action_executor = ActionExecutor(
-            NpcActionExecutor(world_id=world_id, branch_id="main")
+            NpcActionExecutor(
+                world_id=world_id, branch_id="main",
+                event_types=scenario_config.get("npc_action_event_types", {}),
+                action_policies=scenario_config.get("npc_action_policies", {}),
+                descriptions=scenario_config.get("npc_action_descriptions", {}),
+            )
         )
         from cognitive_sandbox.agency import (
             AgencyEvaluator, AgencyState, AgencyStateManager, GoalActionGenerator, RoutineBehavior,
@@ -430,14 +567,15 @@ class GameLauncher:
             goal_text = " ".join(goal.description for goal in goals if goal.owner_id == npc_id)
             fallback = "organize" if any(token in goal_text for token in ("调查", "线索")) else "observe" if "观察" in goal_text else "socialize"
             behavior = activities[0] if activities and activities[0] in {
-                "patrol", "collect_material", "repair_clinic", "socialize", "investigate", "observe",
+                "patrol", "collect", "repair", "socialize", "investigate", "observe",
                 "work", "rest", "travel", "organize",
             } else fallback
             weight = configured.get("weight", .25)
             routines.append(RoutineBehavior(npc_id, behavior, ("daily",), weight))
         npc_scheduler = NpcScheduler(
             character_minds, goal_manager, clock=world_clock,
-            action_generator=NpcActionGenerator(),
+            action_generator=NpcActionGenerator(scenario_config.get("npc_action_rules", ())),
+            goal_evaluator=GoalEvaluator(scenario_config.get("goal_condition_definitions", {})),
             action_executor=action_executor,
             last_tick_id=scheduler_state.get("last_tick_id"),
             resource_manager=resource_manager,
@@ -445,7 +583,7 @@ class GameLauncher:
             presence_manager=presence_manager,
             agency_manager=agency_manager,
             agency_evaluator=AgencyEvaluator(),
-            goal_action_generator=GoalActionGenerator(),
+            goal_action_generator=GoalActionGenerator(scenario_config.get("goal_action_rules", ())),
             routine_behaviors=tuple(routines),
             narrative_tracker=AgencyNarrativeTracker(),
             goal_lifecycle_manager=goal_lifecycle_manager,
@@ -475,6 +613,7 @@ class GameLauncher:
             narrative_pressure=initial_pressure,
             emotion_engine=emotion_engine,
             cognitive_engine=cognitive_engine,
+            scenario_config=scenario_config,
         )
         from cognitive_sandbox.relationship.lifecycle import (
             RelationshipLifecycleManager, RelationshipLifecycleSnapshot,
@@ -563,6 +702,7 @@ class GameLauncher:
             director_history=director_data.get("history", ()),
             authority_manager=authority_manager,
             world_memory=world_memory_data,
+            scenario_runtime=scenario_runtime,
         )
         executor.authority_manager = authority_manager
         action_executor.authority_manager = authority_manager
@@ -642,37 +782,35 @@ class GameLauncher:
         npc_scheduler.world_memory = session.world_memory
         saved_opportunities = tuple(narrative_data.get("opportunities", ()))
         opportunity_service.restore(saved_opportunities)
-        if getattr(session.scenario, "scenario_id", None) == "anchor_world":
+        for configured in scenario_config.get("initial_opportunities", ()):
             from cognitive_sandbox.domain.actions import ActionCandidate
             from cognitive_sandbox.narrative.opportunity import (
                 NarrativeOpportunity, OpportunitySourceType,
             )
-            clock_opportunity = NarrativeOpportunity(
-                "investigate_clock", OpportunitySourceType.WORLD,
-                related_character=session.player_id,
-                visibility="owner", importance=.75, urgency=.3,
-                possible_actions=("看看钟", "检查钟表", "直接离开房间"),
-                created_time=world_clock.current_time().isoformat(),
-                expiry=None,
-                description="墙上的钟停在12:03。这个细节仍留在你的视线里。",
-                visible_character_ids=(session.player_id,),
-                source="world_rule",
-                source_id="anchor_world:liangjing_home:clock",
-                internal_context={"location_id": "liangjing_home", "object_id": "clock"},
-                related_entities=("liangjing_home", "clock"),
-                candidate_actions=(ActionCandidate(
-                    action_type="inspect", intent="inspect", actor_id=session.player_id,
-                    target="钟", target_refs=("钟",), motivation="investigate_visible_detail",
-                    metadata={"objective": "inspect:钟", "method": "inspect", "risk": .25,
-                              "relationship_effect": "no_direct_change",
-                              "expected_effect": "inspect_target"},
-                    action_id="anchor_clock_inspection",
-                ),),
+            actions = tuple(ActionCandidate(**item) for item in configured.get("candidate_actions", ()))
+            opportunity = NarrativeOpportunity(
+                configured["opportunity_id"], configured.get("source_type", "WORLD"),
+                related_goal=configured.get("related_goal"),
+                related_conflict=configured.get("related_conflict"),
+                related_character=configured.get("related_character", session.player_id),
+                visibility=configured.get("visibility", "owner"),
+                importance=configured.get("importance", 0.0),
+                urgency=configured.get("urgency", 0.0),
+                possible_actions=tuple(configured.get("possible_actions", ())),
+                created_time=configured.get("created_time") or world_clock.current_time().isoformat(),
+                expiry=configured.get("expiry"),
+                description=configured["description"],
+                visible_character_ids=tuple(configured.get("visible_character_ids", (session.player_id,))),
+                source=configured.get("source", "world_rule"),
+                source_id=configured.get("source_id"),
+                internal_context=configured.get("internal_context", {}),
+                related_entities=tuple(configured.get("related_entities", ())),
+                candidate_actions=actions,
             )
-            if not any(item.opportunity_id == clock_opportunity.opportunity_id
+            if not any(item.opportunity_id == opportunity.opportunity_id
                        for item in opportunity_service.snapshot()):
-                opportunity_service.register(clock_opportunity)
-                executor.world_tree_manager.register_opportunity(clock_opportunity)
+                opportunity_service.register(opportunity)
+                executor.world_tree_manager.register_opportunity(opportunity)
         executor.branch_action_candidates = executor.world_tree_manager.candidate_actions
         from types import SimpleNamespace
         npc_scheduler._refresh_conflicts(
@@ -697,7 +835,7 @@ class GameLauncher:
         if saved_identities:
             identity_manager = IdentityManager(saved_identities)
         else:
-            cards = scenario_content.character_cards if scenario_content is not None else ()
+            cards = scenario_runtime.character_cards
             card_by_id = {card.character_id: card for card in cards}
             identity_manager = IdentityManager(
                 CharacterIdentity(
@@ -714,20 +852,15 @@ class GameLauncher:
         session.executor.event_pipeline.subscribe(development_engine, name="character_development")
         if autonomous_state:
             session.executor.npc_scheduler.last_tick_id = scheduler_state.get("last_tick_id")
-        package_state = (autonomous_state.get("world_package", autonomous_state.get("demo", {}))
+        package_state = (autonomous_state.get("scenario_package", autonomous_state.get("world_package", {}))
                          if hasattr(autonomous_state, "get") else {})
-        session.anchor_content_version = package_state.get("content_version") or getattr(session, "anchor_content_version", None)
-        session.anchor_started_at = package_state.get("started_at") or getattr(session, "anchor_started_at", None)
-        session.anchor_world_settings = dict(package_state.get("settings", {}))
-        session.anchor_location_relations = package_state.get("location_relations", ())
-        session.anchor_routines = package_state.get("routines", {})
-        if session.scenario is not None and getattr(session.scenario, "scenario_id", None) == "anchor_world":
-            # Older saves predate world-package metadata; restore package defaults.
-            from cognitive_sandbox.application.anchor_world_loader import AnchorWorldLoader
-            anchor_package = AnchorWorldLoader().load()
-            session.anchor_content_version = session.anchor_content_version or anchor_package.world_card.content_version
-            session.anchor_location_relations = session.anchor_location_relations or anchor_package.location_relations
-            session.anchor_routines = session.anchor_routines or anchor_package.routines
+        session.scenario_id = scenario_runtime.scenario_id
+        session.scenario_version = package_state.get("scenario_version", scenario_runtime.version)
+        session.scenario_started_at = package_state.get("started_at")
+        session.scenario_settings = dict(package_state.get("settings", {}))
+        session.scenario_locations = tuple(package_state.get("locations", ()))
+        session.scenario_location_relations = package_state.get("location_relations", ())
+        session.scenario_routines = package_state.get("routines", {})
         if package_state.get("replay_index") is not None:
             session.story_replay_index = int(package_state.get("replay_index", 0))
         return session
@@ -757,6 +890,12 @@ class GameLauncher:
         for record in records:
             store.add_knowledge(record)
         retriever = KnowledgeRetriever(store)
+        restored_runtime = session_data.get("scenario_runtime")
+        saved_content = session_data.get("scenario_content")
+        if not isinstance(restored_runtime, ScenarioRuntime) and isinstance(saved_content, ScenarioContent):
+            restored_runtime = ScenarioRuntimeLoader(
+                runtime_builder=self.scenario_runtime_builder,
+            ).load_content(saved_content)
         session = self._create_roleplay_session(
             agent_context,
             metadata.world_id,
@@ -776,6 +915,7 @@ class GameLauncher:
             cognition_data=saved_world.get("cognition", {}),
             agency_data=saved_world.get("autonomous", {}).get("agency_state"),
             world_memory_data=saved_world.get("world_memory"),
+            scenario_runtime=restored_runtime,
         )
         session.target = session_data.get("target")
         minds = saved_world.get("character_minds", {})
@@ -831,46 +971,42 @@ def _thaw_mapping(value):
     return value
 
 
-def _add_clinic_goal_tree(manager: GoalManager, owner_id: str) -> None:
-    parent_id = f"{owner_id}:repair_clinic"
-    materials_id = f"{owner_id}:collect_materials"
-    power_id = f"{owner_id}:restore_power"
+def _add_configured_goal_tree(manager: GoalManager, owner_id: str, rule, tree) -> None:
+    goal_type = str(rule["goal_type"])
+    parent_id = f"{owner_id}:{rule.get('goal_id_suffix', goal_type)}"
+    children = tuple(tree.get("subgoals", ()))
+    child_ids = tuple(f"{owner_id}:{item.get('id', item['goal_type'])}" for item in children)
     manager.add(CharacterGoal(
-        owner_id, "修复医疗站", "repair_clinic", 0.8,
-        goal_id=parent_id, subgoals=(materials_id, power_id),
-        completion_conditions=("all_subgoals_completed",),
+        owner_id, str(rule.get("description", goal_type)), goal_type,
+        float(rule.get("priority", .5)), tuple(rule.get("conditions", ())),
+        goal_id=parent_id, subgoals=child_ids,
+        completion_conditions=tuple(tree.get("completion_conditions", ())),
     ))
-    manager.add(CharacterGoal(
-        owner_id, "收集医疗站修复材料", "collect_materials", 0.75,
-        ("materials_needed",), goal_id=materials_id, parent_goal_id=parent_id,
-    ))
-    manager.add(CharacterGoal(
-        owner_id, "恢复医疗站供电", "restore_power", 0.7,
-        ("materials_available", "clinic_power_restored"), 0.0, "paused",
-        goal_id=power_id, parent_goal_id=parent_id,
-        completion_conditions=("clinic_power_restored",),
-    ))
+    for item, child_id in zip(children, child_ids):
+        manager.add(CharacterGoal(
+            owner_id, str(item["description"]), str(item["goal_type"]),
+            float(item.get("priority", .5)), tuple(item.get("conditions", ())),
+            float(item.get("progress", 0)), str(item.get("status", "active")),
+            goal_id=child_id, parent_goal_id=parent_id,
+            completion_conditions=tuple(item.get("completion_conditions", ())),
+        ))
 
 
-def _upgrade_clinic_goal_tree(manager: GoalManager, old_goal: CharacterGoal) -> GoalManager:
-    parent_id = old_goal.goal_id
-    materials_id = f"{old_goal.owner_id}:collect_materials"
-    power_id = f"{old_goal.owner_id}:restore_power"
+def _upgrade_configured_goal_tree(manager: GoalManager, old_goal: CharacterGoal, tree) -> None:
+    children = tuple(tree.get("subgoals", ()))
+    child_ids = tuple(f"{old_goal.owner_id}:{item.get('id', item['goal_type'])}" for item in children)
     manager.replace_goal(replace(
-        old_goal, subgoals=(materials_id, power_id),
-        completion_conditions=("all_subgoals_completed",),
+        old_goal, subgoals=child_ids,
+        completion_conditions=tuple(tree.get("completion_conditions", ())),
     ))
-    manager.add(CharacterGoal(
-        old_goal.owner_id, "收集医疗站修复材料", "collect_materials", old_goal.priority,
-        ("materials_needed",), goal_id=materials_id, parent_goal_id=parent_id,
-    ))
-    manager.add(CharacterGoal(
-        old_goal.owner_id, "恢复医疗站供电", "restore_power", old_goal.priority,
-        ("materials_available", "clinic_power_restored"), 0.0, "paused",
-        goal_id=power_id, parent_goal_id=parent_id,
-        completion_conditions=("clinic_power_restored",),
-    ))
-    return manager
+    for item, child_id in zip(children, child_ids):
+        manager.add(CharacterGoal(
+            old_goal.owner_id, str(item["description"]), str(item["goal_type"]),
+            float(item.get("priority", old_goal.priority)), tuple(item.get("conditions", ())),
+            float(item.get("progress", 0)), str(item.get("status", "active")),
+            goal_id=child_id, parent_goal_id=old_goal.goal_id,
+            completion_conditions=tuple(item.get("completion_conditions", ())),
+        ))
 
 
 def _safety_scale(value):

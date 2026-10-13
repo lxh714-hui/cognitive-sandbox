@@ -20,6 +20,11 @@ class JsonEventLoader:
 
     def load(self, path: str | Path) -> EventCard:
         data = _read_json_object(path, "event")
+        return self.from_mapping(data, source=str(path))
+
+    def from_mapping(self, data: dict, *, source: str = "event data") -> EventCard:
+        if not isinstance(data, dict):
+            raise ValueError("event data must be an object.")
         _require_fields(data, self.REQUIRED_FIELDS, "event")
         try:
             card = EventCard(
@@ -33,7 +38,7 @@ class JsonEventLoader:
                 priority=data["priority"],
             )
         except (TypeError, ValueError) as error:
-            raise ValueError(f"invalid event card in {path}: {error}") from error
+            raise ValueError(f"invalid event card in {source}: {error}") from error
         result = self._validator.validate(card)
         if not result.valid:
             raise ValueError("event card validation failed: " + "; ".join(result.errors))
