@@ -86,12 +86,22 @@ class LLMProvider:
             headers = {"Content-Type": "application/json"}
             if self._config.api_key:
                 headers["Authorization"] = f"Bearer {self._config.api_key}"
+            system_prompt = "You are an AI game master. Return only the requested content."
+            if request.request_type == "parse_action_intent":
+                system_prompt = (
+                    "Interpret only the player's requested action. Return one JSON object with "
+                    "intent (an open-vocabulary short action label), target (a person explicitly "
+                    "named by the player or null), object (a place or object explicitly named "
+                    "by the player or null), and parameters (an object). Do not invent people, "
+                    "objects, places, world changes, events, success, or outcomes. Do not execute "
+                    "the action. If unclear, return {\"intent\":null}."
+                )
             body = {
                 "model": self._config.model_name,
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are an AI game master. Return only the requested content.",
+                        "content": system_prompt,
                     },
                     {
                         "role": "user",

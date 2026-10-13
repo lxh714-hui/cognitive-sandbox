@@ -1,0 +1,13 @@
+from enum import Enum
+
+
+class RelationshipStage(str, Enum):
+    UNKNOWN = "UNKNOWN"
+    STRANGER = "STRANGER"
+    ACQUAINTANCE = "ACQUAINTANCE"
+    FAMILIAR = "FAMILIAR"
+    COOPERATIVE = "COOPERATIVE"
+    TRUSTED = "TRUSTED"
+    CLOSE = "CLOSE"
+    CONFLICTED = "CONFLICTED"
+    BROKEN = "BROKEN"

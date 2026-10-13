@@ -3,6 +3,7 @@
   "name": "灰港纪元",
   "description": "灾难后的海港城市能源不足，幸存者在不同聚落中寻找安全与合作的可能。",
   "initial_world_state": {
+    "location": "港区旧诊所大厅",
     "energy_level": 0.2,
     "resource_level": 0.35,
     "danger_level": 0.4,

@@ -1,0 +1,17 @@
+{
+  "liangjing": [
+    {"id": "liangjing_identity", "content": "我叫梁景，今年23岁。", "type": "DIRECT", "confidence": 1.0},
+    {"id": "liangjing_return", "content": "我刚结束服刑，正在重新开始生活。", "type": "DIRECT", "confidence": 1.0},
+    {"id": "public_city", "content": "我住在一片普通居民区。", "type": "REPORTED", "confidence": 0.9}
+  ],
+  "liuyiyi": [
+    {"id": "liuyiyi_anomaly_trace", "content": "附近有几处时间记录对不上的线索，原因尚不明确。", "type": "OBSERVED", "confidence": 0.65}
+  ],
+  "song": [
+    {"id": "song_background_note", "content": "过去一段时间，附近有数次彼此相似的异常记录。", "type": "REPORTED", "confidence": 0.7},
+    {"id": "song_clock_note", "content": "有一份旧记录提到街区钟表曾同时停摆，来源仍待核实。", "type": "REPORTED", "confidence": 0.55}
+  ],
+  "pei": [
+    {"id": "pei_daily_life", "content": "附近居民通常在街角便利店购买日用品。", "type": "DIRECT", "confidence": 0.95}
+  ]
+}

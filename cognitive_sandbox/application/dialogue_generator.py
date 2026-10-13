@@ -26,4 +26,11 @@ class DialogueGenerator:
             return DialogueLine(speaker.character_id, "我只是做了应该做的事。", "calm")
         if "brave" in traits and "danger" in normalized_situation:
             return DialogueLine(speaker.character_id, "退后，我来处理。", "determined")
+        if target is not None and any(
+            token in normalized_situation
+            for token in ("交谈", "聊天", "聊聊", "聊几句", "说话", "谈谈", "打招呼", "交流", "询问", "问问", "问一下")
+        ):
+            # A neutral, non-factual fallback keeps a conversation playable when
+            # no language model is configured; it does not imply hidden knowledge.
+            return DialogueLine(speaker.character_id, "你好。你想聊些什么？", "calm")
         return None

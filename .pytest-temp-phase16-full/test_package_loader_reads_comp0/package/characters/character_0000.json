@@ -1,0 +1,22 @@
+{
+  "character_id": "doctor",
+  "name": "林夏",
+  "identity": {
+    "age": 29,
+    "gender": "女",
+    "occupation": "医生"
+  },
+  "personality": [
+    "compassionate"
+  ],
+  "background": "曾在医院工作。",
+  "goals": [
+    "救助患者"
+  ],
+  "constraints": [
+    {
+      "type": "hard",
+      "content": "不会伤害无辜者"
+    }
+  ]
+}

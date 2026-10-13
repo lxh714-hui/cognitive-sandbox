@@ -3,15 +3,20 @@ from pathlib import Path
 
 project_root = Path(SPECPATH).resolve()
 datas = []
-for resource_name in ("assets", "scenarios"):
-    resource_dir = project_root / "cognitive_sandbox" / resource_name
+for resource_name in ("resources", "worlds", "characters", "configs"):
+    resource_dir = project_root / resource_name
     if resource_dir.is_dir():
-        datas.append((str(resource_dir), f"cognitive_sandbox/{resource_name}"))
+        datas.append((str(resource_dir), resource_name))
 
 # User-facing scenario packages live at the repository-level assets directory.
 scenario_packages = project_root / "assets" / "scenarios"
 if scenario_packages.is_dir():
     datas.append((str(scenario_packages), "assets/scenarios"))
+
+# Anchor is an application world package (not part of the user-authored assets).
+anchor_world_package = project_root / "worlds" / "anchor"
+if anchor_world_package.is_dir() and not any(destination == "worlds" for _, destination in datas):
+    datas.append((str(anchor_world_package.parent), "worlds"))
 
 # Keep test suites out of the frozen application even if a future application
 # module imports a test helper by mistake. The source tests remain untouched.
@@ -36,6 +41,8 @@ a = Analysis(
         "cognitive_sandbox.presentation.app",
         "cognitive_sandbox.presentation.scenario_selection",
         "cognitive_sandbox.application.scenario_catalog",
+        "cognitive_sandbox.presentation.theme",
+        "cognitive_sandbox.presentation.home.home_page",
     ],
     hookspath=[],
     hooksconfig={},

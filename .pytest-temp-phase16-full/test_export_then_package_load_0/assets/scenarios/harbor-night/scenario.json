@@ -1,0 +1,27 @@
+{
+  "scenario_id": "harbor-night",
+  "name": "港城夜晚",
+  "description": "医院停电风险迫近。",
+  "initial_world_state": {
+    "danger_level": 0.4,
+    "nested": {
+      "lights": [
+        "hall",
+        "ward"
+      ]
+    }
+  },
+  "character_templates": [
+    {
+      "id": "doctor",
+      "name": "林夏",
+      "role": "医生",
+      "traits": [
+        "compassionate"
+      ],
+      "goals": [
+        "救助患者"
+      ]
+    }
+  ]
+}

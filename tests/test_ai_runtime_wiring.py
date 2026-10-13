@@ -60,7 +60,7 @@ def test_ai_interpreter_is_wired_into_roleplay_session(tmp_path):
     assert result.action_executed
     assert transport.calls[0][0] == "http://localhost:11434/v1/chat/completions"
     request_data = json.loads(transport.calls[0][2]["messages"][1]["content"])
-    assert request_data["request_type"] == "parse_player_action"
+    assert request_data["request_type"] == "parse_action_intent"
     assert request_data["context"]["player_text"] == submitted
     assert "world_state" not in request_data["context"]
 

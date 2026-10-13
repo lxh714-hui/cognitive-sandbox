@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from cognitive_sandbox.domain.character_card import CharacterCard
+from cognitive_sandbox.domain.character_card import CharacterCard, ExampleDialogue
 from cognitive_sandbox.domain.constraint import Constraint
 from cognitive_sandbox.domain.validation_result import ValidationResult
 
@@ -22,6 +22,8 @@ class CharacterCardValidator:
                 errors.append(f"{field_name} must be a tuple of non-empty strings.")
             elif any(not isinstance(item, str) or not item.strip() for item in values):
                 errors.append(f"{field_name} must contain only non-empty strings.")
+        if not isinstance(getattr(card, "identity_editable", None), bool):
+            errors.append("identity_editable must be a boolean.")
         constraints = getattr(card, "constraints", None)
         if not isinstance(constraints, tuple):
             errors.append("constraints must be a tuple of valid Constraint values.")
@@ -36,4 +38,16 @@ class CharacterCardValidator:
                     errors.append(f"constraints[{index}].type is invalid.")
                 elif not isinstance(constraint.content, str) or not constraint.content.strip():
                     errors.append(f"constraints[{index}].content must not be empty.")
+        examples = getattr(card, "example_dialogues", None)
+        if not isinstance(examples, tuple):
+            errors.append("example_dialogues must be a tuple of valid ExampleDialogue values.")
+        else:
+            for index, example in enumerate(examples):
+                if not isinstance(example, ExampleDialogue):
+                    errors.append(f"example_dialogues[{index}] must be an ExampleDialogue.")
+                elif any(
+                    not isinstance(value, str) or not value.strip()
+                    for value in (example.user, example.character)
+                ):
+                    errors.append(f"example_dialogues[{index}] fields must not be empty.")
         return ValidationResult(not errors, tuple(errors), ())

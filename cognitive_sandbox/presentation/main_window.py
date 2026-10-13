@@ -1,16 +1,26 @@
 from __future__ import annotations
 
+import logging
+from datetime import datetime
+
 from PySide6.QtCore import QObject, QSettings, QTimer, Qt, QThread, Signal, Slot
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QButtonGroup, QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidget, QMainWindow, QSplitter, QSplitterHandle,
-    QPushButton, QSizePolicy, QTextBrowser, QVBoxLayout, QWidget,
+    QPushButton, QSizePolicy, QTextBrowser, QVBoxLayout, QWidget, QMenu, QInputDialog,
 )
 
 from cognitive_sandbox.application.service import SandboxService
+from cognitive_sandbox.application.world_library import WorldLibrary
+from cognitive_sandbox.application.world_manager import WorldManager, WorldLifecycleError
 from cognitive_sandbox.domain.models import Agent, CognitiveMemory, ConversationEvent, World
 from cognitive_sandbox.domain.runtime_mode import RuntimeMode
 from cognitive_sandbox.infrastructure.static_sprites import StaticSpriteRenderer
+from cognitive_sandbox.presentation.message import DisplayMessage, MessageType
+from cognitive_sandbox.presentation.scenario_presenter import ScenarioPresenter
+
+
+logger = logging.getLogger(__name__)
 
 
 class TurnWorker(QObject):
@@ -448,6 +458,8 @@ from cognitive_sandbox.domain.llm_config import LLMConfig as _LLMConfig
 from cognitive_sandbox.domain.narrative_event import NarrativeEvent as _NarrativeEvent
 from cognitive_sandbox.presentation.ai_settings_panel import AISettingsPanel
 from cognitive_sandbox.presentation.scenario_selection import ScenarioSelectionPanel
+from cognitive_sandbox.presentation.world_lobby import WorldLobbyPanel
+from cognitive_sandbox.presentation.director.director_panel import DirectorPanel
 
 
 class _ConfirmOnEnterTextEdit(_QPlainTextEdit):
@@ -485,7 +497,19 @@ class FoundationMainWindow(QMainWindow):
         self.scenario_registry = None
         self.current_session = None
         self.current_world_creation_session = None
+        self.character_roster_dialog = None
+        self.world_library = WorldLibrary()
+        self.world_manager = WorldManager(self.world_library)
+        self.current_world_instance_id: str | None = None
         self._is_processing = False
+        self._roleplay_thread: QThread | None = None
+        self._roleplay_worker = None
+        self.message_history: list[DisplayMessage] = []
+        self._scenario_presenter = ScenarioPresenter()
+        self._requested_entry_mode = "roleplay"
+        self.home_dialog = None
+        self._simulation_dialog_scheduled = False
+        self._simulation_dialog_open = False
 
         central = QWidget(self)
         layout = QVBoxLayout(central)
@@ -500,21 +524,78 @@ class FoundationMainWindow(QMainWindow):
         self.mode_selector.currentIndexChanged.connect(self._on_mode_changed)
         header.addWidget(QLabel("模式", central))
         header.addWidget(self.mode_selector)
+        self.world_context_label = QLabel("未进入世界", central)
+        self.world_context_label.setObjectName("worldContextLabel")
+        header.addWidget(self.world_context_label)
         header.addStretch(1)
         self.ai_settings_button = _QToolButton(central)
         self.ai_settings_button.setText("AI 设置")
         self.ai_settings_button.clicked.connect(self.open_ai_settings)
         header.addWidget(self.ai_settings_button)
         self.new_game_button = _QToolButton(central)
-        self.new_game_button.setText("新游戏")
-        self.new_game_button.clicked.connect(self.open_scenario_selection)
+        self.new_game_button.setText("世界大厅")
+        self.new_game_button.clicked.connect(self.open_world_lobby)
         header.addWidget(self.new_game_button)
+        self.world_menu_button = _QToolButton(central)
+        self.world_menu_button.setObjectName("worldMenuButton")
+        self.world_menu_button.setText("世界菜单")
+        self.world_menu = QMenu(self.world_menu_button)
+        self.save_world_action = self.world_menu.addAction("保存世界")
+        self.exit_world_action = self.world_menu.addAction("退出当前世界")
+        self.save_world_action.triggered.connect(self.save_current_world)
+        self.exit_world_action.triggered.connect(self.exit_current_world)
+        self.world_menu_button.setMenu(self.world_menu)
+        self.world_menu_button.setPopupMode(_QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.world_menu_button.setEnabled(False)
+        header.addWidget(self.world_menu_button)
+        self.chronicle_button = _QToolButton(central)
+        self.chronicle_button.setObjectName("worldChronicleButton")
+        self.chronicle_button.setText("世界编年史")
+        self.chronicle_button.setEnabled(False)
+        self.chronicle_button.clicked.connect(self.open_world_chronicle)
+        header.addWidget(self.chronicle_button)
+        self.character_roster_button = _QToolButton(central)
+        self.character_roster_button.setObjectName("characterRosterButton")
+        self.character_roster_button.setText("角色档案")
+        self.character_roster_button.setEnabled(False)
+        self.character_roster_button.clicked.connect(self.open_character_roster)
+        header.addWidget(self.character_roster_button)
+        self.debug_button = _QToolButton(central)
+        self.debug_button.setObjectName("simulationDebugButton")
+        self.debug_button.setText("模拟诊断")
+        self.debug_button.setEnabled(False)
+        self.debug_button.clicked.connect(self.open_simulation_debug)
+        header.addWidget(self.debug_button)
         layout.addLayout(header)
+
+        self.guidance_panel = QFrame(central)
+        self.guidance_panel.setObjectName("narrativeOpportunityPanel")
+        guidance_layout = QVBoxLayout(self.guidance_panel)
+        guidance_layout.setContentsMargins(10, 8, 10, 8)
+        guidance_layout.setSpacing(4)
+        self.guidance_focus = QLabel("当前关注", self.guidance_panel)
+        self.guidance_focus.setObjectName("narrativeOpportunityFocus")
+        guidance_layout.addWidget(self.guidance_focus)
+        self.opportunity_rows = QVBoxLayout()
+        self.opportunity_rows.setContentsMargins(0, 0, 0, 0)
+        self.opportunity_rows.setSpacing(4)
+        guidance_layout.addLayout(self.opportunity_rows)
+        self.guidance_panel.hide()
+        layout.addWidget(self.guidance_panel)
 
         self.narrative_display = QTextBrowser(central)
         self.narrative_display.setObjectName("narrativeDisplay")
         self.narrative_display.setPlaceholderText("叙事与角色对白会显示在这里。")
         layout.addWidget(self.narrative_display, 1)
+        self.system_message_label = QLabel(central)
+        self.system_message_label.setObjectName("systemMessageStatus")
+        self.system_message_label.setWordWrap(True)
+        self.system_message_label.hide()
+        layout.addWidget(self.system_message_label)
+
+        self.director_panel = DirectorPanel(None, central)
+        self.director_panel.hide()
+        layout.addWidget(self.director_panel)
 
         input_row = QHBoxLayout()
         self.player_input = _ConfirmOnEnterTextEdit(central)
@@ -524,12 +605,23 @@ class FoundationMainWindow(QMainWindow):
         self.confirm_button = QPushButton("确认", central)
         self.confirm_button.setObjectName("confirmButton")
         self.confirm_button.setEnabled(False)
+        self.confirm_button.setText("执行")
+        self.wait_button = QPushButton("等待", central)
+        self.wait_button.setObjectName("waitButton")
+        self.observe_button = QPushButton("观察", central)
+        self.observe_button.setObjectName("observeButton")
+        self.wait_button.setEnabled(False)
+        self.observe_button.setEnabled(False)
         self.player_input.textChanged.connect(self._update_confirm_enabled)
         self.confirm_button.clicked.connect(self.confirm_player_input)
         self.player_input.enter_pressed.connect(self.confirm_button.click)
         input_row.addWidget(self.player_input, 1)
         input_row.addWidget(self.confirm_button)
-        self.response_status = QLabel("AI 正在响应…", central)
+        input_row.addWidget(self.wait_button)
+        input_row.addWidget(self.observe_button)
+        self.wait_button.clicked.connect(lambda: self._quick_interaction("wait"))
+        self.observe_button.clicked.connect(lambda: self._quick_interaction("observe"))
+        self.response_status = QLabel("等待行动", central)
         self.response_status.setObjectName("responseStatus")
         self.response_status.hide()
         input_row.addWidget(self.response_status)
@@ -537,14 +629,8 @@ class FoundationMainWindow(QMainWindow):
 
         self.setCentralWidget(central)
         self._on_mode_changed(self.mode_selector.currentIndex())
-        self.setStyleSheet(
-            "QMainWindow, QWidget { background: #17181b; color: #eee6de; }"
-            "QTextBrowser, QPlainTextEdit { background: #222329; border: 1px solid #414148;"
-            " border-radius: 8px; padding: 8px; }"
-            "QPushButton, QToolButton, QComboBox { background: #302f35; border: 1px solid #514d52;"
-            " border-radius: 7px; padding: 7px 12px; }"
-            "QPushButton:disabled { color: #77747a; }"
-        )
+        from cognitive_sandbox.presentation.theme import DARK_STYLESHEET
+        self.setStyleSheet(DARK_STYLESHEET)
 
     @property
     def current_mode(self) -> str:
@@ -559,9 +645,27 @@ class FoundationMainWindow(QMainWindow):
     def _on_mode_changed(self, _index: int) -> None:
         mode = self.current_mode
         runtime_ready = self.ui_runtime is not None or self.game_launcher is None
-        self.player_input.setEnabled(mode == "roleplay" and runtime_ready)
+        self.player_input.setEnabled(
+            mode == "roleplay" and runtime_ready and not self._is_processing
+        )
+        self.response_status.setVisible(
+            self.ui_runtime is not None and mode == "roleplay"
+        )
+        self.director_panel.setVisible(mode == "director")
+        self.guidance_panel.setVisible(mode == "roleplay" and self.opportunity_rows.count() > 0)
+        if mode == "director":
+            self.director_panel.set_session(self.current_session)
         self._update_confirm_enabled()
         self.mode_changed.emit(mode)
+        if (mode == "simulation" and self.current_session is not None
+                and not self._simulation_dialog_open and not self._simulation_dialog_scheduled):
+            self._simulation_dialog_scheduled = True
+            QTimer.singleShot(0, self._open_simulation_for_selected_mode)
+
+    def _open_simulation_for_selected_mode(self):
+        self._simulation_dialog_scheduled = False
+        if self.current_mode == "simulation" and self.current_session is not None:
+            self.open_story_mode(self.current_session)
 
     @property
     def input_text(self) -> str:
@@ -573,32 +677,170 @@ class FoundationMainWindow(QMainWindow):
             and bool(self.input_text.strip())
             and not self._is_processing
         )
+        shortcut_enabled = (
+            self.current_mode == "roleplay"
+            and self.ui_runtime is not None
+            and not self._is_processing
+        )
+        if hasattr(self, "wait_button"):
+            self.wait_button.setEnabled(shortcut_enabled)
+            self.observe_button.setEnabled(shortcut_enabled)
+
+    def _quick_interaction(self, intent: str) -> None:
+        if self._is_processing or self.ui_runtime is None:
+            return
+        try:
+            self._set_processing(True)
+            prepare = getattr(self.ui_runtime, "prepare_interaction_button", None)
+            execute = getattr(self.ui_runtime, "execute_confirm", None)
+            if callable(prepare) and callable(execute):
+                text = prepare(intent)
+                self.append_player_message(text)
+                self.append_temporary_message("正在生成...")
+                self._begin_roleplay_execution(execute)
+                return
+            # Compatibility for lightweight runtimes used by integrations.
+            self.ui_runtime.handle_interaction_button(intent)
+        except Exception:
+            logger.exception("Could not prepare roleplay shortcut")
+            self.append_system_message("行动执行失败，请重试")
+        finally:
+            if self._is_processing and self._roleplay_thread is None:
+                self._set_processing(False)
 
     def confirm_player_input(self) -> None:
         value = self.input_text.strip()
         if not value or self._is_processing:
             return
         self.confirmed_input = value
-        self._is_processing = True
-        self._update_confirm_enabled()
-        if self.ui_runtime is not None:
-            self.response_status.show()
-            _QApplication.processEvents()
-        try:
-            if self.ui_runtime is not None:
-                self.ui_runtime.handle_player_input(value)
-                self.ui_runtime.handle_confirm()
+        # Capture, clear, and show the user's message before any AI or
+        # simulation work begins. This remains true if preparation fails.
+        self.player_input.clear()
+        self.clear_system_message()
+        self.append_player_message(value)
+        if self.ui_runtime is None:
             self.player_input_confirmed.emit(value)
-            self.player_input.clear()
-        finally:
-            self._is_processing = False
-            self.response_status.hide()
             self._update_confirm_enabled()
+            return
+        try:
+            self._set_processing(True)
+            self.player_input_confirmed.emit(value)
+            self.ui_runtime.handle_player_input(value)
+            execute = getattr(self.ui_runtime, "execute_confirm", None)
+            if callable(execute):
+                self.append_temporary_message("正在生成...")
+                self._start_roleplay_worker(execute)
+            else:
+                # Preserve compatibility for simple in-process UI adapters.
+                self.ui_runtime.handle_confirm()
+                self._set_processing(False)
+        except Exception:
+            logger.exception("Could not prepare roleplay input")
+            self.append_system_message("行动执行失败，请重试")
+            self._set_processing(False)
+
+    def _set_processing(self, processing: bool) -> None:
+        self._is_processing = processing
+        self.response_status.setText("世界正在响应..." if processing else "等待行动")
+        self.response_status.setVisible(self.ui_runtime is not None and self.current_mode == "roleplay")
+        self.player_input.setEnabled(
+            not processing and self.current_mode == "roleplay" and self.ui_runtime is not None
+        )
+        self._update_confirm_enabled()
+
+    def _begin_roleplay_execution(self, operation) -> None:
+        self._set_processing(True)
+        self._start_roleplay_worker(operation)
+
+    def _start_roleplay_worker(self, operation) -> None:
+        from cognitive_sandbox.presentation.roleplay.roleplay_worker import RoleplayWorker
+
+        if self._roleplay_thread is not None and self._roleplay_thread.isRunning():
+            return
+        thread = QThread(self)
+        worker = RoleplayWorker(operation)
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.succeeded.connect(self._on_roleplay_succeeded)
+        worker.failed.connect(self._on_roleplay_failed)
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(self._on_roleplay_thread_finished)
+        thread.finished.connect(thread.deleteLater)
+        self._roleplay_thread = thread
+        self._roleplay_worker = worker
+        thread.start()
+
+    @Slot(object)
+    def _on_roleplay_succeeded(self, result) -> None:
+        try:
+            self.clear_system_message()
+            presenter = getattr(self.ui_runtime, "present_result", None)
+            if callable(presenter):
+                presenter(result)
+            self._refresh_world_context()
+        except Exception:
+            logger.exception("Could not display roleplay result")
+            self.append_system_message("行动执行失败，请重试")
+
+    @Slot(str)
+    def _on_roleplay_failed(self, _details: str) -> None:
+        # Details are logged in the worker; keep the player-facing error useful
+        # without leaking provider or implementation diagnostics.
+        recover = getattr(self.ui_runtime, "recover_failed_execution", None)
+        if callable(recover):
+            recover()
+        self.clear_system_message()
+        self.append_system_message("行动执行失败，请重试")
+
+    @Slot()
+    def _on_roleplay_thread_finished(self) -> None:
+        self._roleplay_worker = None
+        self._roleplay_thread = None
+        self._set_processing(False)
 
     def set_ui_runtime(self, runtime) -> None:
         self.ui_runtime = runtime
-        self.player_input.setEnabled(self.current_mode == "roleplay" and runtime is not None)
+        self.player_input.setEnabled(
+            self.current_mode == "roleplay" and runtime is not None and not self._is_processing
+        )
+        self.response_status.setText("等待行动")
+        self.response_status.setVisible(runtime is not None and self.current_mode == "roleplay")
         self._update_confirm_enabled()
+        refresh_guidance = getattr(runtime, "refresh_guidance", None)
+        if callable(refresh_guidance):
+            refresh_guidance()
+
+    def set_narrative_opportunities(self, opportunities, *, focus="") -> None:
+        """Render only opportunities already filtered for the active character."""
+        while self.opportunity_rows.count():
+            item = self.opportunity_rows.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+        values = tuple(opportunities or ())[:3]
+        self.guidance_panel.setVisible(bool(values) and self.current_mode == "roleplay")
+        self.guidance_focus.setText(f"值得注意 · 当前关注：{focus}" if focus else "值得注意")
+        for opportunity in values:
+            row = QWidget(self.guidance_panel)
+            row_layout = QVBoxLayout(row)
+            row_layout.setContentsMargins(0, 0, 0, 0)
+            description = QLabel(opportunity.description, row)
+            description.setWordWrap(True)
+            row_layout.addWidget(description)
+            actions = QHBoxLayout()
+            for suggestion in opportunity.possible_actions[:3]:
+                button = QPushButton(suggestion, row)
+                button.setObjectName("opportunitySuggestionButton")
+                button.clicked.connect(lambda _checked=False, text=suggestion: self._fill_player_input(text))
+                actions.addWidget(button)
+            row_layout.addLayout(actions)
+            self.opportunity_rows.addWidget(row)
+        self.guidance_panel.adjustSize()
+
+    def _fill_player_input(self, text):
+        self.player_input.setPlainText(text)
+        self.player_input.setFocus()
 
     def set_game_launcher(self, launcher) -> None:
         if not callable(getattr(launcher, "start_scenario", None)):
@@ -611,6 +853,22 @@ class FoundationMainWindow(QMainWindow):
         self.player_input.setEnabled(self.current_mode == "roleplay" and self.ui_runtime is not None)
         self._update_confirm_enabled()
 
+    def open_home(self) -> None:
+        from cognitive_sandbox.presentation.home import HomePage
+        dialog = HomePage(self.world_library, self)
+        self.home_dialog = dialog
+        dialog.enter_world.connect(lambda mode: self._home_open_lobby(dialog, mode))
+        dialog.observe_simulation.connect(lambda: self._home_open_lobby(dialog, "simulation"))
+        dialog.director_mode.connect(lambda: self._home_open_lobby(dialog, "director"))
+        dialog.create_world.connect(lambda: (dialog.accept(), QTimer.singleShot(0, self.open_ai_world_creation)))
+        dialog.debug_requested.connect(lambda: (dialog.accept(), QTimer.singleShot(0, self.open_simulation_debug)))
+        dialog.exec()
+
+    def _home_open_lobby(self, dialog, mode):
+        self._requested_entry_mode = mode
+        dialog.accept()
+        QTimer.singleShot(0, lambda: self.open_world_lobby(mode=mode))
+
     def open_scenario_selection(self) -> None:
         if self.scenario_registry is None or self.game_launcher is None:
             return
@@ -622,6 +880,9 @@ class FoundationMainWindow(QMainWindow):
         create_world_button = QPushButton("AI 创建世界", dialog)
         create_world_button.setObjectName("createWorldButton")
         layout.addWidget(create_world_button)
+        back_button = QPushButton("返回世界大厅", dialog)
+        back_button.setObjectName("returnToWorldLobbyButton")
+        layout.addWidget(back_button)
 
         def _start(scenario_id: str) -> None:
             self.start_new_game(scenario_id)
@@ -631,7 +892,233 @@ class FoundationMainWindow(QMainWindow):
         create_world_button.clicked.connect(
             lambda: (dialog.accept(), QTimer.singleShot(0, self.open_ai_world_creation))
         )
+        back_button.clicked.connect(lambda: (dialog.reject(), QTimer.singleShot(0, self.open_world_lobby)))
         dialog.exec()
+
+    def open_world_lobby(self, mode=None) -> None:
+        if self.game_launcher is None:
+            return
+        if mode in self.MODES:
+            self._requested_entry_mode = mode
+        dialog = _QDialog(self)
+        dialog.setWindowTitle("世界大厅")
+        dialog.setObjectName("worldLobbyDialog")
+        layout = QVBoxLayout(dialog)
+        panel = WorldLobbyPanel(self.world_library, dialog)
+        if self.current_world_instance_id is not None:
+            for index in range(panel.world_list.count()):
+                item = panel.world_list.item(index)
+                if item.data(Qt.ItemDataRole.UserRole) == self.current_world_instance_id:
+                    panel.world_list.setCurrentItem(item)
+                    break
+        layout.addWidget(panel)
+
+        def _continue() -> None:
+            selected_id = panel.selected_world_id
+            if selected_id is None:
+                return
+            try:
+                self.switch_world(selected_id)
+                self.set_mode(self._requested_entry_mode)
+            except Exception as error:
+                self.append_system_message(f"无法恢复这个世界：{error}")
+                panel.refresh()
+                return
+            dialog.accept()
+
+        panel.continue_requested.connect(lambda _instance_id: _continue())
+        panel.delete_requested.connect(lambda instance_id: self._delete_world_from_lobby(instance_id, panel))
+        panel.create_requested.connect(
+            lambda: (dialog.accept(), QTimer.singleShot(0, self.open_ai_world_creation))
+        )
+        def _create_anchor() -> None:
+            try:
+                session = self.game_launcher.start_anchor_world()
+                self.mode_selector.setCurrentIndex(self.mode_selector.findData("roleplay"))
+                self._attach_roleplay_session(session)
+                self.set_mode(self._requested_entry_mode)
+                dialog.accept()
+            except Exception as error:
+                logger.exception("Could not start Anchor world")
+                self.append_system_message("无法启动这个世界，请稍后重试。")
+                panel.refresh()
+
+        panel.anchor_requested.connect(_create_anchor)
+        def _observe_anchor() -> None:
+            try:
+                session = self.game_launcher.start_anchor_world()
+                session.anchor_world_settings = {**session.anchor_world_settings,
+                                                "mode": "simulation_observation"}
+                self.mode_selector.setCurrentIndex(self.mode_selector.findData("simulation"))
+                self._attach_roleplay_session(session)
+                self.set_mode("simulation")
+                dialog.accept()
+            except Exception as error:
+                logger.exception("Could not open Anchor world observation")
+                self.append_system_message("无法打开模拟观察，请稍后重试。")
+                panel.refresh()
+
+        panel.anchor_simulation_requested.connect(_observe_anchor)
+        panel.extend_requested.connect(
+            lambda instance_id: (dialog.accept(), QTimer.singleShot(0, lambda: self.open_world_extension(instance_id)))
+        )
+        dialog.exec()
+
+    def _delete_world_from_lobby(self, instance_id, panel) -> None:
+        from PySide6.QtWidgets import QMessageBox
+
+        if self.world_library.active_id == instance_id:
+            self.append_system_message("当前世界正在运行，请先退出世界再删除。")
+            panel.refresh()
+            return
+        answer = QMessageBox.question(
+            panel,
+            "删除世界",
+            "确定删除这个世界吗？它的存档、对话和世界数据都会一并删除。此操作无法撤销。",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer is not QMessageBox.StandardButton.Yes:
+            return
+        try:
+            self.world_manager.delete_world(instance_id)
+            panel.refresh()
+        except WorldLifecycleError as error:
+            self.append_system_message(str(error))
+        except Exception:
+            logger.exception("Could not delete world instance")
+            self.append_system_message("删除世界失败，请稍后重试。")
+
+    def open_story_mode(self, session=None) -> None:
+        session = session or self.current_session
+        if session is None:
+            return
+        from cognitive_sandbox.presentation.simulation.simulation_view import SimulationView
+        dialog = _QDialog(self)
+        dialog.setWindowTitle("模拟观察")
+        dialog.resize(680, 560)
+        self._simulation_dialog_open = True
+        layout = QVBoxLayout(dialog)
+        story_view = SimulationView(session, dialog)
+        layout.addWidget(story_view)
+        def _switch_to_player_mode() -> None:
+            self.mode_selector.setCurrentIndex(self.mode_selector.findData("roleplay"))
+            dialog.accept()
+        story_view.player_mode_requested.connect(_switch_to_player_mode)
+        close_button = QPushButton("返回世界", dialog)
+        close_button.clicked.connect(dialog.accept)
+        layout.addWidget(close_button)
+        dialog.exec()
+        self._simulation_dialog_open = False
+
+    def open_world_extension(self, instance_id: str) -> None:
+        """Draft and explicitly confirm an append-only patch for one world."""
+        from cognitive_sandbox.application.world_evolution_manager import WorldEvolutionManager
+        from cognitive_sandbox.application.world_patch_drafter import WorldPatchDrafter
+        from cognitive_sandbox.domain.patch_validation_result import PatchValidationStatus
+        from cognitive_sandbox.domain.world_patch import WorldPatch, WorldPatchType
+
+        if instance_id not in {world.instance_id for world in self.world_library.list_worlds()}:
+            self.append_system_message("无法扩展：这个世界实例已不存在。")
+            return
+        dialog = _QDialog(self)
+        dialog.setWindowTitle("扩展世界 · 添加角色")
+        dialog.setObjectName("worldExtensionDialog")
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel("描述要加入世界的新角色", dialog))
+        prompt = _QPlainTextEdit(dialog)
+        prompt.setObjectName("worldPatchPrompt")
+        prompt.setPlaceholderText("例如：加入一名在第十天收到求救信号后抵达医疗中心的流浪商人")
+        prompt.setMaximumHeight(90)
+        layout.addWidget(prompt)
+        generate_button = QPushButton("生成角色草案", dialog)
+        generate_button.setObjectName("generateWorldPatchButton")
+        layout.addWidget(generate_button)
+        preview = QLabel("草案只会写入该世界实例的追加记录；确认后从当前时间点生效。", dialog)
+        preview.setObjectName("worldPatchPreview")
+        preview.setWordWrap(True)
+        layout.addWidget(preview)
+        status = QLabel("", dialog)
+        status.setObjectName("worldPatchStatus")
+        status.setWordWrap(True)
+        layout.addWidget(status)
+        confirm_button = QPushButton("确认加入", dialog)
+        confirm_button.setObjectName("confirmWorldPatchButton")
+        confirm_button.setEnabled(False)
+        layout.addWidget(confirm_button)
+
+        manager = WorldEvolutionManager(self.world_library)
+        patch_holder: dict[str, WorldPatch] = {}
+
+        def _make_drafter():
+            provider = None
+            settings = QSettings("CognitiveSandbox", "CognitiveSandbox")
+            if all(settings.contains(f"ai/{key}") for key in ("provider", "model_name", "base_url")):
+                try:
+                    from cognitive_sandbox.application.llm_provider import LLMProvider
+                    wiring = getattr(self.game_launcher, "ai_runtime_wiring", None)
+                    provider = LLMProvider(wiring.load_config()) if wiring is not None else None
+                except (TypeError, ValueError):
+                    provider = None
+            return WorldPatchDrafter(provider)
+
+        def _generate() -> None:
+            try:
+                patch = _make_drafter().draft_character(prompt.toPlainText())
+                result = manager.validate(instance_id, patch)
+            except Exception as error:
+                status.setText(f"无法生成草案：{error}")
+                confirm_button.setEnabled(False)
+                return
+            patch_holder["patch"] = patch
+            addition = patch.payload
+            card = addition.character_card
+            preview.setText(
+                f"{card.name} · {card.occupation}\n"
+                f"性格：{'、'.join(card.personality) or '未指定'}\n"
+                f"背景：{card.background}\n"
+                f"加入方式：{addition.introduction_method}\n"
+                f"出现条件：{addition.appearance_condition}\n"
+                f"入场事件：{addition.entry_event}\n"
+                f"生效时间：{patch.effective_time}"
+            )
+            status.setText("\n".join(result.reasons) or "未发现已知冲突。请确认后加入。")
+            confirm_button.setEnabled(result.status is not PatchValidationStatus.REJECTED)
+
+        def _confirm() -> None:
+            patch = patch_holder.get("patch")
+            if patch is None:
+                return
+            result = manager.apply(instance_id, patch, confirmed=True)
+            if result.status is PatchValidationStatus.REJECTED:
+                status.setText("补丁被拒绝：" + "\n".join(result.reasons))
+                return
+            self.append_system_message(f"世界补丁已加入：{patch.title}（从{patch.effective_time}生效）")
+            dialog.accept()
+
+        generate_button.clicked.connect(_generate)
+        confirm_button.clicked.connect(_confirm)
+        dialog.exec()
+
+    def switch_world(self, instance_id: str):
+        self.clear_system_message()
+        session, saved_messages = self.world_library.activate(instance_id, self.message_history)
+        self.current_world_instance_id = instance_id
+        self.current_session = session
+        self._refresh_world_context()
+        self.character_roster_button.setEnabled(True)
+        self.director_panel.set_session(session)
+        self.confirmed_input = ""
+        self.player_input.clear()
+        story_types = {MessageType.PLAYER, MessageType.CHARACTER, MessageType.NARRATION}
+        self.message_history = [message for message in saved_messages
+                               if message.message_type in story_types]
+        self.narrative_display.clear()
+        for message in self.message_history:
+            self._render_message(message)
+        if self.game_launcher is not None:
+            self.game_launcher.current_session = session
+        return self._attach_roleplay_session(session, register_world=False, show_opening=False)
 
     def _create_ai_world_creation_dialog(self):
         if self.game_launcher is None:
@@ -661,7 +1148,13 @@ class FoundationMainWindow(QMainWindow):
         world_description.setObjectName("worldDraftDescription")
         world_description.setWordWrap(True)
         layout.addWidget(world_description)
-        layout.addWidget(QLabel("角色", dialog))
+        layout.addWidget(QLabel("选择或创建你的角色", dialog))
+        player_character = _QComboBox(dialog)
+        player_character.setObjectName("playerCharacterSelector")
+        layout.addWidget(player_character)
+        create_player_button = QPushButton("创建玩家角色", dialog)
+        create_player_button.setObjectName("createPlayerCharacterButton")
+        layout.addWidget(create_player_button)
         characters = QListWidget(dialog)
         characters.setObjectName("worldDraftCharacters")
         layout.addWidget(characters)
@@ -679,14 +1172,19 @@ class FoundationMainWindow(QMainWindow):
         layout.addWidget(confirm_button)
 
         def _generate() -> None:
+            if not prompt.toPlainText().strip():
+                status.setText("请输入世界描述。")
+                confirm_button.setEnabled(False)
+                return
             try:
                 result = creation_session.generate(prompt.toPlainText())
-            except Exception as error:
-                status.setText(f"生成失败：{error}")
+            except Exception:
+                logger.exception("World generation failed")
+                status.setText("暂时无法生成世界，请检查描述后重试。")
                 confirm_button.setEnabled(False)
                 return
             if result.scenario_content is None or not result.validation_result.valid:
-                status.setText(result.error or "生成内容未通过验证。")
+                status.setText("世界草稿未通过检查，请调整描述后重新生成。")
                 confirm_button.setEnabled(False)
                 return
             content = result.scenario_content
@@ -694,9 +1192,11 @@ class FoundationMainWindow(QMainWindow):
             world_name.setText(content.world_document.name)
             world_description.setText(content.world_document.description)
             characters.clear()
+            player_character.clear()
             for card in content.character_cards:
                 role = f" · {card.occupation}" if card.occupation else ""
                 characters.addItem(f"{card.name}{role}")
+                player_character.addItem(card.name, card.character_id)
             events.clear()
             for card in content.event_cards:
                 events.addItem(f"{card.name} · {card.description}")
@@ -706,15 +1206,45 @@ class FoundationMainWindow(QMainWindow):
         def _confirm_and_start() -> None:
             try:
                 creation_session.confirm()
-                session = creation_session.start()
+                session = creation_session.start(player_character.currentData())
                 self._attach_roleplay_session(session)
-            except Exception as error:
-                status.setText(f"无法启动世界：{error}")
+            except Exception:
+                logger.exception("Generated world could not be started")
+                status.setText("无法启动这个世界，请检查世界内容后重试。")
                 return
             dialog.accept()
 
+        def _create_player_character() -> None:
+            result = creation_session.generation_result
+            content = result.scenario_content if result is not None else None
+            if content is None:
+                status.setText("请先生成世界草稿。")
+                return
+            name, accepted = QInputDialog.getText(dialog, "创建玩家角色", "角色名称")
+            if not accepted or not name.strip():
+                return
+            from dataclasses import replace
+            from uuid import uuid4
+            from cognitive_sandbox.domain.character_card import CharacterCard
+            card = CharacterCard(
+                f"player_{uuid4().hex[:10]}", name.strip(), occupation="玩家角色",
+                personality=("由玩家创建",), goals=("按照自己的想法探索世界",),
+            )
+            updated = replace(content, character_cards=(*content.character_cards, card))
+            creation_session.scenario_content = updated
+            creation_session.generation_result = replace(result, scenario_content=updated)
+            player_character.addItem(card.name, card.character_id)
+            player_character.setCurrentIndex(player_character.count() - 1)
+            characters.addItem(f"{card.name} · 玩家角色")
+
+        back_button = QPushButton("返回世界大厅", dialog)
+        back_button.setObjectName("returnToWorldLobbyButton")
+        layout.addWidget(back_button)
+        back_button.clicked.connect(lambda: (dialog.reject(), QTimer.singleShot(0, self.open_world_lobby)))
+
         generate_button.clicked.connect(_generate)
         confirm_button.clicked.connect(_confirm_and_start)
+        create_player_button.clicked.connect(_create_player_character)
         return dialog
 
     def open_ai_world_creation(self) -> None:
@@ -723,7 +1253,8 @@ class FoundationMainWindow(QMainWindow):
         try:
             dialog = self._create_ai_world_creation_dialog()
         except Exception as error:
-            self.append_system_message(f"无法创建世界：{error}")
+            logger.exception("Could not create AI world")
+            self.append_system_message("暂时无法创建世界，请检查输入后重试。")
             return
         dialog.exec()
 
@@ -731,36 +1262,267 @@ class FoundationMainWindow(QMainWindow):
         if self.game_launcher is None:
             raise RuntimeError("GameLauncher has not been configured.")
         session = self.game_launcher.start_scenario(scenario_id)
-        return self._attach_roleplay_session(session)
+        result = self._attach_roleplay_session(session)
+        if self._requested_entry_mode in self.MODES:
+            self.set_mode(self._requested_entry_mode)
+        return result
 
-    def _attach_roleplay_session(self, session):
+    def _attach_roleplay_session(self, session, *, register_world: bool = True, show_opening: bool = True):
         from cognitive_sandbox.presentation.ui_runtime import UIRuntime
 
+        self.clear_system_message()
         self.current_session = session
-        UIRuntime(self, session)
+        self.character_roster_button.setEnabled(True)
+        self.director_panel.set_session(session)
+        self.chronicle_button.setEnabled(True)
+        self.debug_button.setEnabled(True)
+        if self.game_launcher is not None:
+            self.game_launcher.current_session = session
+        if register_world:
+            self.world_library.save_active(self.message_history)
+            world = self.world_library.register(session)
+            self.current_world_instance_id = world.instance_id
+            self.message_history = []
+            self.narrative_display.clear()
+        UIRuntime(self, session, show_opening=show_opening and not self.message_history)
+        self.world_menu_button.setEnabled(True)
+        self._refresh_world_context()
         return session
+
+    def _refresh_world_context(self):
+        session = self.current_session
+        if session is None:
+            self.world_context_label.setText("未进入世界")
+            return
+        content = getattr(session, "scenario_content", None)
+        world_document = getattr(content, "world_document", None) if content is not None else None
+        scenario = getattr(session, "scenario", None)
+        world_name = (
+            getattr(world_document, "name", None)
+            or getattr(scenario, "name", None)
+            or session.world_state.get("world_name")
+            or "当前世界"
+        )
+        names = self._scenario_presenter.display_names(session)
+        character = getattr(session, "agent_context", None)
+        character_state = getattr(character, "character_state", None)
+        character_name = names.get(session.player_id) or getattr(character_state, "name", None)
+        if not character_name or character_name.casefold() == session.player_id.casefold():
+            character_name = "玩家角色"
+        clock = getattr(getattr(session, "executor", None), "world_clock", None)
+        when = clock.current_time() if clock is not None else None
+        presence_manager = getattr(session, "presence_manager", None)
+        presence = presence_manager.get(session.player_id) if presence_manager is not None else None
+        location = getattr(presence, "current_location", None)
+        location_manager = getattr(session.executor, "location_manager", None)
+        location_state = location_manager.get(location) if location and location_manager else None
+        if location_state is None and location_manager is not None:
+            location_state = next(
+                (item for item in location_manager.locations if item.name == location),
+                None,
+            )
+        if location_state is None and location_manager is not None and not location:
+            location_state = location_manager.get(location_manager.current_location_id)
+        location_name = getattr(location_state, "name", None)
+        if not location_name:
+            location_name = session.world_state.get("location_name") or session.world_state.get("current_location_name")
+        if not location_name:
+            location_name = "所在地点"
+        started = getattr(session, "anchor_started_at", None)
+        day_number = 1
+        saved_day = session.world_state.get("day", session.world_state.get("day_number"))
+        if isinstance(saved_day, int) and not isinstance(saved_day, bool) and saved_day > 0:
+            day_number = saved_day
+        if when is not None and started:
+            try:
+                start_time = datetime.fromisoformat(str(started).replace("Z", "+00:00"))
+                if start_time.tzinfo is None:
+                    start_time = start_time.replace(tzinfo=when.tzinfo)
+                day_number = max(1, (when - start_time).days + 1)
+            except (TypeError, ValueError):
+                day_number = 1
+        values = [f"《{world_name}》", f"角色：{character_name}", f"地点：{location_name}"]
+        values.append(f"时间：Day {day_number}" + (f" · {when:%H:%M}" if when is not None else ""))
+        self.world_context_label.setText(" · ".join(values))
+
+    def open_character_roster(self):
+        if self.current_session is None:
+            return None
+        from cognitive_sandbox.presentation.character_roster import CharacterRosterDialog
+        self.character_roster_dialog = CharacterRosterDialog(self.current_session, self)
+        self.character_roster_dialog.exec()
+        return self.character_roster_dialog
+
+    def open_world_chronicle(self) -> None:
+        """Show a read-only timeline for the active world's events and state changes."""
+        session = self.current_session
+        if session is None:
+            return
+        executor = session.executor
+        dialog = _QDialog(self)
+        dialog.setWindowTitle("世界编年史")
+        dialog.resize(560, 440)
+        layout = QVBoxLayout(dialog)
+        from cognitive_sandbox.presentation.world_chronicle import WorldChroniclePanel
+
+        layout.addWidget(WorldChroniclePanel(
+            getattr(executor, "event_timeline", None),
+            getattr(getattr(executor, "world_evolution_engine", None), "state_changes", ()),
+            location_manager=getattr(executor, "location_manager", None),
+            goal_manager=getattr(executor, "goal_manager", None),
+            parent=dialog,
+        ))
+        close_button = QPushButton("关闭", dialog)
+        close_button.clicked.connect(dialog.accept)
+        layout.addWidget(close_button)
+        dialog.exec()
+
+    def open_simulation_debug(self) -> None:
+        """Open read-only diagnostics for the active runtime session."""
+        if self.current_session is None:
+            return
+        dialog = _QDialog(self)
+        dialog.setWindowTitle("Simulation Debug")
+        dialog.resize(900, 680)
+        layout = QVBoxLayout(dialog)
+        from cognitive_sandbox.presentation.debug.debug_dashboard import DebugDashboard
+
+        layout.addWidget(DebugDashboard(self.current_session, dialog))
+        close_button = QPushButton("关闭", dialog)
+        close_button.clicked.connect(dialog.accept)
+        layout.addWidget(close_button)
+        dialog.exec()
 
     def append_narrative_event(self, event: _NarrativeEvent) -> None:
         if not isinstance(event, _NarrativeEvent):
             raise TypeError("event must be a NarrativeEvent")
-        participants = ", ".join(event.participants)
-        detail = f"<br><small>{_html_escape(participants)}</small>" if participants else ""
-        self.narrative_display.append(
-            f"<p><b>{_html_escape(event.title)}</b><br>{_html_escape(event.description)}{detail}</p>"
-        )
+        self.append_message(MessageType.NARRATION, event.description)
 
     def append_dialogue_line(self, line: _DialogueLine) -> None:
         if not isinstance(line, _DialogueLine):
             raise TypeError("line must be a DialogueLine")
-        emotion = f" <small>({_html_escape(line.emotion_hint)})</small>" if line.emotion_hint else ""
-        self.narrative_display.append(
-            f"<p><b>{_html_escape(line.speaker_id)}{emotion}</b><br>{_html_escape(line.text)}</p>"
+        names = self._scenario_presenter.display_names(self.current_session) if self.current_session else {}
+        name = names.get(line.speaker_id)
+        if not name and self.current_session is not None:
+            context = next((item for item in self.current_session.agent_contexts
+                            if item.character_id == line.speaker_id), None)
+            candidate = getattr(getattr(context, "character_state", None), "name", "")
+            if isinstance(candidate, str) and candidate.strip() and candidate.casefold() != line.speaker_id.casefold():
+                name = candidate.strip()
+        self.append_message(
+            MessageType.CHARACTER,
+            line.text,
+            speaker_id=name,
         )
+
+    def append_opening_message(self, message: str) -> None:
+        self.append_message(MessageType.NARRATION, message)
+
+    def append_observation_feedback(self, message: str) -> None:
+        self.append_message(MessageType.NARRATION, message)
+
+    def append_player_message(self, message: str) -> None:
+        self.append_message(MessageType.PLAYER, message)
+
+    def append_message(
+        self,
+        message_type: MessageType | str,
+        content: str,
+        *,
+        speaker_id: str | None = None,
+    ) -> DisplayMessage:
+        message = DisplayMessage(message_type, content, speaker_id)
+        if message.message_type in {
+            MessageType.SYSTEM_TEMP, MessageType.SYSTEM_ERROR, MessageType.SYSTEM,
+        }:
+            self._show_system_message(message)
+            return message
+        self.message_history.append(message)
+        self._render_message(message)
+        self.world_library.save_active(self.message_history)
+        return message
+
+    def _render_message(self, message: DisplayMessage) -> None:
+        if message.message_type in {
+            MessageType.SYSTEM_TEMP, MessageType.SYSTEM_ERROR, MessageType.SYSTEM,
+        }:
+            return
+        escaped_content = _html_escape(message.content).replace("\n", "<br>")
+        if message.message_type is MessageType.PLAYER:
+            html = f"<p><span style='color:#e0b58f'>你：</span><br>{escaped_content}</p>"
+        elif message.message_type is MessageType.CHARACTER:
+            speaker = message.speaker_id
+            if speaker and speaker != "世界":
+                html = f"<p><span style='color:#c5a35a'>{_html_escape(speaker)}：</span><br>{escaped_content}</p>"
+            else:
+                html = f"<p>{escaped_content}</p>"
+        else:
+            html = f"<p>{escaped_content}</p>"
+        self.narrative_display.append(html)
 
     def append_system_message(self, message: str) -> None:
         if not isinstance(message, str) or not message.strip():
             raise ValueError("message must not be empty")
-        self.narrative_display.append(f"<p><i>{_html_escape(message.strip())}</i></p>")
+        self.append_message(MessageType.SYSTEM_ERROR, message)
+
+    def append_temporary_message(self, message: str) -> None:
+        if not isinstance(message, str) or not message.strip():
+            raise ValueError("message must not be empty")
+        self.append_message(MessageType.SYSTEM_TEMP, message)
+
+    def _show_system_message(self, message: DisplayMessage) -> None:
+        self.system_message_label.setText(message.content)
+        self.system_message_label.setProperty("messageType", message.message_type.value)
+        self.system_message_label.show()
+
+    def clear_system_message(self) -> None:
+        self.system_message_label.clear()
+        self.system_message_label.hide()
+
+    def closeEvent(self, event) -> None:  # noqa: N802 - Qt API name
+        if self._roleplay_thread is not None and self._roleplay_thread.isRunning():
+            self.append_system_message("当前行动完成后即可关闭窗口。")
+            event.ignore()
+            return
+        self.world_library.save_active(self.message_history)
+        super().closeEvent(event)
+
+    def save_current_world(self) -> bool:
+        if self.current_session is None:
+            return False
+        self.world_library.save_active(self.message_history)
+        if self.current_world_instance_id in self.world_library.persistence_errors:
+            self.append_system_message("世界暂时无法保存，请检查存储空间后重试。")
+            return False
+        self.append_system_message("世界已保存。")
+        return True
+
+    def exit_current_world(self) -> None:
+        if self.current_session is None:
+            self.open_world_lobby()
+            return
+        saved = self.world_library.deactivate(self.message_history)
+        if not saved:
+            self.append_system_message("世界暂时无法保存，仍留在当前世界。")
+            return
+        self.current_session = None
+        self.ui_runtime = None
+        if self.game_launcher is not None:
+            self.game_launcher.current_session = None
+        self.current_world_instance_id = None
+        self.message_history = []
+        self.confirmed_input = ""
+        self.player_input.clear()
+        self.narrative_display.clear()
+        self.world_context_label.setText("未进入世界")
+        self.set_narrative_opportunities((), focus="")
+        self.character_roster_button.setEnabled(False)
+        self.chronicle_button.setEnabled(False)
+        self.debug_button.setEnabled(False)
+        self.world_menu_button.setEnabled(False)
+        self.director_panel.set_session(None)
+        self.set_mode("roleplay")
+        self.open_world_lobby()
 
     def open_ai_settings(self) -> None:
         dialog = _QDialog(self)

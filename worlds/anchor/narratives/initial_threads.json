@@ -1,0 +1,5 @@
+[
+  {"id": "liangjing_return", "title": "梁景回归生活", "participants": ["liangjing"], "conflict": "重新建立日常生活与面对过去之间的张力", "pressure": 0.1, "progress": 0.0, "status": "ACTIVE"},
+  {"id": "anomaly_investigation", "title": "异常调查", "participants": ["liuyiyi", "song"], "conflict": "零散线索与有限证据之间的张力", "pressure": 0.2, "progress": 0.0, "status": "DORMANT"},
+  {"id": "potential_intersection", "title": "潜在交汇", "participants": ["liangjing", "liuyiyi", "pei"], "conflict": "不同生活轨迹可能产生交集", "pressure": 0.0, "progress": 0.0, "status": "POSSIBLE"}
+]

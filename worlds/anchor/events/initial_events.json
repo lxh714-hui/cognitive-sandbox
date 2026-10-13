@@ -1,0 +1,22 @@
+[
+  {
+    "event_id": "world_initialized",
+    "name": "WorldInitialized",
+    "description": "锚点世界完成初始化。角色从各自已知的信息与当前状态开始生活。",
+    "event_type": "world_initialized",
+    "participants": ["liangjing", "liuyiyi", "song", "pei"],
+    "conditions": ["第1天 08:00", "初始地点：梁景住所", "初始角色状态已装载"],
+    "effects": [],
+    "priority": 0
+  },
+  {
+    "event_id": "neighborhood_rumor_day_one",
+    "name": "街区传闻",
+    "description": "最近有人提到，街区的钟表偶尔对不上时间；具体原因还没有人确认。",
+    "event_type": "neighborhood_rumor",
+    "participants": ["pei"],
+    "conditions": ["第1天", "便利店附近有人谈起此事"],
+    "effects": [],
+    "priority": 1
+  }
+]

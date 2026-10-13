@@ -72,6 +72,11 @@ class ScenarioExporter:
                         {"type": constraint.type, "content": constraint.content}
                         for constraint in card.constraints
                     ],
+                    "example_dialogues": [
+                        {"user": example.user, "character": example.character}
+                        for example in card.example_dialogues
+                    ],
+                    "identity_editable": card.identity_editable,
                 },
             )
         for index, card in enumerate(content.event_cards):

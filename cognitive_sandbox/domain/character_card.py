@@ -19,6 +19,18 @@ def _string_tuple(values: Iterable[str], field_name: str) -> tuple[str, ...]:
 
 
 @dataclass(frozen=True)
+class ExampleDialogue:
+    user: str
+    character: str
+
+    def __post_init__(self) -> None:
+        for field_name in ("user", "character"):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{field_name} must not be empty.")
+
+
+@dataclass(frozen=True)
 class CharacterCard:
     character_id: str
     name: str
@@ -30,6 +42,8 @@ class CharacterCard:
     goals: tuple[str, ...] = ()
     constraints: tuple[Constraint, ...] = ()
     portrait: str | None = None
+    example_dialogues: tuple[ExampleDialogue, ...] = ()
+    identity_editable: bool = True
 
     def __post_init__(self) -> None:
         for field_name in ("character_id", "name"):
@@ -45,6 +59,8 @@ class CharacterCard:
                 raise TypeError(f"{field_name} must be a string.")
         if self.portrait is not None and not isinstance(self.portrait, str):
             raise TypeError("portrait must be a string or None.")
+        if not isinstance(self.identity_editable, bool):
+            raise TypeError("identity_editable must be a boolean.")
 
         for field_name in ("personality", "goals"):
             object.__setattr__(self, field_name, _string_tuple(getattr(self, field_name), field_name))
@@ -57,3 +73,12 @@ class CharacterCard:
         if any(not isinstance(item, Constraint) for item in constraints):
             raise TypeError("constraints must contain only Constraint values.")
         object.__setattr__(self, "constraints", constraints)
+        if isinstance(self.example_dialogues, (str, bytes)):
+            raise TypeError("example_dialogues must be a collection of ExampleDialogue values.")
+        try:
+            examples = tuple(self.example_dialogues)
+        except TypeError as error:
+            raise TypeError("example_dialogues must be a collection of ExampleDialogue values.") from error
+        if any(not isinstance(item, ExampleDialogue) for item in examples):
+            raise TypeError("example_dialogues must contain only ExampleDialogue values.")
+        object.__setattr__(self, "example_dialogues", examples)

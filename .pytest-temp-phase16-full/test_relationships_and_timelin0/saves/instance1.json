@@ -1,0 +1,2387 @@
+{
+  "version": 1,
+  "metadata": {
+    "$model": "SaveMetadata",
+    "fields": {
+      "instance_id": "instance1",
+      "world_id": "world",
+      "scenario_id": "example_world",
+      "name": "Harbor",
+      "description": "A world",
+      "created_time": "day-1",
+      "last_played_time": "day-2",
+      "status": "可继续",
+      "world_status": "day 2",
+      "player_character_id": "player"
+    }
+  },
+  "session": {
+    "$mapping": [
+      [
+        "player_id",
+        "player"
+      ],
+      [
+        "agent_context",
+        {
+          "$model": "AgentContext",
+          "fields": {
+            "character_id": "player",
+            "character_state": {
+              "$model": "CharacterState",
+              "fields": {
+                "character_id": "player",
+                "name": "玩家",
+                "role": "幸存者",
+                "traits": {
+                  "$tuple": [
+                    "adaptive"
+                  ]
+                },
+                "goals": {
+                  "$tuple": [
+                    "寻找安全区域",
+                    "与聚落建立联系"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "memories": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memories": {
+              "$tuple": []
+            },
+            "relationships": {
+              "$tuple": []
+            },
+            "world_state": {
+              "$mapping": [
+                [
+                  "location",
+                  "港区旧诊所大厅"
+                ],
+                [
+                  "energy_level",
+                  0.2
+                ],
+                [
+                  "resource_level",
+                  0.35
+                ],
+                [
+                  "danger_level",
+                  0.4
+                ],
+                [
+                  "settlement_count",
+                  3
+                ]
+              ]
+            },
+            "dynamic_state": {
+              "$model": "AgentDynamicState",
+              "fields": {
+                "character_id": "player",
+                "confidence": 0.5,
+                "stress": 0.0,
+                "motivation": 0.5
+              }
+            }
+          }
+        }
+      ],
+      [
+        "agent_contexts",
+        {
+          "$tuple": [
+            {
+              "$model": "AgentContext",
+              "fields": {
+                "character_id": "player",
+                "character_state": {
+                  "$model": "CharacterState",
+                  "fields": {
+                    "character_id": "player",
+                    "name": "玩家",
+                    "role": "幸存者",
+                    "traits": {
+                      "$tuple": [
+                        "adaptive"
+                      ]
+                    },
+                    "goals": {
+                      "$tuple": [
+                        "寻找安全区域",
+                        "与聚落建立联系"
+                      ]
+                    },
+                    "fears": {
+                      "$tuple": []
+                    },
+                    "memories": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                "memories": {
+                  "$tuple": []
+                },
+                "relationships": {
+                  "$tuple": []
+                },
+                "world_state": {
+                  "$mapping": [
+                    [
+                      "location",
+                      "港区旧诊所大厅"
+                    ],
+                    [
+                      "energy_level",
+                      0.2
+                    ],
+                    [
+                      "resource_level",
+                      0.35
+                    ],
+                    [
+                      "danger_level",
+                      0.4
+                    ],
+                    [
+                      "settlement_count",
+                      3
+                    ]
+                  ]
+                },
+                "dynamic_state": {
+                  "$model": "AgentDynamicState",
+                  "fields": {
+                    "character_id": "player",
+                    "confidence": 0.5,
+                    "stress": 0.0,
+                    "motivation": 0.5
+                  }
+                }
+              }
+            },
+            {
+              "$model": "AgentContext",
+              "fields": {
+                "character_id": "doctor",
+                "character_state": {
+                  "$model": "CharacterState",
+                  "fields": {
+                    "character_id": "doctor",
+                    "name": "沈医生",
+                    "role": "医生",
+                    "traits": {
+                      "$tuple": [
+                        "谨慎",
+                        "善良"
+                      ]
+                    },
+                    "goals": {
+                      "$tuple": [
+                        "救助幸存者"
+                      ]
+                    },
+                    "fears": {
+                      "$tuple": []
+                    },
+                    "memories": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                "memories": {
+                  "$tuple": []
+                },
+                "relationships": {
+                  "$tuple": []
+                },
+                "world_state": {
+                  "$mapping": [
+                    [
+                      "location",
+                      "港区旧诊所大厅"
+                    ],
+                    [
+                      "energy_level",
+                      0.2
+                    ],
+                    [
+                      "resource_level",
+                      0.35
+                    ],
+                    [
+                      "danger_level",
+                      0.4
+                    ],
+                    [
+                      "settlement_count",
+                      3
+                    ]
+                  ]
+                },
+                "dynamic_state": {
+                  "$model": "AgentDynamicState",
+                  "fields": {
+                    "character_id": "doctor",
+                    "confidence": 0.5,
+                    "stress": 0.0,
+                    "motivation": 0.5
+                  }
+                }
+              }
+            },
+            {
+              "$model": "AgentContext",
+              "fields": {
+                "character_id": "survivor",
+                "character_state": {
+                  "$model": "CharacterState",
+                  "fields": {
+                    "character_id": "survivor",
+                    "name": "周岚",
+                    "role": "幸存者",
+                    "traits": {
+                      "$tuple": [
+                        "怀疑",
+                        "现实主义"
+                      ]
+                    },
+                    "goals": {
+                      "$tuple": [
+                        "寻找安全区域"
+                      ]
+                    },
+                    "fears": {
+                      "$tuple": []
+                    },
+                    "memories": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                "memories": {
+                  "$tuple": []
+                },
+                "relationships": {
+                  "$tuple": []
+                },
+                "world_state": {
+                  "$mapping": [
+                    [
+                      "location",
+                      "港区旧诊所大厅"
+                    ],
+                    [
+                      "energy_level",
+                      0.2
+                    ],
+                    [
+                      "resource_level",
+                      0.35
+                    ],
+                    [
+                      "danger_level",
+                      0.4
+                    ],
+                    [
+                      "settlement_count",
+                      3
+                    ]
+                  ]
+                },
+                "dynamic_state": {
+                  "$model": "AgentDynamicState",
+                  "fields": {
+                    "character_id": "survivor",
+                    "confidence": 0.5,
+                    "stress": 0.0,
+                    "motivation": 0.5
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "target",
+        null
+      ],
+      [
+        "world_state",
+        {
+          "$mapping": [
+            [
+              "location",
+              "港区旧诊所大厅"
+            ],
+            [
+              "energy_level",
+              0.2
+            ],
+            [
+              "resource_level",
+              0.35
+            ],
+            [
+              "danger_level",
+              0.4
+            ],
+            [
+              "settlement_count",
+              3
+            ]
+          ]
+        }
+      ],
+      [
+        "situation",
+        "灾难后的海港城市能源不足，幸存者在不同聚落中维持生活。"
+      ],
+      [
+        "scenario",
+        {
+          "$model": "Scenario",
+          "fields": {
+            "scenario_id": "example_world",
+            "name": "灰港纪元",
+            "description": "灾难后的海港城市能源不足，幸存者在不同聚落中寻找安全与合作的可能。",
+            "initial_world_state": {
+              "$mapping": [
+                [
+                  "location",
+                  "港区旧诊所大厅"
+                ],
+                [
+                  "energy_level",
+                  0.2
+                ],
+                [
+                  "resource_level",
+                  0.35
+                ],
+                [
+                  "danger_level",
+                  0.4
+                ],
+                [
+                  "settlement_count",
+                  3
+                ]
+              ]
+            },
+            "character_templates": {
+              "$tuple": [
+                {
+                  "$mapping": [
+                    [
+                      "id",
+                      "player"
+                    ],
+                    [
+                      "name",
+                      "玩家"
+                    ],
+                    [
+                      "role",
+                      "幸存者"
+                    ],
+                    [
+                      "traits",
+                      {
+                        "$tuple": [
+                          "adaptive"
+                        ]
+                      }
+                    ],
+                    [
+                      "goals",
+                      {
+                        "$tuple": [
+                          "寻找安全区域",
+                          "与聚落建立联系"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "$mapping": [
+                    [
+                      "id",
+                      "doctor"
+                    ],
+                    [
+                      "name",
+                      "沈医生"
+                    ],
+                    [
+                      "role",
+                      "医生"
+                    ],
+                    [
+                      "traits",
+                      {
+                        "$tuple": [
+                          "谨慎",
+                          "善良"
+                        ]
+                      }
+                    ],
+                    [
+                      "goals",
+                      {
+                        "$tuple": [
+                          "救助幸存者"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "$mapping": [
+                    [
+                      "id",
+                      "survivor"
+                    ],
+                    [
+                      "name",
+                      "周岚"
+                    ],
+                    [
+                      "role",
+                      "幸存者"
+                    ],
+                    [
+                      "traits",
+                      {
+                        "$tuple": [
+                          "怀疑",
+                          "现实主义"
+                        ]
+                      }
+                    ],
+                    [
+                      "goals",
+                      {
+                        "$tuple": [
+                          "寻找安全区域"
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      [
+        "scenario_content",
+        {
+          "$model": "ScenarioContent",
+          "fields": {
+            "scenario": {
+              "$model": "Scenario",
+              "fields": {
+                "scenario_id": "example_world",
+                "name": "灰港纪元",
+                "description": "灾难后的海港城市能源不足，幸存者在不同聚落中寻找安全与合作的可能。",
+                "initial_world_state": {
+                  "$mapping": [
+                    [
+                      "location",
+                      "港区旧诊所大厅"
+                    ],
+                    [
+                      "energy_level",
+                      0.2
+                    ],
+                    [
+                      "resource_level",
+                      0.35
+                    ],
+                    [
+                      "danger_level",
+                      0.4
+                    ],
+                    [
+                      "settlement_count",
+                      3
+                    ]
+                  ]
+                },
+                "character_templates": {
+                  "$tuple": [
+                    {
+                      "$mapping": [
+                        [
+                          "id",
+                          "player"
+                        ],
+                        [
+                          "name",
+                          "玩家"
+                        ],
+                        [
+                          "role",
+                          "幸存者"
+                        ],
+                        [
+                          "traits",
+                          {
+                            "$tuple": [
+                              "adaptive"
+                            ]
+                          }
+                        ],
+                        [
+                          "goals",
+                          {
+                            "$tuple": [
+                              "寻找安全区域",
+                              "与聚落建立联系"
+                            ]
+                          }
+                        ]
+                      ]
+                    },
+                    {
+                      "$mapping": [
+                        [
+                          "id",
+                          "doctor"
+                        ],
+                        [
+                          "name",
+                          "沈医生"
+                        ],
+                        [
+                          "role",
+                          "医生"
+                        ],
+                        [
+                          "traits",
+                          {
+                            "$tuple": [
+                              "谨慎",
+                              "善良"
+                            ]
+                          }
+                        ],
+                        [
+                          "goals",
+                          {
+                            "$tuple": [
+                              "救助幸存者"
+                            ]
+                          }
+                        ]
+                      ]
+                    },
+                    {
+                      "$mapping": [
+                        [
+                          "id",
+                          "survivor"
+                        ],
+                        [
+                          "name",
+                          "周岚"
+                        ],
+                        [
+                          "role",
+                          "幸存者"
+                        ],
+                        [
+                          "traits",
+                          {
+                            "$tuple": [
+                              "怀疑",
+                              "现实主义"
+                            ]
+                          }
+                        ],
+                        [
+                          "goals",
+                          {
+                            "$tuple": [
+                              "寻找安全区域"
+                            ]
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "world_document": {
+              "$model": "WorldDocument",
+              "fields": {
+                "world_id": "grey_harbor_era",
+                "name": "灰港纪元",
+                "description": "灾难后的海港城市能源不足，幸存者在不同聚落中维持生活。",
+                "history": {
+                  "$tuple": [
+                    "一场持续数日的灾害重创了港区，城市基础设施至今没有完全恢复。",
+                    "幸存者在旧城区、港口和高地建立了多个规模不一的聚落。"
+                  ]
+                },
+                "rules": {
+                  "$tuple": [
+                    "资源有限，聚落需要共同维护补给与能源。",
+                    "人类需要合作才能应对城市中的风险。",
+                    "每个人掌握的信息都不完整，传闻和观察可能存在偏差。"
+                  ]
+                }
+              }
+            },
+            "character_cards": {
+              "$tuple": [
+                {
+                  "$model": "CharacterCard",
+                  "fields": {
+                    "character_id": "player",
+                    "name": "玩家",
+                    "age": null,
+                    "gender": "",
+                    "occupation": "幸存者",
+                    "personality": {
+                      "$tuple": [
+                        "adaptive"
+                      ]
+                    },
+                    "background": "玩家角色可替换。灾后，你来到灰港，在不同聚落之间寻找落脚之处。",
+                    "goals": {
+                      "$tuple": [
+                        "寻找安全区域",
+                        "与聚落建立联系"
+                      ]
+                    },
+                    "constraints": {
+                      "$tuple": []
+                    },
+                    "portrait": null,
+                    "example_dialogues": {
+                      "$tuple": []
+                    },
+                    "identity_editable": true
+                  }
+                },
+                {
+                  "$model": "CharacterCard",
+                  "fields": {
+                    "character_id": "doctor",
+                    "name": "沈医生",
+                    "age": 34,
+                    "gender": "女",
+                    "occupation": "医生",
+                    "personality": {
+                      "$tuple": [
+                        "谨慎",
+                        "善良"
+                      ]
+                    },
+                    "background": "灾害发生后，沈医生留在港区诊所，和其他幸存者一起照料伤病者。",
+                    "goals": {
+                      "$tuple": [
+                        "救助幸存者"
+                      ]
+                    },
+                    "constraints": {
+                      "$tuple": [
+                        {
+                          "$model": "Constraint",
+                          "fields": {
+                            "type": "preference",
+                            "content": "优先保存有限的药品和医疗用品"
+                          }
+                        }
+                      ]
+                    },
+                    "portrait": null,
+                    "example_dialogues": {
+                      "$tuple": []
+                    },
+                    "identity_editable": true
+                  }
+                },
+                {
+                  "$model": "CharacterCard",
+                  "fields": {
+                    "character_id": "survivor",
+                    "name": "周岚",
+                    "age": 29,
+                    "gender": "女",
+                    "occupation": "幸存者",
+                    "personality": {
+                      "$tuple": [
+                        "怀疑",
+                        "现实主义"
+                      ]
+                    },
+                    "background": "周岚独自在灰港周边辗转，熟悉通往高地的几条旧路，但不轻易相信陌生人。",
+                    "goals": {
+                      "$tuple": [
+                        "寻找安全区域"
+                      ]
+                    },
+                    "constraints": {
+                      "$tuple": [
+                        {
+                          "$model": "Constraint",
+                          "fields": {
+                            "type": "soft",
+                            "content": "避免在没有退路的情况下消耗补给"
+                          }
+                        }
+                      ]
+                    },
+                    "portrait": null,
+                    "example_dialogues": {
+                      "$tuple": []
+                    },
+                    "identity_editable": true
+                  }
+                }
+              ]
+            },
+            "event_cards": {
+              "$tuple": [
+                {
+                  "$model": "EventCard",
+                  "fields": {
+                    "event_id": "first_meeting",
+                    "name": "第一次相遇",
+                    "description": "玩家在旧市场附近遇到正在寻找安全路线的周岚。",
+                    "event_type": "initial",
+                    "participants": {
+                      "$tuple": [
+                        "player",
+                        "survivor"
+                      ]
+                    },
+                    "conditions": {
+                      "$tuple": [
+                        "玩家进入旧市场附近"
+                      ]
+                    },
+                    "effects": {
+                      "$tuple": [
+                        "这次相遇可能带来新的信息或合作机会"
+                      ]
+                    },
+                    "priority": 0
+                  }
+                },
+                {
+                  "$model": "EventCard",
+                  "fields": {
+                    "event_id": "power_failure",
+                    "name": "能源危机",
+                    "description": "城市备用能源即将耗尽，几个聚落都在寻找维持供电的办法。",
+                    "event_type": "initial",
+                    "participants": {
+                      "$tuple": [
+                        "player",
+                        "doctor"
+                      ]
+                    },
+                    "conditions": {
+                      "$tuple": [
+                        "备用能源水平偏低"
+                      ]
+                    },
+                    "effects": {
+                      "$tuple": [
+                        "照明和医疗设备可能受到能源状况影响"
+                      ]
+                    },
+                    "priority": 1
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      [
+        "world_instance_id",
+        "instance1"
+      ],
+      [
+        "player_character_id",
+        "player"
+      ]
+    ]
+  },
+  "messages": {
+    "$tuple": []
+  },
+  "character_minds": {
+    "$mapping": [
+      [
+        "player",
+        {
+          "$model": "CharacterMind",
+          "fields": {
+            "identity": {
+              "$model": "Identity",
+              "fields": {
+                "name": "玩家",
+                "role": "幸存者",
+                "background": "玩家角色可替换。灾后，你来到灰港，在不同聚落之间寻找落脚之处。"
+              }
+            },
+            "personality": {
+              "$model": "PersonalityProfile",
+              "fields": {
+                "traits": {
+                  "$tuple": [
+                    "adaptive"
+                  ]
+                },
+                "values": {
+                  "$tuple": []
+                },
+                "goals": {
+                  "$tuple": [
+                    "寻找安全区域",
+                    "与聚落建立联系"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "taboos": {
+                  "$tuple": []
+                }
+              }
+            },
+            "speech_style": {
+              "$model": "SpeechStyle",
+              "fields": {
+                "tone": "自然、克制",
+                "vocabulary": {
+                  "$tuple": []
+                },
+                "sentence_style": "清晰、简洁",
+                "preferred_phrases": {
+                  "$tuple": []
+                },
+                "forbidden_styles": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memory_context": {
+              "$model": "MemoryContext",
+              "fields": {
+                "stable_memory": {
+                  "$tuple": [
+                    "玩家角色可替换。灾后，你来到灰港，在不同聚落之间寻找落脚之处。"
+                  ]
+                },
+                "relationship_memory": {
+                  "$tuple": []
+                },
+                "recent_memory": {
+                  "$tuple": []
+                }
+              }
+            },
+            "example_dialogues": {
+              "$tuple": []
+            },
+            "knowledge_context": {
+              "$model": "KnowledgeContext",
+              "fields": {
+                "records": {
+                  "$tuple": []
+                },
+                "available_information": {
+                  "$tuple": []
+                },
+                "owner_id": null
+              }
+            },
+            "relationship_context": {
+              "$model": "RelationshipContext",
+              "fields": {
+                "owner_id": null,
+                "relationships": {
+                  "$tuple": []
+                }
+              }
+            }
+          }
+        }
+      ],
+      [
+        "doctor",
+        {
+          "$model": "CharacterMind",
+          "fields": {
+            "identity": {
+              "$model": "Identity",
+              "fields": {
+                "name": "沈医生",
+                "role": "医生",
+                "background": "灾害发生后，沈医生留在港区诊所，和其他幸存者一起照料伤病者。"
+              }
+            },
+            "personality": {
+              "$model": "PersonalityProfile",
+              "fields": {
+                "traits": {
+                  "$tuple": [
+                    "谨慎",
+                    "善良"
+                  ]
+                },
+                "values": {
+                  "$tuple": [
+                    "优先保存有限的药品和医疗用品"
+                  ]
+                },
+                "goals": {
+                  "$tuple": [
+                    "救助幸存者"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "taboos": {
+                  "$tuple": []
+                }
+              }
+            },
+            "speech_style": {
+              "$model": "SpeechStyle",
+              "fields": {
+                "tone": "自然、克制",
+                "vocabulary": {
+                  "$tuple": []
+                },
+                "sentence_style": "清晰、简洁",
+                "preferred_phrases": {
+                  "$tuple": []
+                },
+                "forbidden_styles": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memory_context": {
+              "$model": "MemoryContext",
+              "fields": {
+                "stable_memory": {
+                  "$tuple": [
+                    "灾害发生后，沈医生留在港区诊所，和其他幸存者一起照料伤病者。"
+                  ]
+                },
+                "relationship_memory": {
+                  "$tuple": []
+                },
+                "recent_memory": {
+                  "$tuple": []
+                }
+              }
+            },
+            "example_dialogues": {
+              "$tuple": []
+            },
+            "knowledge_context": {
+              "$model": "KnowledgeContext",
+              "fields": {
+                "records": {
+                  "$tuple": []
+                },
+                "available_information": {
+                  "$tuple": []
+                },
+                "owner_id": null
+              }
+            },
+            "relationship_context": {
+              "$model": "RelationshipContext",
+              "fields": {
+                "owner_id": null,
+                "relationships": {
+                  "$tuple": []
+                }
+              }
+            }
+          }
+        }
+      ],
+      [
+        "survivor",
+        {
+          "$model": "CharacterMind",
+          "fields": {
+            "identity": {
+              "$model": "Identity",
+              "fields": {
+                "name": "周岚",
+                "role": "幸存者",
+                "background": "周岚独自在灰港周边辗转，熟悉通往高地的几条旧路，但不轻易相信陌生人。"
+              }
+            },
+            "personality": {
+              "$model": "PersonalityProfile",
+              "fields": {
+                "traits": {
+                  "$tuple": [
+                    "怀疑",
+                    "现实主义"
+                  ]
+                },
+                "values": {
+                  "$tuple": [
+                    "避免在没有退路的情况下消耗补给"
+                  ]
+                },
+                "goals": {
+                  "$tuple": [
+                    "寻找安全区域"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "taboos": {
+                  "$tuple": []
+                }
+              }
+            },
+            "speech_style": {
+              "$model": "SpeechStyle",
+              "fields": {
+                "tone": "自然、克制",
+                "vocabulary": {
+                  "$tuple": []
+                },
+                "sentence_style": "清晰、简洁",
+                "preferred_phrases": {
+                  "$tuple": []
+                },
+                "forbidden_styles": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memory_context": {
+              "$model": "MemoryContext",
+              "fields": {
+                "stable_memory": {
+                  "$tuple": [
+                    "周岚独自在灰港周边辗转，熟悉通往高地的几条旧路，但不轻易相信陌生人。"
+                  ]
+                },
+                "relationship_memory": {
+                  "$tuple": []
+                },
+                "recent_memory": {
+                  "$tuple": []
+                }
+              }
+            },
+            "example_dialogues": {
+              "$tuple": []
+            },
+            "knowledge_context": {
+              "$model": "KnowledgeContext",
+              "fields": {
+                "records": {
+                  "$tuple": []
+                },
+                "available_information": {
+                  "$tuple": []
+                },
+                "owner_id": null
+              }
+            },
+            "relationship_context": {
+              "$model": "RelationshipContext",
+              "fields": {
+                "owner_id": null,
+                "relationships": {
+                  "$tuple": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    ]
+  },
+  "patches": {
+    "$tuple": []
+  },
+  "knowledge": {
+    "$mapping": [
+      [
+        "facts",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "records",
+        {
+          "$tuple": []
+        }
+      ]
+    ]
+  },
+  "timeline": {
+    "$tuple": [
+      {
+        "$model": "WorldEventRecord",
+        "fields": {
+          "event_id": "history-1",
+          "event_type": "weapon_drawn",
+          "timestamp": "day-2",
+          "actor_ids": {
+            "$tuple": [
+              "player"
+            ]
+          },
+          "target_ids": {
+            "$tuple": [
+              "doctor"
+            ]
+          },
+          "location": null,
+          "importance": 0.5,
+          "metadata": {
+            "$mapping": []
+          }
+        }
+      }
+    ]
+  },
+  "relationships": {
+    "$tuple": [
+      {
+        "$model": "WorldRelationshipState",
+        "fields": {
+          "source_id": "doctor",
+          "target_id": "player",
+          "trust": 65.0,
+          "respect": 10.0,
+          "fear": 0.0,
+          "affinity": 0.0,
+          "hostility": 0.0
+        }
+      }
+    ]
+  },
+  "opportunities": {
+    "$tuple": []
+  },
+  "world_tree": {
+    "$mapping": [
+      [
+        "world_id",
+        "world_0a93c8aae9eb4afabb6260e54f9a0cdc"
+      ],
+      [
+        "root",
+        {
+          "$model": "StoryBranch",
+          "fields": {
+            "branch_id": "main",
+            "parent_branch_id": null,
+            "world_id": "world_0a93c8aae9eb4afabb6260e54f9a0cdc",
+            "revision": 0,
+            "divergence_event_id": null,
+            "divergence_action": null
+          }
+        }
+      ],
+      [
+        "branches",
+        {
+          "$tuple": [
+            {
+              "$model": "StoryBranch",
+              "fields": {
+                "branch_id": "main",
+                "parent_branch_id": null,
+                "world_id": "world_0a93c8aae9eb4afabb6260e54f9a0cdc",
+                "revision": 0,
+                "divergence_event_id": null,
+                "divergence_action": null
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "current_branch_id",
+        "main"
+      ],
+      [
+        "opportunity_branches",
+        {
+          "$mapping": []
+        }
+      ],
+      [
+        "deleted_branch_ids",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "expansion_count",
+        0
+      ]
+    ]
+  },
+  "autonomous": {
+    "$mapping": [
+      [
+        "clock_state",
+        {
+          "$model": "WorldClockState",
+          "fields": {
+            "current": "2026-10-13T09:36:52.546305+00:00"
+          }
+        }
+      ],
+      [
+        "goals",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterGoal",
+              "fields": {
+                "owner_id": "doctor",
+                "description": "收集医疗站修复材料",
+                "goal_type": "collect_materials",
+                "priority": 0.75,
+                "conditions": {
+                  "$tuple": [
+                    "materials_needed"
+                  ]
+                },
+                "progress": 0.0,
+                "status": "active",
+                "goal_id": "doctor:collect_materials",
+                "parent_goal_id": "doctor:repair_clinic",
+                "subgoals": {
+                  "$tuple": []
+                },
+                "completion_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterGoal",
+              "fields": {
+                "owner_id": "doctor",
+                "description": "修复医疗站",
+                "goal_type": "repair_clinic",
+                "priority": 0.8,
+                "conditions": {
+                  "$tuple": []
+                },
+                "progress": 0.0,
+                "status": "active",
+                "goal_id": "doctor:repair_clinic",
+                "parent_goal_id": null,
+                "subgoals": {
+                  "$tuple": [
+                    "doctor:collect_materials",
+                    "doctor:restore_power"
+                  ]
+                },
+                "completion_conditions": {
+                  "$tuple": [
+                    "all_subgoals_completed"
+                  ]
+                }
+              }
+            },
+            {
+              "$model": "CharacterGoal",
+              "fields": {
+                "owner_id": "doctor",
+                "description": "恢复医疗站供电",
+                "goal_type": "restore_power",
+                "priority": 0.7,
+                "conditions": {
+                  "$tuple": [
+                    "materials_available",
+                    "clinic_power_restored"
+                  ]
+                },
+                "progress": 0.0,
+                "status": "paused",
+                "goal_id": "doctor:restore_power",
+                "parent_goal_id": "doctor:repair_clinic",
+                "subgoals": {
+                  "$tuple": []
+                },
+                "completion_conditions": {
+                  "$tuple": [
+                    "clinic_power_restored"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "pending_events",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "state_changes",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "processed_evolution_event_ids",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "resources",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "locations",
+        {
+          "$tuple": [
+            {
+              "$model": "LocationState",
+              "fields": {
+                "location_id": "clinic",
+                "name": "医疗站",
+                "status": "damaged",
+                "safety": 0.0,
+                "power": false,
+                "tags": {
+                  "$tuple": [
+                    "clinic"
+                  ]
+                },
+                "repair_progress": 0.0
+              }
+            },
+            {
+              "$model": "LocationState",
+              "fields": {
+                "location_id": "港区旧诊所大厅",
+                "name": "港区旧诊所大厅",
+                "status": "active",
+                "safety": 0.0,
+                "power": null,
+                "tags": {
+                  "$tuple": []
+                },
+                "repair_progress": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "current_location_id",
+        "港区旧诊所大厅"
+      ],
+      [
+        "scheduler_state",
+        {
+          "$mapping": [
+            [
+              "tick_count",
+              0
+            ],
+            [
+              "last_tick_id",
+              null
+            ],
+            [
+              "last_evaluated_tick",
+              null
+            ]
+          ]
+        }
+      ],
+      [
+        "agency_state",
+        {
+          "$model": "AgencyState",
+          "fields": {
+            "agencies": {
+              "$tuple": [
+                {
+                  "$model": "CharacterAgency",
+                  "fields": {
+                    "character_id": "doctor",
+                    "initiative": 0.55,
+                    "motivation_strength": 0.5,
+                    "goal_focus": 0.5,
+                    "action_frequency": 0.0,
+                    "last_action_time": null
+                  }
+                },
+                {
+                  "$model": "CharacterAgency",
+                  "fields": {
+                    "character_id": "survivor",
+                    "initiative": 0.55,
+                    "motivation_strength": 0.5,
+                    "goal_focus": 0.5,
+                    "action_frequency": 0.0,
+                    "last_action_time": null
+                  }
+                }
+              ]
+            },
+            "routine_progress": {
+              "$mapping": []
+            },
+            "autonomous_action_history": {
+              "$tuple": []
+            },
+            "action_feedback_history": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "goal_lifecycle",
+        {
+          "$model": "GoalLifecycleSnapshot",
+          "fields": {
+            "states": {
+              "$tuple": [
+                {
+                  "$model": "GoalState",
+                  "fields": {
+                    "goal_id": "doctor:collect_materials",
+                    "owner_id": "doctor",
+                    "state": {
+                      "$enum": "GoalLifecycleState",
+                      "value": "ACTIVE"
+                    },
+                    "progress": 0.0,
+                    "progress_velocity": 0.0,
+                    "stagnation_level": 0.0,
+                    "frustration_level": 0.0,
+                    "recent_action_feedback": {
+                      "$tuple": []
+                    },
+                    "progress_samples": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                {
+                  "$model": "GoalState",
+                  "fields": {
+                    "goal_id": "doctor:repair_clinic",
+                    "owner_id": "doctor",
+                    "state": {
+                      "$enum": "GoalLifecycleState",
+                      "value": "ACTIVE"
+                    },
+                    "progress": 0.0,
+                    "progress_velocity": 0.0,
+                    "stagnation_level": 0.0,
+                    "frustration_level": 0.0,
+                    "recent_action_feedback": {
+                      "$tuple": []
+                    },
+                    "progress_samples": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                {
+                  "$model": "GoalState",
+                  "fields": {
+                    "goal_id": "doctor:restore_power",
+                    "owner_id": "doctor",
+                    "state": {
+                      "$enum": "GoalLifecycleState",
+                      "value": "BLOCKED"
+                    },
+                    "progress": 0.0,
+                    "progress_velocity": 0.0,
+                    "stagnation_level": 0.0,
+                    "frustration_level": 0.0,
+                    "recent_action_feedback": {
+                      "$tuple": []
+                    },
+                    "progress_samples": {
+                      "$tuple": []
+                    }
+                  }
+                }
+              ]
+            },
+            "history": {
+              "$tuple": []
+            },
+            "transitions": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "goal_transition_rules",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "development_states",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "development_processed_event_ids",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "identities",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterIdentity",
+              "fields": {
+                "character_id": "doctor",
+                "display_name": "沈医生",
+                "original_name": "沈医生",
+                "aliases": {
+                  "$tuple": []
+                },
+                "editable": true,
+                "naming_source": "scenario_package",
+                "public_description": "灾害发生后，沈医生留在港区诊所，和其他幸存者一起照料伤病者。"
+              }
+            },
+            {
+              "$model": "CharacterIdentity",
+              "fields": {
+                "character_id": "player",
+                "display_name": "玩家",
+                "original_name": "玩家",
+                "aliases": {
+                  "$tuple": []
+                },
+                "editable": true,
+                "naming_source": "scenario_package",
+                "public_description": "玩家角色可替换。灾后，你来到灰港，在不同聚落之间寻找落脚之处。"
+              }
+            },
+            {
+              "$model": "CharacterIdentity",
+              "fields": {
+                "character_id": "survivor",
+                "display_name": "周岚",
+                "original_name": "周岚",
+                "aliases": {
+                  "$tuple": []
+                },
+                "editable": true,
+                "naming_source": "scenario_package",
+                "public_description": "周岚独自在灰港周边辗转，熟悉通往高地的几条旧路，但不轻易相信陌生人。"
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "relationship_lifecycle",
+        {
+          "$model": "RelationshipLifecycleSnapshot",
+          "fields": {
+            "stages": {
+              "$tuple": [
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "doctor",
+                    "character_b": "player",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "doctor",
+                    "character_b": "survivor",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "player",
+                    "character_b": "doctor",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "player",
+                    "character_b": "survivor",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "survivor",
+                    "character_b": "doctor",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "survivor",
+                    "character_b": "player",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                }
+              ]
+            },
+            "dynamics": {
+              "$tuple": [
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "doctor",
+                    "character_b": "player",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "doctor",
+                    "character_b": "survivor",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "player",
+                    "character_b": "doctor",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "player",
+                    "character_b": "survivor",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "survivor",
+                    "character_b": "doctor",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "survivor",
+                    "character_b": "player",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                }
+              ]
+            },
+            "memories": {
+              "$tuple": []
+            },
+            "events": {
+              "$tuple": []
+            },
+            "transitions": {
+              "$tuple": []
+            },
+            "processed_event_ids": {
+              "$tuple": []
+            },
+            "belief_adjusted_pairs": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "encounters",
+        {
+          "$model": "EncounterSnapshot",
+          "fields": {
+            "candidates": {
+              "$tuple": []
+            },
+            "history": {
+              "$tuple": []
+            },
+            "memories": {
+              "$tuple": []
+            },
+            "trajectories": {
+              "$tuple": []
+            },
+            "processed_event_ids": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "information",
+        {
+          "$model": "InformationSnapshot",
+          "fields": {
+            "network": {
+              "$model": "RumorNetworkSnapshot",
+              "fields": {
+                "clues": {
+                  "$tuple": []
+                },
+                "rumors": {
+                  "$tuple": []
+                },
+                "paths": {
+                  "$tuple": []
+                },
+                "processed_event_ids": {
+                  "$tuple": []
+                }
+              }
+            },
+            "sources": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "conflicts",
+        {
+          "$model": "ConflictSnapshot",
+          "fields": {
+            "conflicts": {
+              "$tuple": []
+            },
+            "transformed_count": 0,
+            "opposition_candidates": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "world_package",
+        {
+          "$mapping": [
+            [
+              "content_version",
+              null
+            ],
+            [
+              "started_at",
+              null
+            ],
+            [
+              "summary",
+              {
+                "$mapping": [
+                  [
+                    "event_count",
+                    1
+                  ],
+                  [
+                    "last_event_id",
+                    "history-1"
+                  ]
+                ]
+              }
+            ],
+            [
+              "replay_index",
+              1
+            ],
+            [
+              "settings",
+              {
+                "$mapping": []
+              }
+            ],
+            [
+              "location_relations",
+              {
+                "$tuple": []
+              }
+            ],
+            [
+              "routines",
+              {
+                "$mapping": []
+              }
+            ]
+          ]
+        }
+      ]
+    ]
+  },
+  "narrative": {
+    "$mapping": [
+      [
+        "presence",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterPresence",
+              "fields": {
+                "character_id": "doctor",
+                "current_location": null,
+                "availability": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "introduction_state": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "entry_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterPresence",
+              "fields": {
+                "character_id": "player",
+                "current_location": "港区旧诊所大厅",
+                "availability": {
+                  "$enum": "PresenceState",
+                  "value": "ACTIVE"
+                },
+                "introduction_state": {
+                  "$enum": "PresenceState",
+                  "value": "ACTIVE"
+                },
+                "entry_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterPresence",
+              "fields": {
+                "character_id": "survivor",
+                "current_location": null,
+                "availability": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "introduction_state": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "entry_conditions": {
+                  "$tuple": []
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "entry_rules",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "motivations",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "state",
+        {
+          "$model": "NarrativeState",
+          "fields": {
+            "threads": {
+              "$tuple": []
+            },
+            "candidates": {
+              "$tuple": []
+            },
+            "pressure": {
+              "$model": "NarrativePressure",
+              "fields": {
+                "urgency": 0.0,
+                "danger": 0.4,
+                "unresolved_degree": 0.0,
+                "trend": "stable",
+                "goal_stagnation": 0.0,
+                "conflict_pressure": 0.0
+              }
+            }
+          }
+        }
+      ],
+      [
+        "constraints",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "pressure",
+        {
+          "$model": "NarrativePressure",
+          "fields": {
+            "urgency": 0.0,
+            "danger": 0.4,
+            "unresolved_degree": 0.0,
+            "trend": "stable",
+            "goal_stagnation": 0.0,
+            "conflict_pressure": 0.0
+          }
+        }
+      ],
+      [
+        "candidates",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "opportunities",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "world_tree",
+        {
+          "$mapping": [
+            [
+              "world_id",
+              "world_0a93c8aae9eb4afabb6260e54f9a0cdc"
+            ],
+            [
+              "root",
+              {
+                "$model": "StoryBranch",
+                "fields": {
+                  "branch_id": "main",
+                  "parent_branch_id": null,
+                  "world_id": "world_0a93c8aae9eb4afabb6260e54f9a0cdc",
+                  "revision": 0,
+                  "divergence_event_id": null,
+                  "divergence_action": null
+                }
+              }
+            ],
+            [
+              "branches",
+              {
+                "$tuple": [
+                  {
+                    "$model": "StoryBranch",
+                    "fields": {
+                      "branch_id": "main",
+                      "parent_branch_id": null,
+                      "world_id": "world_0a93c8aae9eb4afabb6260e54f9a0cdc",
+                      "revision": 0,
+                      "divergence_event_id": null,
+                      "divergence_action": null
+                    }
+                  }
+                ]
+              }
+            ],
+            [
+              "current_branch_id",
+              "main"
+            ],
+            [
+              "opportunity_branches",
+              {
+                "$mapping": []
+              }
+            ],
+            [
+              "deleted_branch_ids",
+              {
+                "$tuple": []
+              }
+            ],
+            [
+              "expansion_count",
+              0
+            ]
+          ]
+        }
+      ]
+    ]
+  },
+  "emotion": {
+    "$mapping": [
+      [
+        "states",
+        {
+          "$mapping": []
+        }
+      ],
+      [
+        "history",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "memories",
+        {
+          "$tuple": []
+        }
+      ]
+    ]
+  },
+  "director": {
+    "$mapping": [
+      [
+        "constraints",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "history",
+        {
+          "$tuple": []
+        }
+      ]
+    ]
+  },
+  "authority": {
+    "$mapping": [
+      [
+        "player_character_id",
+        "player"
+      ],
+      [
+        "authorities",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterAuthority",
+              "fields": {
+                "character_id": "player",
+                "authority_level": {
+                  "$enum": "AuthorityLevel",
+                  "value": 30
+                },
+                "controllable": true,
+                "visible_information_scope": {
+                  "$tuple": [
+                    "self",
+                    "public",
+                    "owned_knowledge"
+                  ]
+                },
+                "can_make_autonomous_decisions": false
+              }
+            },
+            {
+              "$model": "CharacterAuthority",
+              "fields": {
+                "character_id": "doctor",
+                "authority_level": {
+                  "$enum": "AuthorityLevel",
+                  "value": 20
+                },
+                "controllable": false,
+                "visible_information_scope": {
+                  "$tuple": [
+                    "self",
+                    "public",
+                    "owned_knowledge",
+                    "self_emotion",
+                    "own_relationships",
+                    "visible_goal"
+                  ]
+                },
+                "can_make_autonomous_decisions": true
+              }
+            },
+            {
+              "$model": "CharacterAuthority",
+              "fields": {
+                "character_id": "survivor",
+                "authority_level": {
+                  "$enum": "AuthorityLevel",
+                  "value": 20
+                },
+                "controllable": false,
+                "visible_information_scope": {
+                  "$tuple": [
+                    "self",
+                    "public",
+                    "owned_knowledge",
+                    "self_emotion",
+                    "own_relationships",
+                    "visible_goal"
+                  ]
+                },
+                "can_make_autonomous_decisions": true
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "cognition": {
+    "$mapping": [
+      [
+        "styles",
+        {
+          "$mapping": [
+            [
+              "player",
+              {
+                "$model": "CognitiveStyle",
+                "fields": {
+                  "analytical": 0.5,
+                  "intuitive": 0.5,
+                  "creative": 0.5,
+                  "suspicious": 0.5,
+                  "pragmatic": 0.5,
+                  "emotional": 0.5,
+                  "strategic": 0.5
+                }
+              }
+            ],
+            [
+              "doctor",
+              {
+                "$model": "CognitiveStyle",
+                "fields": {
+                  "analytical": 0.5,
+                  "intuitive": 0.5,
+                  "creative": 0.5,
+                  "suspicious": 0.5,
+                  "pragmatic": 0.5,
+                  "emotional": 0.5,
+                  "strategic": 0.5
+                }
+              }
+            ],
+            [
+              "survivor",
+              {
+                "$model": "CognitiveStyle",
+                "fields": {
+                  "analytical": 0.5,
+                  "intuitive": 0.5,
+                  "creative": 0.5,
+                  "suspicious": 0.5,
+                  "pragmatic": 0.5,
+                  "emotional": 0.5,
+                  "strategic": 0.5
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "reasoning_profiles",
+        {
+          "$mapping": [
+            [
+              "player",
+              {
+                "$model": "ReasoningProfile",
+                "fields": {
+                  "reasoning_depth": 0.5,
+                  "reflection_tendency": 0.5,
+                  "causal_search": 0.5,
+                  "future_prediction": 0.5
+                }
+              }
+            ],
+            [
+              "doctor",
+              {
+                "$model": "ReasoningProfile",
+                "fields": {
+                  "reasoning_depth": 0.5,
+                  "reflection_tendency": 0.5,
+                  "causal_search": 0.5,
+                  "future_prediction": 0.5
+                }
+              }
+            ],
+            [
+              "survivor",
+              {
+                "$model": "ReasoningProfile",
+                "fields": {
+                  "reasoning_depth": 0.5,
+                  "reflection_tendency": 0.5,
+                  "causal_search": 0.5,
+                  "future_prediction": 0.5
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "attention_profiles",
+        {
+          "$mapping": [
+            [
+              "player",
+              {
+                "$model": "AttentionProfile",
+                "fields": {
+                  "physical_detail": 0.5,
+                  "social_signal": 0.5,
+                  "emotional_signal": 0.5,
+                  "risk_signal": 0.5,
+                  "resource_signal": 0.5,
+                  "temporal_pattern": 0.5
+                }
+              }
+            ],
+            [
+              "doctor",
+              {
+                "$model": "AttentionProfile",
+                "fields": {
+                  "physical_detail": 0.5,
+                  "social_signal": 0.5,
+                  "emotional_signal": 0.5,
+                  "risk_signal": 0.5,
+                  "resource_signal": 0.5,
+                  "temporal_pattern": 0.5
+                }
+              }
+            ],
+            [
+              "survivor",
+              {
+                "$model": "AttentionProfile",
+                "fields": {
+                  "physical_detail": 0.5,
+                  "social_signal": 0.5,
+                  "emotional_signal": 0.5,
+                  "risk_signal": 0.5,
+                  "resource_signal": 0.5,
+                  "temporal_pattern": 0.5
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "beliefs",
+        {
+          "$mapping": []
+        }
+      ],
+      [
+        "memories",
+        {
+          "$mapping": []
+        }
+      ],
+      [
+        "thoughts",
+        {
+          "$mapping": []
+        }
+      ]
+    ]
+  }
+}

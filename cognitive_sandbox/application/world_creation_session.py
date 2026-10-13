@@ -49,10 +49,12 @@ class WorldCreationSession:
         self.state = self.CONFIRMED
         return self.scenario_content
 
-    def start(self) -> _RoleplaySession:
+    def start(self, player_character_id=None) -> _RoleplaySession:
         if self.state != self.CONFIRMED or self.scenario_content is None:
             raise RuntimeError("confirm the generated draft before starting it.")
-        session = self.game_launcher.start_scenario_content(self.scenario_content)
+        session = self.game_launcher.start_scenario_content(
+            self.scenario_content, player_character_id=player_character_id
+        )
         if not isinstance(session, _RoleplaySession):
             raise TypeError("game_launcher must return a RoleplaySession.")
         self.roleplay_session = session

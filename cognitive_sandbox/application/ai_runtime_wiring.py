@@ -45,13 +45,18 @@ class AIRuntimeWiring:
 
     def create_action_interpreter(self) -> AIActionInterpreter:
         """Return a configured AI parser, or the keyword-only fallback if unavailable."""
+        adapter = self.create_dialogue_adapter()
+        return AIActionInterpreter(adapter) if adapter is not None else AIActionInterpreter()
+
+    def create_dialogue_adapter(self, knowledge_retriever=None) -> AIGMAdapter | None:
+        """Build an AI adapter from saved settings; no credentials are persisted here."""
         required_settings = (
             f"{self.SETTINGS_PREFIX}/provider",
             f"{self.SETTINGS_PREFIX}/model_name",
             f"{self.SETTINGS_PREFIX}/base_url",
         )
         if not all(self._settings.contains(key) for key in required_settings):
-            return AIActionInterpreter()
+            return None
         try:
             config = self.load_config()
             provider = LLMProvider(
@@ -60,5 +65,5 @@ class AIRuntimeWiring:
                 timeout=self._timeout,
             )
         except (TypeError, ValueError):
-            return AIActionInterpreter()
-        return AIActionInterpreter(AIGMAdapter(provider))
+            return None
+        return AIGMAdapter(provider, knowledge_retriever=knowledge_retriever)

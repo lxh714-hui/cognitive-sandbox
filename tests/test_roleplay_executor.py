@@ -100,12 +100,19 @@ def test_invalid_turn_returns_failure_without_running_pipeline():
     assert result == RoleplayResult("turn-1", False, (), ())
 
 
-def test_unrecognized_player_input_returns_failure():
+def test_common_rest_action_uses_wait_handler():
     result = _executor().execute(_turn("我想休息"), _context(), {}, "安静")
 
-    assert result.action_executed is False
-    assert result.narrative_events == ()
+    assert result.action_executed is True
+    assert result.narrative_events
     assert result.dialogue_lines == ()
+
+
+def test_unavailable_action_returns_player_friendly_feedback():
+    result = _executor().execute(_turn("我想飞到月球"), _context(), {}, "安静")
+    assert result.action_executed is False
+    assert "这个行动目前无法直接执行" in result.system_message
+    assert "当前模拟尚无此类行动的执行规则" not in result.system_message
 
 
 def test_executor_does_not_mutate_turn_or_agent_inputs():

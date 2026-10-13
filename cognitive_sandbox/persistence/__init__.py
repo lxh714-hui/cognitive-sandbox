@@ -1,0 +1,1 @@
+"""World-instance persistence boundary."""

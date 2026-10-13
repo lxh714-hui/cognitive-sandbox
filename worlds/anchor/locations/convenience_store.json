@@ -1,0 +1,8 @@
+{
+  "location_id": "convenience_store",
+  "name": "街角便利店",
+  "description": "邻里常来往的小店，柜台旁贴着褪色的通知。",
+  "attributes": ["social_density:high", "character_meeting_probability:high"],
+  "safety": 0.55,
+  "power": true
+}

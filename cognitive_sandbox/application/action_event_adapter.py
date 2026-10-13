@@ -23,6 +23,8 @@ class ActionEventAdapter:
         branch_id: str,
         world_revision: int,
         event_id_factory: Callable[[], str] | None = None,
+        location: str | None = None,
+        clock: Callable[[], str] | None = None,
     ) -> None:
         for name, value in (("world_id", world_id), ("branch_id", branch_id)):
             if not isinstance(value, str) or not value.strip():
@@ -35,6 +37,8 @@ class ActionEventAdapter:
         self._branch_id = branch_id
         self._world_revision = world_revision
         self._event_id_factory = event_id_factory or (lambda: str(uuid4()))
+        self._location = location
+        self._clock = clock
 
     def adapt(
         self,
@@ -70,4 +74,9 @@ class ActionEventAdapter:
                 "impact": result.impact,
             },
             world_revision=self._world_revision,
+            target_id=action.target,
+            location=self._location,
+            # Let EventPipeline stamp the event from WorldClock when available.
+            timestamp=self._clock() if self._clock is not None else None,
+            metadata={"impact": result.impact},
         )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from cognitive_sandbox.domain.player_action import PlayerAction
+from cognitive_sandbox.application.action_intent_parser import ActionIntentParser
 
 
 class PlayerActionParser:
@@ -11,6 +12,10 @@ class PlayerActionParser:
         (("帮助", "救"), "help"),
         (("保护", "守护"), "protect"),
     )
+
+    def parse_action_intent(self, actor_id: str, raw_input: str):
+        """Open-vocabulary parser used by the application execution boundary."""
+        return ActionIntentParser().parse(actor_id, raw_input)
 
     def parse(self, player_id: str, raw_input: str) -> PlayerAction | None:
         if not isinstance(player_id, str) or not player_id.strip():

@@ -1,0 +1,11 @@
+{
+  "world_id": "harbor",
+  "name": "港城",
+  "description": "灾后港口城市",
+  "history": [
+    "灾难爆发"
+  ],
+  "rules": [
+    "感染不可逆"
+  ]
+}

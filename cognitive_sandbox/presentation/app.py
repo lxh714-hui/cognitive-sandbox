@@ -2,61 +2,82 @@ from __future__ import annotations
 
 import sys
 import os
+from pathlib import Path
 
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QApplication, QDialog
+from PySide6.QtCore import QSettings, QTimer
+from PySide6.QtWidgets import QApplication, QDialog, QListWidget
 
 from cognitive_sandbox.application.game_launcher import GameLauncher
 from cognitive_sandbox.presentation.main_window import FoundationMainWindow
-from cognitive_sandbox.presentation.scenario_selection import ScenarioSelectionPanel
+from cognitive_sandbox.persistence.storage.save_repository import JsonSaveRepository
+from cognitive_sandbox.persistence.world_save_service import WorldSaveService
+from cognitive_sandbox.application.first_launch import initialize_user_data
+from cognitive_sandbox.presentation.theme import apply_theme
 
 
 def _smoke_test_ui(app: QApplication, window: FoundationMainWindow) -> int:
-    """Exercise scenario startup and a visible roleplay response offscreen."""
+    """Exercise the empty lobby and a visible roleplay response offscreen."""
     status = {"code": 10}
+    package_ok = False
 
-    def verify_dialog() -> None:
+    try:
+        from cognitive_sandbox.application.anchor_world_loader import AnchorWorldLoader
+        package = AnchorWorldLoader().load()
+        package_ok = package.world_card.content_version == "0.2" and bool(package.scenario_content.character_cards)
+    except Exception:
+        package_ok = False
+
+    def verify_lobby_and_roleplay() -> None:
         dialog = next(
-            (
-                widget
-                for widget in app.topLevelWidgets()
-                if isinstance(widget, QDialog) and widget.windowTitle() == "新游戏"
-            ),
+            (widget for widget in app.topLevelWidgets()
+             if isinstance(widget, QDialog) and widget.windowTitle() == "世界大厅"),
             None,
         )
-        panel = dialog.findChild(ScenarioSelectionPanel) if dialog is not None else None
         if dialog is None:
             status["code"] = 10
-        elif panel is None:
-            status["code"] = 11
-        elif panel.scenario_list.count() == 0:
-            status["code"] = 12
-        elif panel.selected_scenario_id != "post_apocalypse_city":
-            status["code"] = 13
         else:
-            status["code"] = 0
-            panel.start_button.click()
-            if window.current_session is None or window.ui_runtime is None:
-                status["code"] = 14
+            lobby_list = dialog.findChild(QListWidget, "worldLibraryList")
+            if window.current_session is not None or window.world_library.list_worlds():
+                status["code"] = 11
+            elif lobby_list is None or lobby_list.count() != 0:
+                status["code"] = 12
             else:
-                window.player_input.setPlainText("观察周围")
-                if not window.confirm_button.isEnabled():
-                    status["code"] = 15
-                else:
-                    window.confirm_button.click()
+                status["code"] = 0
+                dialog.accept()
+
+        # The smoke harness explicitly chooses a built-in scenario after verifying
+        # startup did not create one implicitly.
+        try:
+            window.start_new_game("post_apocalypse_city")
+            window.player_input.setPlainText("观察周围")
+            if not window.confirm_button.isEnabled():
+                status["code"] = 15
+            else:
+                window.confirm_button.click()
+                def verify_roleplay_result() -> None:
+                    if window._is_processing:
+                        QTimer.singleShot(10, verify_roleplay_result)
+                        return
                     result = window.ui_runtime.last_result
                     if result is None or not result.action_executed:
                         status["code"] = 16
-                    elif "开始观察" not in window.narrative_display.toPlainText():
+                    elif "你环顾四周" not in window.narrative_display.toPlainText():
                         status["code"] = 17
+                    window.close()
+                    app.quit()
+
+                QTimer.singleShot(10, verify_roleplay_result)
+                return
+        except Exception:
+            status["code"] = 14
         window.close()
         app.quit()
 
     window.show()
-    QTimer.singleShot(0, window.open_scenario_selection)
-    QTimer.singleShot(250, verify_dialog)
+    QTimer.singleShot(0, window.open_world_lobby)
+    QTimer.singleShot(250, verify_lobby_and_roleplay)
     app.exec()
-    return status["code"]
+    return status["code"] if package_ok else 13
 
 
 def main() -> int:
@@ -64,12 +85,24 @@ def main() -> int:
     if smoke_test:
         os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication(sys.argv)
+    apply_theme(app)
+    paths = None if smoke_test else initialize_user_data()
+    if paths is not None:
+        QSettings.setDefaultFormat(QSettings.Format.IniFormat)
+        QSettings.setPath(QSettings.Format.IniFormat, QSettings.Scope.UserScope, str(paths.settings))
     window = FoundationMainWindow()
-    window.set_game_launcher(GameLauncher())
+    launcher = GameLauncher()
+    window.set_game_launcher(launcher)
+    if not smoke_test:
+        data_root = paths.savegames
+        window.world_library.configure_persistence(
+            WorldSaveService(JsonSaveRepository(data_root)),
+            launcher.restore_saved_world,
+        )
     if smoke_test:
         return _smoke_test_ui(app, window)
     window.show()
-    QTimer.singleShot(0, window.open_scenario_selection)
+    QTimer.singleShot(0, window.open_home)
     return app.exec()
 
 

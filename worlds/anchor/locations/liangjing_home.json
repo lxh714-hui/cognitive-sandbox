@@ -1,0 +1,8 @@
+{
+  "location_id": "liangjing_home",
+  "name": "梁景住所",
+  "description": "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。",
+  "attributes": ["private", "memory_sensitive"],
+  "safety": 0.55,
+  "power": true
+}

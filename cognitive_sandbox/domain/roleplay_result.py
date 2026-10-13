@@ -14,12 +14,17 @@ class RoleplayResult:
     narrative_events: tuple[NarrativeEvent, ...]
     dialogue_lines: tuple[DialogueLine, ...]
     simulation_result: SimulationTickResult | None = None
+    system_message: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.turn_id, str) or not self.turn_id.strip():
             raise ValueError("turn_id must not be empty.")
         if not isinstance(self.action_executed, bool):
             raise TypeError("action_executed must be a boolean.")
+        if self.system_message is not None and (
+            not isinstance(self.system_message, str) or not self.system_message.strip()
+        ):
+            raise ValueError("system_message must be a non-empty string or None.")
         if self.simulation_result is not None and not isinstance(
             self.simulation_result, SimulationTickResult
         ):

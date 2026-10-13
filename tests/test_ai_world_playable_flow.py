@@ -132,7 +132,7 @@ def test_generated_world_is_confirmed_started_and_played_through_ai(qapp, monkey
 
     assert roleplay_result.action_executed
     assert roleplay_result.simulation_result.events[0].event_type == "help_attempt"
-    assert action_provider.requests[0].request_type == "parse_player_action"
+    assert action_provider.requests[0].request_type == "parse_action_intent"
     assert action_provider.requests[0].context["player_text"] == raw_input
     assert raw_input == "请帮助受伤的病人"
     assert source_prompt == "风暴后的海港诊所"

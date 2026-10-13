@@ -1,0 +1,8 @@
+{
+  "location_id": "neighborhood",
+  "name": "旧街区",
+  "description": "公寓、店铺和窄巷交错的居民区。",
+  "attributes": ["event_generation_area"],
+  "safety": 0.45,
+  "power": true
+}

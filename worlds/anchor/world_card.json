@@ -1,0 +1,27 @@
+{
+  "world_id": "anchor_world",
+  "content_version": "0.2",
+  "name": "锚点",
+  "genre": "psychological mystery",
+  "tone": "uncertain",
+  "description": "一个关于异常、记忆与认知差异的小型模拟世界。",
+  "rules": [
+    "异常现象存在，但具体原因需要由模拟逐步揭示。",
+    "信息传播有限，角色只能依据自己获得的信息判断。",
+    "角色无法知道全部事实。",
+    "观察不等于事实。",
+    "不同认知会对同一线索产生不同解释。"
+  ],
+  "initial_time": "第1天 08:00",
+  "initial_location": "liangjing_home",
+  "initial_state": {
+    "day": 1,
+    "time": "08:00",
+    "location": "梁景住所",
+    "current_stage": "重新开始生活",
+    "world_variables": {
+      "public_anomaly_reports": 0,
+      "neighborhood_tension": 0.1
+    }
+  }
+}

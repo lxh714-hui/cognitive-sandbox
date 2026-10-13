@@ -1,0 +1,5114 @@
+{
+  "version": 1,
+  "metadata": {
+    "$model": "SaveMetadata",
+    "fields": {
+      "instance_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+      "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+      "scenario_id": "anchor_world",
+      "name": "锚点",
+      "description": "一个关于异常、记忆与认知差异的小型模拟世界。",
+      "created_time": "2026-10-13 17:36",
+      "last_played_time": "2026-10-13 17:36",
+      "status": "当前世界",
+      "world_status": "地点：梁景住所",
+      "player_character_id": "liangjing"
+    }
+  },
+  "session": {
+    "$mapping": [
+      [
+        "player_id",
+        "liangjing"
+      ],
+      [
+        "agent_context",
+        {
+          "$model": "AgentContext",
+          "fields": {
+            "character_id": "liangjing",
+            "character_state": {
+              "$model": "CharacterState",
+              "fields": {
+                "character_id": "liangjing",
+                "name": "梁景",
+                "role": "重新适应生活的人",
+                "traits": {
+                  "$tuple": [
+                    "谨慎",
+                    "敏感",
+                    "内省"
+                  ]
+                },
+                "goals": {
+                  "$tuple": [
+                    "重新开始生活"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "memories": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memories": {
+              "$tuple": []
+            },
+            "relationships": {
+              "$tuple": []
+            },
+            "world_state": {
+              "$mapping": [
+                [
+                  "day",
+                  1
+                ],
+                [
+                  "time",
+                  "08:00"
+                ],
+                [
+                  "location",
+                  "梁景住所"
+                ],
+                [
+                  "current_stage",
+                  "重新开始生活"
+                ],
+                [
+                  "world_variables",
+                  {
+                    "$mapping": [
+                      [
+                        "public_anomaly_reports",
+                        0
+                      ],
+                      [
+                        "neighborhood_tension",
+                        0.1
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "locations",
+                  {
+                    "$tuple": [
+                      {
+                        "$mapping": [
+                          [
+                            "location_id",
+                            "convenience_store"
+                          ],
+                          [
+                            "name",
+                            "街角便利店"
+                          ],
+                          [
+                            "description",
+                            "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                          ],
+                          [
+                            "attributes",
+                            {
+                              "$tuple": [
+                                "social_density:high",
+                                "character_meeting_probability:high"
+                              ]
+                            }
+                          ],
+                          [
+                            "safety",
+                            0.55
+                          ],
+                          [
+                            "power",
+                            true
+                          ]
+                        ]
+                      },
+                      {
+                        "$mapping": [
+                          [
+                            "location_id",
+                            "liangjing_home"
+                          ],
+                          [
+                            "name",
+                            "梁景住所"
+                          ],
+                          [
+                            "description",
+                            "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                          ],
+                          [
+                            "attributes",
+                            {
+                              "$tuple": [
+                                "private",
+                                "memory_sensitive"
+                              ]
+                            }
+                          ],
+                          [
+                            "safety",
+                            0.55
+                          ],
+                          [
+                            "power",
+                            true
+                          ]
+                        ]
+                      },
+                      {
+                        "$mapping": [
+                          [
+                            "location_id",
+                            "neighborhood"
+                          ],
+                          [
+                            "name",
+                            "旧街区"
+                          ],
+                          [
+                            "description",
+                            "公寓、店铺和窄巷交错的居民区。"
+                          ],
+                          [
+                            "attributes",
+                            {
+                              "$tuple": [
+                                "event_generation_area"
+                              ]
+                            }
+                          ],
+                          [
+                            "safety",
+                            0.45
+                          ],
+                          [
+                            "power",
+                            true
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            },
+            "dynamic_state": {
+              "$model": "AgentDynamicState",
+              "fields": {
+                "character_id": "liangjing",
+                "confidence": 0.5,
+                "stress": 0.0,
+                "motivation": 0.5
+              }
+            }
+          }
+        }
+      ],
+      [
+        "agent_contexts",
+        {
+          "$tuple": [
+            {
+              "$model": "AgentContext",
+              "fields": {
+                "character_id": "liangjing",
+                "character_state": {
+                  "$model": "CharacterState",
+                  "fields": {
+                    "character_id": "liangjing",
+                    "name": "梁景",
+                    "role": "重新适应生活的人",
+                    "traits": {
+                      "$tuple": [
+                        "谨慎",
+                        "敏感",
+                        "内省"
+                      ]
+                    },
+                    "goals": {
+                      "$tuple": [
+                        "重新开始生活"
+                      ]
+                    },
+                    "fears": {
+                      "$tuple": []
+                    },
+                    "memories": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                "memories": {
+                  "$tuple": []
+                },
+                "relationships": {
+                  "$tuple": []
+                },
+                "world_state": {
+                  "$mapping": [
+                    [
+                      "day",
+                      1
+                    ],
+                    [
+                      "time",
+                      "08:00"
+                    ],
+                    [
+                      "location",
+                      "梁景住所"
+                    ],
+                    [
+                      "current_stage",
+                      "重新开始生活"
+                    ],
+                    [
+                      "world_variables",
+                      {
+                        "$mapping": [
+                          [
+                            "public_anomaly_reports",
+                            0
+                          ],
+                          [
+                            "neighborhood_tension",
+                            0.1
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "locations",
+                      {
+                        "$tuple": [
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "convenience_store"
+                              ],
+                              [
+                                "name",
+                                "街角便利店"
+                              ],
+                              [
+                                "description",
+                                "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "social_density:high",
+                                    "character_meeting_probability:high"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "liangjing_home"
+                              ],
+                              [
+                                "name",
+                                "梁景住所"
+                              ],
+                              [
+                                "description",
+                                "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "private",
+                                    "memory_sensitive"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "neighborhood"
+                              ],
+                              [
+                                "name",
+                                "旧街区"
+                              ],
+                              [
+                                "description",
+                                "公寓、店铺和窄巷交错的居民区。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "event_generation_area"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.45
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                "dynamic_state": {
+                  "$model": "AgentDynamicState",
+                  "fields": {
+                    "character_id": "liangjing",
+                    "confidence": 0.5,
+                    "stress": 0.0,
+                    "motivation": 0.5
+                  }
+                }
+              }
+            },
+            {
+              "$model": "AgentContext",
+              "fields": {
+                "character_id": "liuyiyi",
+                "character_state": {
+                  "$model": "CharacterState",
+                  "fields": {
+                    "character_id": "liuyiyi",
+                    "name": "柳依依",
+                    "role": "异常调查者",
+                    "traits": {
+                      "$tuple": [
+                        "敏锐",
+                        "执着",
+                        "谨慎"
+                      ]
+                    },
+                    "goals": {
+                      "$tuple": [
+                        "寻找异常线索"
+                      ]
+                    },
+                    "fears": {
+                      "$tuple": []
+                    },
+                    "memories": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                "memories": {
+                  "$tuple": []
+                },
+                "relationships": {
+                  "$tuple": []
+                },
+                "world_state": {
+                  "$mapping": [
+                    [
+                      "day",
+                      1
+                    ],
+                    [
+                      "time",
+                      "08:00"
+                    ],
+                    [
+                      "location",
+                      "梁景住所"
+                    ],
+                    [
+                      "current_stage",
+                      "重新开始生活"
+                    ],
+                    [
+                      "world_variables",
+                      {
+                        "$mapping": [
+                          [
+                            "public_anomaly_reports",
+                            0
+                          ],
+                          [
+                            "neighborhood_tension",
+                            0.1
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "locations",
+                      {
+                        "$tuple": [
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "convenience_store"
+                              ],
+                              [
+                                "name",
+                                "街角便利店"
+                              ],
+                              [
+                                "description",
+                                "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "social_density:high",
+                                    "character_meeting_probability:high"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "liangjing_home"
+                              ],
+                              [
+                                "name",
+                                "梁景住所"
+                              ],
+                              [
+                                "description",
+                                "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "private",
+                                    "memory_sensitive"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "neighborhood"
+                              ],
+                              [
+                                "name",
+                                "旧街区"
+                              ],
+                              [
+                                "description",
+                                "公寓、店铺和窄巷交错的居民区。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "event_generation_area"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.45
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                "dynamic_state": {
+                  "$model": "AgentDynamicState",
+                  "fields": {
+                    "character_id": "liuyiyi",
+                    "confidence": 0.5,
+                    "stress": 0.0,
+                    "motivation": 0.5
+                  }
+                }
+              }
+            },
+            {
+              "$model": "AgentContext",
+              "fields": {
+                "character_id": "pei",
+                "character_state": {
+                  "$model": "CharacterState",
+                  "fields": {
+                    "character_id": "pei",
+                    "name": "裴",
+                    "role": "普通居民",
+                    "traits": {
+                      "$tuple": [
+                        "务实",
+                        "谨慎",
+                        "重视日常"
+                      ]
+                    },
+                    "goals": {
+                      "$tuple": [
+                        "维持正常生活"
+                      ]
+                    },
+                    "fears": {
+                      "$tuple": []
+                    },
+                    "memories": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                "memories": {
+                  "$tuple": []
+                },
+                "relationships": {
+                  "$tuple": []
+                },
+                "world_state": {
+                  "$mapping": [
+                    [
+                      "day",
+                      1
+                    ],
+                    [
+                      "time",
+                      "08:00"
+                    ],
+                    [
+                      "location",
+                      "梁景住所"
+                    ],
+                    [
+                      "current_stage",
+                      "重新开始生活"
+                    ],
+                    [
+                      "world_variables",
+                      {
+                        "$mapping": [
+                          [
+                            "public_anomaly_reports",
+                            0
+                          ],
+                          [
+                            "neighborhood_tension",
+                            0.1
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "locations",
+                      {
+                        "$tuple": [
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "convenience_store"
+                              ],
+                              [
+                                "name",
+                                "街角便利店"
+                              ],
+                              [
+                                "description",
+                                "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "social_density:high",
+                                    "character_meeting_probability:high"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "liangjing_home"
+                              ],
+                              [
+                                "name",
+                                "梁景住所"
+                              ],
+                              [
+                                "description",
+                                "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "private",
+                                    "memory_sensitive"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "neighborhood"
+                              ],
+                              [
+                                "name",
+                                "旧街区"
+                              ],
+                              [
+                                "description",
+                                "公寓、店铺和窄巷交错的居民区。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "event_generation_area"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.45
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                "dynamic_state": {
+                  "$model": "AgentDynamicState",
+                  "fields": {
+                    "character_id": "pei",
+                    "confidence": 0.5,
+                    "stress": 0.0,
+                    "motivation": 0.5
+                  }
+                }
+              }
+            },
+            {
+              "$model": "AgentContext",
+              "fields": {
+                "character_id": "song",
+                "character_state": {
+                  "$model": "CharacterState",
+                  "fields": {
+                    "character_id": "song",
+                    "name": "宋",
+                    "role": "观察者",
+                    "traits": {
+                      "$tuple": [
+                        "克制",
+                        "耐心",
+                        "善于观察"
+                      ]
+                    },
+                    "goals": {
+                      "$tuple": [
+                        "观察变化"
+                      ]
+                    },
+                    "fears": {
+                      "$tuple": []
+                    },
+                    "memories": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                "memories": {
+                  "$tuple": []
+                },
+                "relationships": {
+                  "$tuple": []
+                },
+                "world_state": {
+                  "$mapping": [
+                    [
+                      "day",
+                      1
+                    ],
+                    [
+                      "time",
+                      "08:00"
+                    ],
+                    [
+                      "location",
+                      "梁景住所"
+                    ],
+                    [
+                      "current_stage",
+                      "重新开始生活"
+                    ],
+                    [
+                      "world_variables",
+                      {
+                        "$mapping": [
+                          [
+                            "public_anomaly_reports",
+                            0
+                          ],
+                          [
+                            "neighborhood_tension",
+                            0.1
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "locations",
+                      {
+                        "$tuple": [
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "convenience_store"
+                              ],
+                              [
+                                "name",
+                                "街角便利店"
+                              ],
+                              [
+                                "description",
+                                "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "social_density:high",
+                                    "character_meeting_probability:high"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "liangjing_home"
+                              ],
+                              [
+                                "name",
+                                "梁景住所"
+                              ],
+                              [
+                                "description",
+                                "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "private",
+                                    "memory_sensitive"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "neighborhood"
+                              ],
+                              [
+                                "name",
+                                "旧街区"
+                              ],
+                              [
+                                "description",
+                                "公寓、店铺和窄巷交错的居民区。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "event_generation_area"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.45
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                "dynamic_state": {
+                  "$model": "AgentDynamicState",
+                  "fields": {
+                    "character_id": "song",
+                    "confidence": 0.5,
+                    "stress": 0.0,
+                    "motivation": 0.5
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "target",
+        null
+      ],
+      [
+        "world_state",
+        {
+          "$mapping": [
+            [
+              "day",
+              1
+            ],
+            [
+              "time",
+              "08:00"
+            ],
+            [
+              "location",
+              "梁景住所"
+            ],
+            [
+              "current_stage",
+              "重新开始生活"
+            ],
+            [
+              "world_variables",
+              {
+                "$mapping": [
+                  [
+                    "public_anomaly_reports",
+                    0
+                  ],
+                  [
+                    "neighborhood_tension",
+                    0.1
+                  ]
+                ]
+              }
+            ],
+            [
+              "locations",
+              {
+                "$tuple": [
+                  {
+                    "$mapping": [
+                      [
+                        "location_id",
+                        "convenience_store"
+                      ],
+                      [
+                        "name",
+                        "街角便利店"
+                      ],
+                      [
+                        "description",
+                        "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                      ],
+                      [
+                        "attributes",
+                        {
+                          "$tuple": [
+                            "social_density:high",
+                            "character_meeting_probability:high"
+                          ]
+                        }
+                      ],
+                      [
+                        "safety",
+                        0.55
+                      ],
+                      [
+                        "power",
+                        true
+                      ]
+                    ]
+                  },
+                  {
+                    "$mapping": [
+                      [
+                        "location_id",
+                        "liangjing_home"
+                      ],
+                      [
+                        "name",
+                        "梁景住所"
+                      ],
+                      [
+                        "description",
+                        "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                      ],
+                      [
+                        "attributes",
+                        {
+                          "$tuple": [
+                            "private",
+                            "memory_sensitive"
+                          ]
+                        }
+                      ],
+                      [
+                        "safety",
+                        0.55
+                      ],
+                      [
+                        "power",
+                        true
+                      ]
+                    ]
+                  },
+                  {
+                    "$mapping": [
+                      [
+                        "location_id",
+                        "neighborhood"
+                      ],
+                      [
+                        "name",
+                        "旧街区"
+                      ],
+                      [
+                        "description",
+                        "公寓、店铺和窄巷交错的居民区。"
+                      ],
+                      [
+                        "attributes",
+                        {
+                          "$tuple": [
+                            "event_generation_area"
+                          ]
+                        }
+                      ],
+                      [
+                        "safety",
+                        0.45
+                      ],
+                      [
+                        "power",
+                        true
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              "visible_objects",
+              {
+                "$tuple": [
+                  {
+                    "$mapping": [
+                      [
+                        "object_id",
+                        "clock"
+                      ],
+                      [
+                        "name",
+                        "墙上的钟"
+                      ],
+                      [
+                        "description",
+                        "指针停在12:03。"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "situation",
+        "一个关于异常、记忆与认知差异的小型模拟世界。"
+      ],
+      [
+        "scenario",
+        {
+          "$model": "Scenario",
+          "fields": {
+            "scenario_id": "anchor_world",
+            "name": "锚点",
+            "description": "一个关于异常、记忆与认知差异的小型模拟世界。",
+            "initial_world_state": {
+              "$mapping": [
+                [
+                  "day",
+                  1
+                ],
+                [
+                  "time",
+                  "08:00"
+                ],
+                [
+                  "location",
+                  "梁景住所"
+                ],
+                [
+                  "current_stage",
+                  "重新开始生活"
+                ],
+                [
+                  "world_variables",
+                  {
+                    "$mapping": [
+                      [
+                        "public_anomaly_reports",
+                        0
+                      ],
+                      [
+                        "neighborhood_tension",
+                        0.1
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "locations",
+                  {
+                    "$tuple": [
+                      {
+                        "$mapping": [
+                          [
+                            "location_id",
+                            "convenience_store"
+                          ],
+                          [
+                            "name",
+                            "街角便利店"
+                          ],
+                          [
+                            "description",
+                            "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                          ],
+                          [
+                            "attributes",
+                            {
+                              "$tuple": [
+                                "social_density:high",
+                                "character_meeting_probability:high"
+                              ]
+                            }
+                          ],
+                          [
+                            "safety",
+                            0.55
+                          ],
+                          [
+                            "power",
+                            true
+                          ]
+                        ]
+                      },
+                      {
+                        "$mapping": [
+                          [
+                            "location_id",
+                            "liangjing_home"
+                          ],
+                          [
+                            "name",
+                            "梁景住所"
+                          ],
+                          [
+                            "description",
+                            "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                          ],
+                          [
+                            "attributes",
+                            {
+                              "$tuple": [
+                                "private",
+                                "memory_sensitive"
+                              ]
+                            }
+                          ],
+                          [
+                            "safety",
+                            0.55
+                          ],
+                          [
+                            "power",
+                            true
+                          ]
+                        ]
+                      },
+                      {
+                        "$mapping": [
+                          [
+                            "location_id",
+                            "neighborhood"
+                          ],
+                          [
+                            "name",
+                            "旧街区"
+                          ],
+                          [
+                            "description",
+                            "公寓、店铺和窄巷交错的居民区。"
+                          ],
+                          [
+                            "attributes",
+                            {
+                              "$tuple": [
+                                "event_generation_area"
+                              ]
+                            }
+                          ],
+                          [
+                            "safety",
+                            0.45
+                          ],
+                          [
+                            "power",
+                            true
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            },
+            "character_templates": {
+              "$tuple": [
+                {
+                  "$mapping": [
+                    [
+                      "id",
+                      "liangjing"
+                    ],
+                    [
+                      "name",
+                      "梁景"
+                    ],
+                    [
+                      "role",
+                      "重新适应生活的人"
+                    ],
+                    [
+                      "traits",
+                      {
+                        "$tuple": [
+                          "谨慎",
+                          "敏感",
+                          "内省"
+                        ]
+                      }
+                    ],
+                    [
+                      "goals",
+                      {
+                        "$tuple": [
+                          "重新开始生活"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "$mapping": [
+                    [
+                      "id",
+                      "liuyiyi"
+                    ],
+                    [
+                      "name",
+                      "柳依依"
+                    ],
+                    [
+                      "role",
+                      "异常调查者"
+                    ],
+                    [
+                      "traits",
+                      {
+                        "$tuple": [
+                          "敏锐",
+                          "执着",
+                          "谨慎"
+                        ]
+                      }
+                    ],
+                    [
+                      "goals",
+                      {
+                        "$tuple": [
+                          "寻找异常线索"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "$mapping": [
+                    [
+                      "id",
+                      "pei"
+                    ],
+                    [
+                      "name",
+                      "裴"
+                    ],
+                    [
+                      "role",
+                      "普通居民"
+                    ],
+                    [
+                      "traits",
+                      {
+                        "$tuple": [
+                          "务实",
+                          "谨慎",
+                          "重视日常"
+                        ]
+                      }
+                    ],
+                    [
+                      "goals",
+                      {
+                        "$tuple": [
+                          "维持正常生活"
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "$mapping": [
+                    [
+                      "id",
+                      "song"
+                    ],
+                    [
+                      "name",
+                      "宋"
+                    ],
+                    [
+                      "role",
+                      "观察者"
+                    ],
+                    [
+                      "traits",
+                      {
+                        "$tuple": [
+                          "克制",
+                          "耐心",
+                          "善于观察"
+                        ]
+                      }
+                    ],
+                    [
+                      "goals",
+                      {
+                        "$tuple": [
+                          "观察变化"
+                        ]
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      [
+        "scenario_content",
+        {
+          "$model": "ScenarioContent",
+          "fields": {
+            "scenario": {
+              "$model": "Scenario",
+              "fields": {
+                "scenario_id": "anchor_world",
+                "name": "锚点",
+                "description": "一个关于异常、记忆与认知差异的小型模拟世界。",
+                "initial_world_state": {
+                  "$mapping": [
+                    [
+                      "day",
+                      1
+                    ],
+                    [
+                      "time",
+                      "08:00"
+                    ],
+                    [
+                      "location",
+                      "梁景住所"
+                    ],
+                    [
+                      "current_stage",
+                      "重新开始生活"
+                    ],
+                    [
+                      "world_variables",
+                      {
+                        "$mapping": [
+                          [
+                            "public_anomaly_reports",
+                            0
+                          ],
+                          [
+                            "neighborhood_tension",
+                            0.1
+                          ]
+                        ]
+                      }
+                    ],
+                    [
+                      "locations",
+                      {
+                        "$tuple": [
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "convenience_store"
+                              ],
+                              [
+                                "name",
+                                "街角便利店"
+                              ],
+                              [
+                                "description",
+                                "邻里常来往的小店，柜台旁贴着褪色的通知。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "social_density:high",
+                                    "character_meeting_probability:high"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "liangjing_home"
+                              ],
+                              [
+                                "name",
+                                "梁景住所"
+                              ],
+                              [
+                                "description",
+                                "一间刚收拾过的旧公寓，窗台上落着薄灰。墙上的钟停在12:03。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "private",
+                                    "memory_sensitive"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.55
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          },
+                          {
+                            "$mapping": [
+                              [
+                                "location_id",
+                                "neighborhood"
+                              ],
+                              [
+                                "name",
+                                "旧街区"
+                              ],
+                              [
+                                "description",
+                                "公寓、店铺和窄巷交错的居民区。"
+                              ],
+                              [
+                                "attributes",
+                                {
+                                  "$tuple": [
+                                    "event_generation_area"
+                                  ]
+                                }
+                              ],
+                              [
+                                "safety",
+                                0.45
+                              ],
+                              [
+                                "power",
+                                true
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                },
+                "character_templates": {
+                  "$tuple": [
+                    {
+                      "$mapping": [
+                        [
+                          "id",
+                          "liangjing"
+                        ],
+                        [
+                          "name",
+                          "梁景"
+                        ],
+                        [
+                          "role",
+                          "重新适应生活的人"
+                        ],
+                        [
+                          "traits",
+                          {
+                            "$tuple": [
+                              "谨慎",
+                              "敏感",
+                              "内省"
+                            ]
+                          }
+                        ],
+                        [
+                          "goals",
+                          {
+                            "$tuple": [
+                              "重新开始生活"
+                            ]
+                          }
+                        ]
+                      ]
+                    },
+                    {
+                      "$mapping": [
+                        [
+                          "id",
+                          "liuyiyi"
+                        ],
+                        [
+                          "name",
+                          "柳依依"
+                        ],
+                        [
+                          "role",
+                          "异常调查者"
+                        ],
+                        [
+                          "traits",
+                          {
+                            "$tuple": [
+                              "敏锐",
+                              "执着",
+                              "谨慎"
+                            ]
+                          }
+                        ],
+                        [
+                          "goals",
+                          {
+                            "$tuple": [
+                              "寻找异常线索"
+                            ]
+                          }
+                        ]
+                      ]
+                    },
+                    {
+                      "$mapping": [
+                        [
+                          "id",
+                          "pei"
+                        ],
+                        [
+                          "name",
+                          "裴"
+                        ],
+                        [
+                          "role",
+                          "普通居民"
+                        ],
+                        [
+                          "traits",
+                          {
+                            "$tuple": [
+                              "务实",
+                              "谨慎",
+                              "重视日常"
+                            ]
+                          }
+                        ],
+                        [
+                          "goals",
+                          {
+                            "$tuple": [
+                              "维持正常生活"
+                            ]
+                          }
+                        ]
+                      ]
+                    },
+                    {
+                      "$mapping": [
+                        [
+                          "id",
+                          "song"
+                        ],
+                        [
+                          "name",
+                          "宋"
+                        ],
+                        [
+                          "role",
+                          "观察者"
+                        ],
+                        [
+                          "traits",
+                          {
+                            "$tuple": [
+                              "克制",
+                              "耐心",
+                              "善于观察"
+                            ]
+                          }
+                        ],
+                        [
+                          "goals",
+                          {
+                            "$tuple": [
+                              "观察变化"
+                            ]
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "world_document": {
+              "$model": "WorldDocument",
+              "fields": {
+                "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+                "name": "锚点",
+                "description": "一个关于异常、记忆与认知差异的小型模拟世界。",
+                "history": {
+                  "$tuple": []
+                },
+                "rules": {
+                  "$tuple": [
+                    "异常现象存在，但具体原因需要由模拟逐步揭示。",
+                    "信息传播有限，角色只能依据自己获得的信息判断。",
+                    "角色无法知道全部事实。",
+                    "观察不等于事实。",
+                    "不同认知会对同一线索产生不同解释。"
+                  ]
+                }
+              }
+            },
+            "character_cards": {
+              "$tuple": [
+                {
+                  "$model": "CharacterCard",
+                  "fields": {
+                    "character_id": "liangjing",
+                    "name": "梁景",
+                    "age": 23,
+                    "gender": "男",
+                    "occupation": "重新适应生活的人",
+                    "personality": {
+                      "$tuple": [
+                        "谨慎",
+                        "敏感",
+                        "内省"
+                      ]
+                    },
+                    "background": "刑满释放后，正在尝试重新开始生活。",
+                    "goals": {
+                      "$tuple": [
+                        "重新开始生活"
+                      ]
+                    },
+                    "constraints": {
+                      "$tuple": []
+                    },
+                    "portrait": null,
+                    "example_dialogues": {
+                      "$tuple": []
+                    },
+                    "identity_editable": false
+                  }
+                },
+                {
+                  "$model": "CharacterCard",
+                  "fields": {
+                    "character_id": "liuyiyi",
+                    "name": "柳依依",
+                    "age": 27,
+                    "gender": "女",
+                    "occupation": "异常调查者",
+                    "personality": {
+                      "$tuple": [
+                        "敏锐",
+                        "执着",
+                        "谨慎"
+                      ]
+                    },
+                    "background": "她留意到附近几处难以解释的细节，仍在寻找可靠线索。",
+                    "goals": {
+                      "$tuple": [
+                        "寻找异常线索"
+                      ]
+                    },
+                    "constraints": {
+                      "$tuple": []
+                    },
+                    "portrait": null,
+                    "example_dialogues": {
+                      "$tuple": []
+                    },
+                    "identity_editable": false
+                  }
+                },
+                {
+                  "$model": "CharacterCard",
+                  "fields": {
+                    "character_id": "pei",
+                    "name": "裴",
+                    "age": 29,
+                    "gender": "男",
+                    "occupation": "普通居民",
+                    "personality": {
+                      "$tuple": [
+                        "务实",
+                        "谨慎",
+                        "重视日常"
+                      ]
+                    },
+                    "background": "他努力维持普通生活，对附近的异常传闻还不知情。",
+                    "goals": {
+                      "$tuple": [
+                        "维持正常生活"
+                      ]
+                    },
+                    "constraints": {
+                      "$tuple": []
+                    },
+                    "portrait": null,
+                    "example_dialogues": {
+                      "$tuple": []
+                    },
+                    "identity_editable": false
+                  }
+                },
+                {
+                  "$model": "CharacterCard",
+                  "fields": {
+                    "character_id": "song",
+                    "name": "宋",
+                    "age": 34,
+                    "gender": "男",
+                    "occupation": "观察者",
+                    "personality": {
+                      "$tuple": [
+                        "克制",
+                        "耐心",
+                        "善于观察"
+                      ]
+                    },
+                    "background": "他长期记录周围变化，但会谨慎判断何时分享信息。",
+                    "goals": {
+                      "$tuple": [
+                        "观察变化"
+                      ]
+                    },
+                    "constraints": {
+                      "$tuple": [
+                        {
+                          "$model": "Constraint",
+                          "fields": {
+                            "type": "soft",
+                            "content": "在证据不足时避免直接给出结论"
+                          }
+                        }
+                      ]
+                    },
+                    "portrait": null,
+                    "example_dialogues": {
+                      "$tuple": []
+                    },
+                    "identity_editable": false
+                  }
+                }
+              ]
+            },
+            "event_cards": {
+              "$tuple": [
+                {
+                  "$model": "EventCard",
+                  "fields": {
+                    "event_id": "world_initialized",
+                    "name": "WorldInitialized",
+                    "description": "锚点世界完成初始化。角色从各自已知的信息与当前状态开始生活。",
+                    "event_type": "world_initialized",
+                    "participants": {
+                      "$tuple": [
+                        "liangjing",
+                        "liuyiyi",
+                        "song",
+                        "pei"
+                      ]
+                    },
+                    "conditions": {
+                      "$tuple": [
+                        "第1天 08:00",
+                        "初始地点：梁景住所",
+                        "初始角色状态已装载"
+                      ]
+                    },
+                    "effects": {
+                      "$tuple": []
+                    },
+                    "priority": 0
+                  }
+                },
+                {
+                  "$model": "EventCard",
+                  "fields": {
+                    "event_id": "neighborhood_rumor_day_one",
+                    "name": "街区传闻",
+                    "description": "最近有人提到，街区的钟表偶尔对不上时间；具体原因还没有人确认。",
+                    "event_type": "neighborhood_rumor",
+                    "participants": {
+                      "$tuple": [
+                        "pei"
+                      ]
+                    },
+                    "conditions": {
+                      "$tuple": [
+                        "第1天",
+                        "便利店附近有人谈起此事"
+                      ]
+                    },
+                    "effects": {
+                      "$tuple": []
+                    },
+                    "priority": 1
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      [
+        "world_instance_id",
+        "anchor_608bd0b0485f4f0cb4046af764af9ebf"
+      ],
+      [
+        "player_character_id",
+        "liangjing"
+      ]
+    ]
+  },
+  "messages": {
+    "$tuple": [
+      {
+        "$model": "DisplayMessage",
+        "fields": {
+          "message_type": {
+            "$enum": "MessageType",
+            "value": "player"
+          },
+          "content": "观察住所",
+          "speaker_id": null
+        }
+      }
+    ]
+  },
+  "character_minds": {
+    "$mapping": [
+      [
+        "liangjing",
+        {
+          "$model": "CharacterMind",
+          "fields": {
+            "identity": {
+              "$model": "Identity",
+              "fields": {
+                "name": "梁景",
+                "role": "重新适应生活的人",
+                "background": "刑满释放后，正在尝试重新开始生活。"
+              }
+            },
+            "personality": {
+              "$model": "PersonalityProfile",
+              "fields": {
+                "traits": {
+                  "$tuple": [
+                    "谨慎",
+                    "敏感",
+                    "内省"
+                  ]
+                },
+                "values": {
+                  "$tuple": []
+                },
+                "goals": {
+                  "$tuple": [
+                    "重新开始生活"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "taboos": {
+                  "$tuple": []
+                }
+              }
+            },
+            "speech_style": {
+              "$model": "SpeechStyle",
+              "fields": {
+                "tone": "自然、克制",
+                "vocabulary": {
+                  "$tuple": []
+                },
+                "sentence_style": "清晰、简洁",
+                "preferred_phrases": {
+                  "$tuple": []
+                },
+                "forbidden_styles": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memory_context": {
+              "$model": "MemoryContext",
+              "fields": {
+                "stable_memory": {
+                  "$tuple": [
+                    "刑满释放后，正在尝试重新开始生活。"
+                  ]
+                },
+                "relationship_memory": {
+                  "$tuple": []
+                },
+                "recent_memory": {
+                  "$tuple": []
+                }
+              }
+            },
+            "example_dialogues": {
+              "$tuple": []
+            },
+            "knowledge_context": {
+              "$model": "KnowledgeContext",
+              "fields": {
+                "records": {
+                  "$tuple": []
+                },
+                "available_information": {
+                  "$tuple": []
+                },
+                "owner_id": null
+              }
+            },
+            "relationship_context": {
+              "$model": "RelationshipContext",
+              "fields": {
+                "owner_id": null,
+                "relationships": {
+                  "$tuple": []
+                }
+              }
+            }
+          }
+        }
+      ],
+      [
+        "liuyiyi",
+        {
+          "$model": "CharacterMind",
+          "fields": {
+            "identity": {
+              "$model": "Identity",
+              "fields": {
+                "name": "柳依依",
+                "role": "异常调查者",
+                "background": "她留意到附近几处难以解释的细节，仍在寻找可靠线索。"
+              }
+            },
+            "personality": {
+              "$model": "PersonalityProfile",
+              "fields": {
+                "traits": {
+                  "$tuple": [
+                    "敏锐",
+                    "执着",
+                    "谨慎"
+                  ]
+                },
+                "values": {
+                  "$tuple": []
+                },
+                "goals": {
+                  "$tuple": [
+                    "寻找异常线索"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "taboos": {
+                  "$tuple": []
+                }
+              }
+            },
+            "speech_style": {
+              "$model": "SpeechStyle",
+              "fields": {
+                "tone": "自然、克制",
+                "vocabulary": {
+                  "$tuple": []
+                },
+                "sentence_style": "清晰、简洁",
+                "preferred_phrases": {
+                  "$tuple": []
+                },
+                "forbidden_styles": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memory_context": {
+              "$model": "MemoryContext",
+              "fields": {
+                "stable_memory": {
+                  "$tuple": [
+                    "她留意到附近几处难以解释的细节，仍在寻找可靠线索。"
+                  ]
+                },
+                "relationship_memory": {
+                  "$tuple": []
+                },
+                "recent_memory": {
+                  "$tuple": []
+                }
+              }
+            },
+            "example_dialogues": {
+              "$tuple": []
+            },
+            "knowledge_context": {
+              "$model": "KnowledgeContext",
+              "fields": {
+                "records": {
+                  "$tuple": []
+                },
+                "available_information": {
+                  "$tuple": []
+                },
+                "owner_id": null
+              }
+            },
+            "relationship_context": {
+              "$model": "RelationshipContext",
+              "fields": {
+                "owner_id": null,
+                "relationships": {
+                  "$tuple": []
+                }
+              }
+            }
+          }
+        }
+      ],
+      [
+        "pei",
+        {
+          "$model": "CharacterMind",
+          "fields": {
+            "identity": {
+              "$model": "Identity",
+              "fields": {
+                "name": "裴",
+                "role": "普通居民",
+                "background": "他努力维持普通生活，对附近的异常传闻还不知情。"
+              }
+            },
+            "personality": {
+              "$model": "PersonalityProfile",
+              "fields": {
+                "traits": {
+                  "$tuple": [
+                    "务实",
+                    "谨慎",
+                    "重视日常"
+                  ]
+                },
+                "values": {
+                  "$tuple": []
+                },
+                "goals": {
+                  "$tuple": [
+                    "维持正常生活"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "taboos": {
+                  "$tuple": []
+                }
+              }
+            },
+            "speech_style": {
+              "$model": "SpeechStyle",
+              "fields": {
+                "tone": "自然、克制",
+                "vocabulary": {
+                  "$tuple": []
+                },
+                "sentence_style": "清晰、简洁",
+                "preferred_phrases": {
+                  "$tuple": []
+                },
+                "forbidden_styles": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memory_context": {
+              "$model": "MemoryContext",
+              "fields": {
+                "stable_memory": {
+                  "$tuple": [
+                    "他努力维持普通生活，对附近的异常传闻还不知情。"
+                  ]
+                },
+                "relationship_memory": {
+                  "$tuple": []
+                },
+                "recent_memory": {
+                  "$tuple": []
+                }
+              }
+            },
+            "example_dialogues": {
+              "$tuple": []
+            },
+            "knowledge_context": {
+              "$model": "KnowledgeContext",
+              "fields": {
+                "records": {
+                  "$tuple": []
+                },
+                "available_information": {
+                  "$tuple": []
+                },
+                "owner_id": null
+              }
+            },
+            "relationship_context": {
+              "$model": "RelationshipContext",
+              "fields": {
+                "owner_id": null,
+                "relationships": {
+                  "$tuple": []
+                }
+              }
+            }
+          }
+        }
+      ],
+      [
+        "song",
+        {
+          "$model": "CharacterMind",
+          "fields": {
+            "identity": {
+              "$model": "Identity",
+              "fields": {
+                "name": "宋",
+                "role": "观察者",
+                "background": "他长期记录周围变化，但会谨慎判断何时分享信息。"
+              }
+            },
+            "personality": {
+              "$model": "PersonalityProfile",
+              "fields": {
+                "traits": {
+                  "$tuple": [
+                    "克制",
+                    "耐心",
+                    "善于观察"
+                  ]
+                },
+                "values": {
+                  "$tuple": [
+                    "在证据不足时避免直接给出结论"
+                  ]
+                },
+                "goals": {
+                  "$tuple": [
+                    "观察变化"
+                  ]
+                },
+                "fears": {
+                  "$tuple": []
+                },
+                "taboos": {
+                  "$tuple": []
+                }
+              }
+            },
+            "speech_style": {
+              "$model": "SpeechStyle",
+              "fields": {
+                "tone": "自然、克制",
+                "vocabulary": {
+                  "$tuple": []
+                },
+                "sentence_style": "清晰、简洁",
+                "preferred_phrases": {
+                  "$tuple": []
+                },
+                "forbidden_styles": {
+                  "$tuple": []
+                }
+              }
+            },
+            "memory_context": {
+              "$model": "MemoryContext",
+              "fields": {
+                "stable_memory": {
+                  "$tuple": [
+                    "他长期记录周围变化，但会谨慎判断何时分享信息。"
+                  ]
+                },
+                "relationship_memory": {
+                  "$tuple": []
+                },
+                "recent_memory": {
+                  "$tuple": []
+                }
+              }
+            },
+            "example_dialogues": {
+              "$tuple": []
+            },
+            "knowledge_context": {
+              "$model": "KnowledgeContext",
+              "fields": {
+                "records": {
+                  "$tuple": []
+                },
+                "available_information": {
+                  "$tuple": []
+                },
+                "owner_id": null
+              }
+            },
+            "relationship_context": {
+              "$model": "RelationshipContext",
+              "fields": {
+                "owner_id": null,
+                "relationships": {
+                  "$tuple": []
+                }
+              }
+            }
+          }
+        }
+      ]
+    ]
+  },
+  "patches": {
+    "$tuple": []
+  },
+  "knowledge": {
+    "$mapping": [
+      [
+        "facts",
+        {
+          "$tuple": [
+            {
+              "$model": "WorldFact",
+              "fields": {
+                "id": "anchor:liangjing:liangjing_identity",
+                "content": "我叫梁景，今年23岁。",
+                "fact_type": "initial_knowledge",
+                "timestamp": "day-1",
+                "related_entities": {
+                  "$tuple": [
+                    "liangjing"
+                  ]
+                },
+                "importance": 0.7
+              }
+            },
+            {
+              "$model": "WorldFact",
+              "fields": {
+                "id": "anchor:liangjing:liangjing_return",
+                "content": "我刚结束服刑，正在重新开始生活。",
+                "fact_type": "initial_knowledge",
+                "timestamp": "day-1",
+                "related_entities": {
+                  "$tuple": [
+                    "liangjing"
+                  ]
+                },
+                "importance": 0.7
+              }
+            },
+            {
+              "$model": "WorldFact",
+              "fields": {
+                "id": "anchor:liangjing:public_city",
+                "content": "我住在一片普通居民区。",
+                "fact_type": "initial_knowledge",
+                "timestamp": "day-1",
+                "related_entities": {
+                  "$tuple": [
+                    "liangjing"
+                  ]
+                },
+                "importance": 0.7
+              }
+            },
+            {
+              "$model": "WorldFact",
+              "fields": {
+                "id": "anchor:liuyiyi:liuyiyi_anomaly_trace",
+                "content": "附近有几处时间记录对不上的线索，原因尚不明确。",
+                "fact_type": "initial_knowledge",
+                "timestamp": "day-1",
+                "related_entities": {
+                  "$tuple": [
+                    "liuyiyi"
+                  ]
+                },
+                "importance": 0.7
+              }
+            },
+            {
+              "$model": "WorldFact",
+              "fields": {
+                "id": "anchor:song:song_background_note",
+                "content": "过去一段时间，附近有数次彼此相似的异常记录。",
+                "fact_type": "initial_knowledge",
+                "timestamp": "day-1",
+                "related_entities": {
+                  "$tuple": [
+                    "song"
+                  ]
+                },
+                "importance": 0.7
+              }
+            },
+            {
+              "$model": "WorldFact",
+              "fields": {
+                "id": "anchor:song:song_clock_note",
+                "content": "有一份旧记录提到街区钟表曾同时停摆，来源仍待核实。",
+                "fact_type": "initial_knowledge",
+                "timestamp": "day-1",
+                "related_entities": {
+                  "$tuple": [
+                    "song"
+                  ]
+                },
+                "importance": 0.7
+              }
+            },
+            {
+              "$model": "WorldFact",
+              "fields": {
+                "id": "anchor:pei:pei_daily_life",
+                "content": "附近居民通常在街角便利店购买日用品。",
+                "fact_type": "initial_knowledge",
+                "timestamp": "day-1",
+                "related_entities": {
+                  "$tuple": [
+                    "pei"
+                  ]
+                },
+                "importance": 0.7
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "records",
+        {
+          "$tuple": [
+            {
+              "$model": "KnowledgeRecord",
+              "fields": {
+                "owner_id": "liangjing",
+                "fact_id": "anchor:liangjing:liangjing_identity",
+                "knowledge_type": {
+                  "$enum": "KnowledgeType",
+                  "value": "DIRECT"
+                },
+                "source": {
+                  "$model": "KnowledgeSource",
+                  "fields": {
+                    "source_id": "source:anchor:liangjing:liangjing_identity",
+                    "source_type": "initial_world_package",
+                    "description": "角色初始知识",
+                    "actor_id": null
+                  }
+                },
+                "confidence": 1.0,
+                "created_at": "day-1",
+                "known_content": "我叫梁景，今年23岁。",
+                "visibility": {
+                  "$model": "KnowledgeVisibility",
+                  "fields": {
+                    "allowed_character_ids": {
+                      "$tuple": []
+                    },
+                    "public": false
+                  }
+                }
+              }
+            },
+            {
+              "$model": "KnowledgeRecord",
+              "fields": {
+                "owner_id": "liangjing",
+                "fact_id": "anchor:liangjing:liangjing_return",
+                "knowledge_type": {
+                  "$enum": "KnowledgeType",
+                  "value": "DIRECT"
+                },
+                "source": {
+                  "$model": "KnowledgeSource",
+                  "fields": {
+                    "source_id": "source:anchor:liangjing:liangjing_return",
+                    "source_type": "initial_world_package",
+                    "description": "角色初始知识",
+                    "actor_id": null
+                  }
+                },
+                "confidence": 1.0,
+                "created_at": "day-1",
+                "known_content": "我刚结束服刑，正在重新开始生活。",
+                "visibility": {
+                  "$model": "KnowledgeVisibility",
+                  "fields": {
+                    "allowed_character_ids": {
+                      "$tuple": []
+                    },
+                    "public": false
+                  }
+                }
+              }
+            },
+            {
+              "$model": "KnowledgeRecord",
+              "fields": {
+                "owner_id": "liangjing",
+                "fact_id": "anchor:liangjing:public_city",
+                "knowledge_type": {
+                  "$enum": "KnowledgeType",
+                  "value": "REPORTED"
+                },
+                "source": {
+                  "$model": "KnowledgeSource",
+                  "fields": {
+                    "source_id": "source:anchor:liangjing:public_city",
+                    "source_type": "initial_world_package",
+                    "description": "角色初始知识",
+                    "actor_id": null
+                  }
+                },
+                "confidence": 0.9,
+                "created_at": "day-1",
+                "known_content": "我住在一片普通居民区。",
+                "visibility": {
+                  "$model": "KnowledgeVisibility",
+                  "fields": {
+                    "allowed_character_ids": {
+                      "$tuple": []
+                    },
+                    "public": false
+                  }
+                }
+              }
+            },
+            {
+              "$model": "KnowledgeRecord",
+              "fields": {
+                "owner_id": "liuyiyi",
+                "fact_id": "anchor:liuyiyi:liuyiyi_anomaly_trace",
+                "knowledge_type": {
+                  "$enum": "KnowledgeType",
+                  "value": "OBSERVED"
+                },
+                "source": {
+                  "$model": "KnowledgeSource",
+                  "fields": {
+                    "source_id": "source:anchor:liuyiyi:liuyiyi_anomaly_trace",
+                    "source_type": "initial_world_package",
+                    "description": "角色初始知识",
+                    "actor_id": null
+                  }
+                },
+                "confidence": 0.65,
+                "created_at": "day-1",
+                "known_content": "附近有几处时间记录对不上的线索，原因尚不明确。",
+                "visibility": {
+                  "$model": "KnowledgeVisibility",
+                  "fields": {
+                    "allowed_character_ids": {
+                      "$tuple": []
+                    },
+                    "public": false
+                  }
+                }
+              }
+            },
+            {
+              "$model": "KnowledgeRecord",
+              "fields": {
+                "owner_id": "song",
+                "fact_id": "anchor:song:song_background_note",
+                "knowledge_type": {
+                  "$enum": "KnowledgeType",
+                  "value": "REPORTED"
+                },
+                "source": {
+                  "$model": "KnowledgeSource",
+                  "fields": {
+                    "source_id": "source:anchor:song:song_background_note",
+                    "source_type": "initial_world_package",
+                    "description": "角色初始知识",
+                    "actor_id": null
+                  }
+                },
+                "confidence": 0.7,
+                "created_at": "day-1",
+                "known_content": "过去一段时间，附近有数次彼此相似的异常记录。",
+                "visibility": {
+                  "$model": "KnowledgeVisibility",
+                  "fields": {
+                    "allowed_character_ids": {
+                      "$tuple": []
+                    },
+                    "public": false
+                  }
+                }
+              }
+            },
+            {
+              "$model": "KnowledgeRecord",
+              "fields": {
+                "owner_id": "song",
+                "fact_id": "anchor:song:song_clock_note",
+                "knowledge_type": {
+                  "$enum": "KnowledgeType",
+                  "value": "REPORTED"
+                },
+                "source": {
+                  "$model": "KnowledgeSource",
+                  "fields": {
+                    "source_id": "source:anchor:song:song_clock_note",
+                    "source_type": "initial_world_package",
+                    "description": "角色初始知识",
+                    "actor_id": null
+                  }
+                },
+                "confidence": 0.55,
+                "created_at": "day-1",
+                "known_content": "有一份旧记录提到街区钟表曾同时停摆，来源仍待核实。",
+                "visibility": {
+                  "$model": "KnowledgeVisibility",
+                  "fields": {
+                    "allowed_character_ids": {
+                      "$tuple": []
+                    },
+                    "public": false
+                  }
+                }
+              }
+            },
+            {
+              "$model": "KnowledgeRecord",
+              "fields": {
+                "owner_id": "pei",
+                "fact_id": "anchor:pei:pei_daily_life",
+                "knowledge_type": {
+                  "$enum": "KnowledgeType",
+                  "value": "DIRECT"
+                },
+                "source": {
+                  "$model": "KnowledgeSource",
+                  "fields": {
+                    "source_id": "source:anchor:pei:pei_daily_life",
+                    "source_type": "initial_world_package",
+                    "description": "角色初始知识",
+                    "actor_id": null
+                  }
+                },
+                "confidence": 0.95,
+                "created_at": "day-1",
+                "known_content": "附近居民通常在街角便利店购买日用品。",
+                "visibility": {
+                  "$model": "KnowledgeVisibility",
+                  "fields": {
+                    "allowed_character_ids": {
+                      "$tuple": []
+                    },
+                    "public": false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "timeline": {
+    "$tuple": []
+  },
+  "relationships": {
+    "$tuple": []
+  },
+  "opportunities": {
+    "$tuple": [
+      {
+        "$model": "NarrativeOpportunity",
+        "fields": {
+          "opportunity_id": "investigate_clock",
+          "source_type": {
+            "$enum": "OpportunitySourceType",
+            "value": "WORLD"
+          },
+          "related_goal": null,
+          "related_conflict": null,
+          "related_character": "liangjing",
+          "visibility": "owner",
+          "urgency": 0.3,
+          "importance": 0.75,
+          "possible_actions": {
+            "$tuple": [
+              "看看钟",
+              "检查钟表",
+              "直接离开房间"
+            ]
+          },
+          "created_time": "2026-10-13T09:36:43.445474+00:00",
+          "expiry": null,
+          "description": "墙上的钟停在12:03。这个细节仍留在你的视线里。",
+          "visible_character_ids": {
+            "$tuple": [
+              "liangjing"
+            ]
+          },
+          "suggested_granularity": "normal",
+          "source": "world_rule",
+          "source_id": "anchor_world:liangjing_home:clock",
+          "internal_context": {
+            "$mapping": [
+              [
+                "location_id",
+                "liangjing_home"
+              ],
+              [
+                "object_id",
+                "clock"
+              ]
+            ]
+          },
+          "related_entities": {
+            "$tuple": [
+              "liangjing_home",
+              "clock"
+            ]
+          },
+          "candidate_actions": {
+            "$tuple": [
+              {
+                "$model": "ActionCandidate",
+                "fields": {
+                  "action_type": "inspect",
+                  "target_refs": {
+                    "$tuple": [
+                      "钟"
+                    ]
+                  },
+                  "metadata": {
+                    "$mapping": [
+                      [
+                        "objective",
+                        "inspect:钟"
+                      ],
+                      [
+                        "method",
+                        "inspect"
+                      ],
+                      [
+                        "risk",
+                        0.25
+                      ],
+                      [
+                        "relationship_effect",
+                        "no_direct_change"
+                      ],
+                      [
+                        "expected_effect",
+                        "inspect_target"
+                      ]
+                    ]
+                  },
+                  "action_id": "anchor_clock_inspection",
+                  "actor_id": "liangjing",
+                  "intent": "inspect",
+                  "target": "钟",
+                  "motivation": "investigate_visible_detail"
+                }
+              }
+            ]
+          },
+          "status": {
+            "$enum": "OpportunityStatus",
+            "value": "active"
+          }
+        }
+      }
+    ]
+  },
+  "world_tree": {
+    "$mapping": [
+      [
+        "world_id",
+        "anchor_608bd0b0485f4f0cb4046af764af9ebf"
+      ],
+      [
+        "root",
+        {
+          "$model": "StoryBranch",
+          "fields": {
+            "branch_id": "main",
+            "parent_branch_id": null,
+            "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+            "revision": 0,
+            "divergence_event_id": null,
+            "divergence_action": null
+          }
+        }
+      ],
+      [
+        "branches",
+        {
+          "$tuple": [
+            {
+              "$model": "StoryBranch",
+              "fields": {
+                "branch_id": "main",
+                "parent_branch_id": null,
+                "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+                "revision": 0,
+                "divergence_event_id": null,
+                "divergence_action": null
+              }
+            },
+            {
+              "$model": "StoryBranch",
+              "fields": {
+                "branch_id": "84e2ac7a-64f8-4580-9a47-2e6298114d44",
+                "parent_branch_id": "main",
+                "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+                "revision": 0,
+                "divergence_event_id": null,
+                "divergence_action": {
+                  "$model": "ActionCandidate",
+                  "fields": {
+                    "action_type": "inspect",
+                    "target_refs": {
+                      "$tuple": [
+                        "钟"
+                      ]
+                    },
+                    "metadata": {
+                      "$mapping": [
+                        [
+                          "objective",
+                          "inspect:钟"
+                        ],
+                        [
+                          "method",
+                          "inspect"
+                        ],
+                        [
+                          "risk",
+                          0.25
+                        ],
+                        [
+                          "relationship_effect",
+                          "no_direct_change"
+                        ],
+                        [
+                          "expected_effect",
+                          "inspect_target"
+                        ],
+                        [
+                          "opportunity_id",
+                          "investigate_clock"
+                        ]
+                      ]
+                    },
+                    "action_id": "anchor_clock_inspection",
+                    "actor_id": "liangjing",
+                    "intent": "inspect",
+                    "target": "钟",
+                    "motivation": "investigate_visible_detail"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "current_branch_id",
+        "main"
+      ],
+      [
+        "opportunity_branches",
+        {
+          "$mapping": [
+            [
+              "investigate_clock",
+              {
+                "$tuple": [
+                  "84e2ac7a-64f8-4580-9a47-2e6298114d44"
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "deleted_branch_ids",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "expansion_count",
+        0
+      ]
+    ]
+  },
+  "autonomous": {
+    "$mapping": [
+      [
+        "clock_state",
+        {
+          "$model": "WorldClockState",
+          "fields": {
+            "current": "2026-10-13T09:36:43.445474+00:00"
+          }
+        }
+      ],
+      [
+        "goals",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterGoal",
+              "fields": {
+                "owner_id": "liuyiyi",
+                "description": "寻找异常线索",
+                "goal_type": "investigate_anomaly",
+                "priority": 0.7,
+                "conditions": {
+                  "$tuple": []
+                },
+                "progress": 0.0,
+                "status": "active",
+                "goal_id": "liuyiyi:investigate_anomaly",
+                "parent_goal_id": null,
+                "subgoals": {
+                  "$tuple": []
+                },
+                "completion_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterGoal",
+              "fields": {
+                "owner_id": "pei",
+                "description": "维持正常生活",
+                "goal_type": "observe_changes",
+                "priority": 0.55,
+                "conditions": {
+                  "$tuple": []
+                },
+                "progress": 0.0,
+                "status": "active",
+                "goal_id": "pei:observe_changes",
+                "parent_goal_id": null,
+                "subgoals": {
+                  "$tuple": []
+                },
+                "completion_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterGoal",
+              "fields": {
+                "owner_id": "song",
+                "description": "观察变化",
+                "goal_type": "observe_changes",
+                "priority": 0.55,
+                "conditions": {
+                  "$tuple": []
+                },
+                "progress": 0.0,
+                "status": "active",
+                "goal_id": "song:observe_changes",
+                "parent_goal_id": null,
+                "subgoals": {
+                  "$tuple": []
+                },
+                "completion_conditions": {
+                  "$tuple": []
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "pending_events",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "state_changes",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "processed_evolution_event_ids",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "resources",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "locations",
+        {
+          "$tuple": [
+            {
+              "$model": "LocationState",
+              "fields": {
+                "location_id": "convenience_store",
+                "name": "街角便利店",
+                "status": "active",
+                "safety": 0.55,
+                "power": true,
+                "tags": {
+                  "$tuple": [
+                    "social_density:high",
+                    "character_meeting_probability:high"
+                  ]
+                },
+                "repair_progress": 0.0
+              }
+            },
+            {
+              "$model": "LocationState",
+              "fields": {
+                "location_id": "liangjing_home",
+                "name": "梁景住所",
+                "status": "active",
+                "safety": 0.55,
+                "power": true,
+                "tags": {
+                  "$tuple": [
+                    "private",
+                    "memory_sensitive"
+                  ]
+                },
+                "repair_progress": 0.0
+              }
+            },
+            {
+              "$model": "LocationState",
+              "fields": {
+                "location_id": "neighborhood",
+                "name": "旧街区",
+                "status": "active",
+                "safety": 0.45,
+                "power": true,
+                "tags": {
+                  "$tuple": [
+                    "event_generation_area"
+                  ]
+                },
+                "repair_progress": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "current_location_id",
+        "liangjing_home"
+      ],
+      [
+        "scheduler_state",
+        {
+          "$mapping": [
+            [
+              "tick_count",
+              0
+            ],
+            [
+              "last_tick_id",
+              null
+            ],
+            [
+              "last_evaluated_tick",
+              null
+            ]
+          ]
+        }
+      ],
+      [
+        "agency_state",
+        {
+          "$model": "AgencyState",
+          "fields": {
+            "agencies": {
+              "$tuple": [
+                {
+                  "$model": "CharacterAgency",
+                  "fields": {
+                    "character_id": "liuyiyi",
+                    "initiative": 0.68,
+                    "motivation_strength": 0.7,
+                    "goal_focus": 0.7,
+                    "action_frequency": 0.0,
+                    "last_action_time": null
+                  }
+                },
+                {
+                  "$model": "CharacterAgency",
+                  "fields": {
+                    "character_id": "pei",
+                    "initiative": 0.52,
+                    "motivation_strength": 0.55,
+                    "goal_focus": 0.55,
+                    "action_frequency": 0.0,
+                    "last_action_time": null
+                  }
+                },
+                {
+                  "$model": "CharacterAgency",
+                  "fields": {
+                    "character_id": "song",
+                    "initiative": 0.52,
+                    "motivation_strength": 0.55,
+                    "goal_focus": 0.55,
+                    "action_frequency": 0.0,
+                    "last_action_time": null
+                  }
+                }
+              ]
+            },
+            "routine_progress": {
+              "$mapping": []
+            },
+            "autonomous_action_history": {
+              "$tuple": []
+            },
+            "action_feedback_history": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "goal_lifecycle",
+        {
+          "$model": "GoalLifecycleSnapshot",
+          "fields": {
+            "states": {
+              "$tuple": [
+                {
+                  "$model": "GoalState",
+                  "fields": {
+                    "goal_id": "liuyiyi:investigate_anomaly",
+                    "owner_id": "liuyiyi",
+                    "state": {
+                      "$enum": "GoalLifecycleState",
+                      "value": "ACTIVE"
+                    },
+                    "progress": 0.0,
+                    "progress_velocity": 0.0,
+                    "stagnation_level": 0.0,
+                    "frustration_level": 0.0,
+                    "recent_action_feedback": {
+                      "$tuple": []
+                    },
+                    "progress_samples": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                {
+                  "$model": "GoalState",
+                  "fields": {
+                    "goal_id": "pei:observe_changes",
+                    "owner_id": "pei",
+                    "state": {
+                      "$enum": "GoalLifecycleState",
+                      "value": "ACTIVE"
+                    },
+                    "progress": 0.0,
+                    "progress_velocity": 0.0,
+                    "stagnation_level": 0.0,
+                    "frustration_level": 0.0,
+                    "recent_action_feedback": {
+                      "$tuple": []
+                    },
+                    "progress_samples": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                {
+                  "$model": "GoalState",
+                  "fields": {
+                    "goal_id": "song:observe_changes",
+                    "owner_id": "song",
+                    "state": {
+                      "$enum": "GoalLifecycleState",
+                      "value": "ACTIVE"
+                    },
+                    "progress": 0.0,
+                    "progress_velocity": 0.0,
+                    "stagnation_level": 0.0,
+                    "frustration_level": 0.0,
+                    "recent_action_feedback": {
+                      "$tuple": []
+                    },
+                    "progress_samples": {
+                      "$tuple": []
+                    }
+                  }
+                }
+              ]
+            },
+            "history": {
+              "$tuple": []
+            },
+            "transitions": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "goal_transition_rules",
+        {
+          "$tuple": [
+            {
+              "$model": "GoalTransitionRule",
+              "fields": {
+                "source_goal": "investigate_anomaly",
+                "condition": "progress>=0.2",
+                "result": "confirm_anomaly",
+                "result_description": "确认异常真实性",
+                "result_priority": 0.82,
+                "result_conditions": {
+                  "$tuple": [
+                    "anomaly_evidence"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "development_states",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "development_processed_event_ids",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "identities",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterIdentity",
+              "fields": {
+                "character_id": "liangjing",
+                "display_name": "梁景",
+                "original_name": "梁景",
+                "aliases": {
+                  "$tuple": []
+                },
+                "editable": false,
+                "naming_source": "scenario_package",
+                "public_description": "刑满释放后，正在尝试重新开始生活。"
+              }
+            },
+            {
+              "$model": "CharacterIdentity",
+              "fields": {
+                "character_id": "liuyiyi",
+                "display_name": "柳依依",
+                "original_name": "柳依依",
+                "aliases": {
+                  "$tuple": []
+                },
+                "editable": false,
+                "naming_source": "scenario_package",
+                "public_description": "她留意到附近几处难以解释的细节，仍在寻找可靠线索。"
+              }
+            },
+            {
+              "$model": "CharacterIdentity",
+              "fields": {
+                "character_id": "pei",
+                "display_name": "裴",
+                "original_name": "裴",
+                "aliases": {
+                  "$tuple": []
+                },
+                "editable": false,
+                "naming_source": "scenario_package",
+                "public_description": "他努力维持普通生活，对附近的异常传闻还不知情。"
+              }
+            },
+            {
+              "$model": "CharacterIdentity",
+              "fields": {
+                "character_id": "song",
+                "display_name": "宋",
+                "original_name": "宋",
+                "aliases": {
+                  "$tuple": []
+                },
+                "editable": false,
+                "naming_source": "scenario_package",
+                "public_description": "他长期记录周围变化，但会谨慎判断何时分享信息。"
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "relationship_lifecycle",
+        {
+          "$model": "RelationshipLifecycleSnapshot",
+          "fields": {
+            "stages": {
+              "$tuple": [
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "liangjing",
+                    "character_b": "liuyiyi",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "liangjing",
+                    "character_b": "pei",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "liangjing",
+                    "character_b": "song",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "liuyiyi",
+                    "character_b": "liangjing",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "liuyiyi",
+                    "character_b": "pei",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "liuyiyi",
+                    "character_b": "song",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "pei",
+                    "character_b": "liangjing",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "pei",
+                    "character_b": "liuyiyi",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "pei",
+                    "character_b": "song",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "song",
+                    "character_b": "liangjing",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "song",
+                    "character_b": "liuyiyi",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                },
+                {
+                  "$model": "RelationshipStageEntry",
+                  "fields": {
+                    "character_a": "song",
+                    "character_b": "pei",
+                    "stage": {
+                      "$enum": "RelationshipStage",
+                      "value": "STRANGER"
+                    }
+                  }
+                }
+              ]
+            },
+            "dynamics": {
+              "$tuple": [
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "liangjing",
+                    "character_b": "liuyiyi",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "liangjing",
+                    "character_b": "pei",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "liangjing",
+                    "character_b": "song",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "liuyiyi",
+                    "character_b": "liangjing",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "liuyiyi",
+                    "character_b": "pei",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "liuyiyi",
+                    "character_b": "song",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "pei",
+                    "character_b": "liangjing",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "pei",
+                    "character_b": "liuyiyi",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "pei",
+                    "character_b": "song",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "song",
+                    "character_b": "liangjing",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "song",
+                    "character_b": "liuyiyi",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                },
+                {
+                  "$model": "RelationshipDynamics",
+                  "fields": {
+                    "character_a": "song",
+                    "character_b": "pei",
+                    "familiarity": 0.0,
+                    "dependence": 0.0,
+                    "distance": 1.0,
+                    "shared_experience": 0
+                  }
+                }
+              ]
+            },
+            "memories": {
+              "$tuple": []
+            },
+            "events": {
+              "$tuple": []
+            },
+            "transitions": {
+              "$tuple": []
+            },
+            "processed_event_ids": {
+              "$tuple": []
+            },
+            "belief_adjusted_pairs": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "encounters",
+        {
+          "$model": "EncounterSnapshot",
+          "fields": {
+            "candidates": {
+              "$tuple": []
+            },
+            "history": {
+              "$tuple": []
+            },
+            "memories": {
+              "$tuple": []
+            },
+            "trajectories": {
+              "$tuple": []
+            },
+            "processed_event_ids": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "information",
+        {
+          "$model": "InformationSnapshot",
+          "fields": {
+            "network": {
+              "$model": "RumorNetworkSnapshot",
+              "fields": {
+                "clues": {
+                  "$tuple": []
+                },
+                "rumors": {
+                  "$tuple": []
+                },
+                "paths": {
+                  "$tuple": []
+                },
+                "processed_event_ids": {
+                  "$tuple": []
+                }
+              }
+            },
+            "sources": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "conflicts",
+        {
+          "$model": "ConflictSnapshot",
+          "fields": {
+            "conflicts": {
+              "$tuple": []
+            },
+            "transformed_count": 0,
+            "opposition_candidates": {
+              "$tuple": []
+            }
+          }
+        }
+      ],
+      [
+        "world_package",
+        {
+          "$mapping": [
+            [
+              "content_version",
+              "0.2"
+            ],
+            [
+              "started_at",
+              "2026-10-13T09:36:43.445474+00:00"
+            ],
+            [
+              "summary",
+              {
+                "$mapping": [
+                  [
+                    "event_count",
+                    0
+                  ],
+                  [
+                    "last_event_id",
+                    null
+                  ]
+                ]
+              }
+            ],
+            [
+              "replay_index",
+              0
+            ],
+            [
+              "settings",
+              {
+                "$mapping": [
+                  [
+                    "mode",
+                    "roleplay"
+                  ],
+                  [
+                    "natural_simulation",
+                    true
+                  ]
+                ]
+              }
+            ],
+            [
+              "location_relations",
+              {
+                "$tuple": [
+                  {
+                    "$mapping": [
+                      [
+                        "from",
+                        "liangjing_home"
+                      ],
+                      [
+                        "to",
+                        "neighborhood"
+                      ],
+                      [
+                        "distance",
+                        0.25
+                      ],
+                      [
+                        "traffic",
+                        0.7
+                      ],
+                      [
+                        "social_density",
+                        0.45
+                      ],
+                      [
+                        "information_flow",
+                        0.35
+                      ],
+                      [
+                        "anomaly_relevance",
+                        0.55
+                      ]
+                    ]
+                  },
+                  {
+                    "$mapping": [
+                      [
+                        "from",
+                        "neighborhood"
+                      ],
+                      [
+                        "to",
+                        "liangjing_home"
+                      ],
+                      [
+                        "distance",
+                        0.25
+                      ],
+                      [
+                        "traffic",
+                        0.7
+                      ],
+                      [
+                        "social_density",
+                        0.45
+                      ],
+                      [
+                        "information_flow",
+                        0.35
+                      ],
+                      [
+                        "anomaly_relevance",
+                        0.55
+                      ]
+                    ]
+                  },
+                  {
+                    "$mapping": [
+                      [
+                        "from",
+                        "neighborhood"
+                      ],
+                      [
+                        "to",
+                        "convenience_store"
+                      ],
+                      [
+                        "distance",
+                        0.2
+                      ],
+                      [
+                        "traffic",
+                        0.85
+                      ],
+                      [
+                        "social_density",
+                        0.8
+                      ],
+                      [
+                        "information_flow",
+                        0.85
+                      ],
+                      [
+                        "anomaly_relevance",
+                        0.6
+                      ]
+                    ]
+                  },
+                  {
+                    "$mapping": [
+                      [
+                        "from",
+                        "convenience_store"
+                      ],
+                      [
+                        "to",
+                        "neighborhood"
+                      ],
+                      [
+                        "distance",
+                        0.2
+                      ],
+                      [
+                        "traffic",
+                        0.85
+                      ],
+                      [
+                        "social_density",
+                        0.8
+                      ],
+                      [
+                        "information_flow",
+                        0.85
+                      ],
+                      [
+                        "anomaly_relevance",
+                        0.6
+                      ]
+                    ]
+                  },
+                  {
+                    "$mapping": [
+                      [
+                        "from",
+                        "liangjing_home"
+                      ],
+                      [
+                        "to",
+                        "convenience_store"
+                      ],
+                      [
+                        "distance",
+                        0.4
+                      ],
+                      [
+                        "traffic",
+                        0.55
+                      ],
+                      [
+                        "social_density",
+                        0.8
+                      ],
+                      [
+                        "information_flow",
+                        0.65
+                      ],
+                      [
+                        "anomaly_relevance",
+                        0.35
+                      ]
+                    ]
+                  },
+                  {
+                    "$mapping": [
+                      [
+                        "from",
+                        "convenience_store"
+                      ],
+                      [
+                        "to",
+                        "liangjing_home"
+                      ],
+                      [
+                        "distance",
+                        0.4
+                      ],
+                      [
+                        "traffic",
+                        0.55
+                      ],
+                      [
+                        "social_density",
+                        0.8
+                      ],
+                      [
+                        "information_flow",
+                        0.65
+                      ],
+                      [
+                        "anomaly_relevance",
+                        0.35
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            [
+              "routines",
+              {
+                "$mapping": [
+                  [
+                    "liangjing",
+                    {
+                      "$mapping": [
+                        [
+                          "character_id",
+                          "liangjing"
+                        ],
+                        [
+                          "activities",
+                          {
+                            "$tuple": [
+                              "daily_life",
+                              "work",
+                              "organize",
+                              "socialize"
+                            ]
+                          }
+                        ],
+                        [
+                          "locations",
+                          {
+                            "$mapping": [
+                              [
+                                "home",
+                                "liangjing_home"
+                              ],
+                              [
+                                "work",
+                                "convenience_store"
+                              ],
+                              [
+                                "social",
+                                "neighborhood"
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "active_hours",
+                          {
+                            "$tuple": [
+                              "08:00",
+                              "18:00"
+                            ]
+                          }
+                        ],
+                        [
+                          "weight",
+                          0.32
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "liuyiyi",
+                    {
+                      "$mapping": [
+                        [
+                          "character_id",
+                          "liuyiyi"
+                        ],
+                        [
+                          "activities",
+                          {
+                            "$tuple": [
+                              "investigate",
+                              "organize",
+                              "observe",
+                              "travel"
+                            ]
+                          }
+                        ],
+                        [
+                          "locations",
+                          {
+                            "$mapping": [
+                              [
+                                "base",
+                                "neighborhood"
+                              ],
+                              [
+                                "investigation",
+                                "convenience_store"
+                              ],
+                              [
+                                "records",
+                                "liangjing_home"
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "active_hours",
+                          {
+                            "$tuple": [
+                              "09:00",
+                              "20:00"
+                            ]
+                          }
+                        ],
+                        [
+                          "weight",
+                          0.62
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "pei",
+                    {
+                      "$mapping": [
+                        [
+                          "character_id",
+                          "pei"
+                        ],
+                        [
+                          "activities",
+                          {
+                            "$tuple": [
+                              "work",
+                              "socialize",
+                              "rest",
+                              "travel"
+                            ]
+                          }
+                        ],
+                        [
+                          "locations",
+                          {
+                            "$mapping": [
+                              [
+                                "home",
+                                "neighborhood"
+                              ],
+                              [
+                                "errands",
+                                "convenience_store"
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "active_hours",
+                          {
+                            "$tuple": [
+                              "08:00",
+                              "21:00"
+                            ]
+                          }
+                        ],
+                        [
+                          "weight",
+                          0.18
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "song",
+                    {
+                      "$mapping": [
+                        [
+                          "character_id",
+                          "song"
+                        ],
+                        [
+                          "activities",
+                          {
+                            "$tuple": [
+                              "observe",
+                              "organize",
+                              "rest",
+                              "socialize"
+                            ]
+                          }
+                        ],
+                        [
+                          "locations",
+                          {
+                            "$mapping": [
+                              [
+                                "base",
+                                "convenience_store"
+                              ],
+                              [
+                                "observation",
+                                "neighborhood"
+                              ]
+                            ]
+                          }
+                        ],
+                        [
+                          "active_hours",
+                          {
+                            "$tuple": [
+                              "10:00",
+                              "19:00"
+                            ]
+                          }
+                        ],
+                        [
+                          "weight",
+                          0.24
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        }
+      ]
+    ]
+  },
+  "narrative": {
+    "$mapping": [
+      [
+        "presence",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterPresence",
+              "fields": {
+                "character_id": "liangjing",
+                "current_location": "梁景住所",
+                "availability": {
+                  "$enum": "PresenceState",
+                  "value": "ACTIVE"
+                },
+                "introduction_state": {
+                  "$enum": "PresenceState",
+                  "value": "ACTIVE"
+                },
+                "entry_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterPresence",
+              "fields": {
+                "character_id": "liuyiyi",
+                "current_location": null,
+                "availability": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "introduction_state": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "entry_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterPresence",
+              "fields": {
+                "character_id": "pei",
+                "current_location": null,
+                "availability": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "introduction_state": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "entry_conditions": {
+                  "$tuple": []
+                }
+              }
+            },
+            {
+              "$model": "CharacterPresence",
+              "fields": {
+                "character_id": "song",
+                "current_location": null,
+                "availability": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "introduction_state": {
+                  "$enum": "PresenceState",
+                  "value": "UNKNOWN"
+                },
+                "entry_conditions": {
+                  "$tuple": []
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "entry_rules",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "motivations",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterMotivation",
+              "fields": {
+                "character_id": "liuyiyi",
+                "public_goal": "寻找异常线索",
+                "hidden_goal": "",
+                "core_drive": "无法忽视不合理现象",
+                "fear": "",
+                "value_conflict": "",
+                "self_awareness": false
+              }
+            },
+            {
+              "$model": "CharacterMotivation",
+              "fields": {
+                "character_id": "song",
+                "public_goal": "观察变化",
+                "hidden_goal": "理解异常规律",
+                "core_drive": "保持局势可预测",
+                "fear": "",
+                "value_conflict": "",
+                "self_awareness": false
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "state",
+        {
+          "$model": "NarrativeState",
+          "fields": {
+            "threads": {
+              "$tuple": [
+                {
+                  "$model": "NarrativeThread",
+                  "fields": {
+                    "id": "liangjing_return",
+                    "title": "梁景回归生活",
+                    "participants": {
+                      "$tuple": [
+                        "liangjing"
+                      ]
+                    },
+                    "conflict": "重新建立日常生活与面对过去之间的张力",
+                    "pressure": 0.1,
+                    "progress": 0.0,
+                    "status": {
+                      "$enum": "NarrativeThreadStatus",
+                      "value": "ACTIVE"
+                    },
+                    "conflict_sources": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                {
+                  "$model": "NarrativeThread",
+                  "fields": {
+                    "id": "anomaly_investigation",
+                    "title": "异常调查",
+                    "participants": {
+                      "$tuple": [
+                        "liuyiyi",
+                        "song"
+                      ]
+                    },
+                    "conflict": "零散线索与有限证据之间的张力",
+                    "pressure": 0.2,
+                    "progress": 0.0,
+                    "status": {
+                      "$enum": "NarrativeThreadStatus",
+                      "value": "DORMANT"
+                    },
+                    "conflict_sources": {
+                      "$tuple": []
+                    }
+                  }
+                },
+                {
+                  "$model": "NarrativeThread",
+                  "fields": {
+                    "id": "potential_intersection",
+                    "title": "潜在交汇",
+                    "participants": {
+                      "$tuple": [
+                        "liangjing",
+                        "liuyiyi",
+                        "pei"
+                      ]
+                    },
+                    "conflict": "不同生活轨迹可能产生交集",
+                    "pressure": 0.0,
+                    "progress": 0.0,
+                    "status": {
+                      "$enum": "NarrativeThreadStatus",
+                      "value": "POSSIBLE"
+                    },
+                    "conflict_sources": {
+                      "$tuple": []
+                    }
+                  }
+                }
+              ]
+            },
+            "candidates": {
+              "$tuple": []
+            },
+            "pressure": {
+              "$model": "NarrativePressure",
+              "fields": {
+                "urgency": 0.0,
+                "danger": 0.0,
+                "unresolved_degree": 0.0,
+                "trend": "stable",
+                "goal_stagnation": 0.0,
+                "conflict_pressure": 0.0
+              }
+            }
+          }
+        }
+      ],
+      [
+        "constraints",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "pressure",
+        {
+          "$model": "NarrativePressure",
+          "fields": {
+            "urgency": 0.0,
+            "danger": 0.0,
+            "unresolved_degree": 0.0,
+            "trend": "stable",
+            "goal_stagnation": 0.0,
+            "conflict_pressure": 0.0
+          }
+        }
+      ],
+      [
+        "candidates",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "opportunities",
+        {
+          "$tuple": [
+            {
+              "$model": "NarrativeOpportunity",
+              "fields": {
+                "opportunity_id": "investigate_clock",
+                "source_type": {
+                  "$enum": "OpportunitySourceType",
+                  "value": "WORLD"
+                },
+                "related_goal": null,
+                "related_conflict": null,
+                "related_character": "liangjing",
+                "visibility": "owner",
+                "urgency": 0.3,
+                "importance": 0.75,
+                "possible_actions": {
+                  "$tuple": [
+                    "看看钟",
+                    "检查钟表",
+                    "直接离开房间"
+                  ]
+                },
+                "created_time": "2026-10-13T09:36:43.445474+00:00",
+                "expiry": null,
+                "description": "墙上的钟停在12:03。这个细节仍留在你的视线里。",
+                "visible_character_ids": {
+                  "$tuple": [
+                    "liangjing"
+                  ]
+                },
+                "suggested_granularity": "normal",
+                "source": "world_rule",
+                "source_id": "anchor_world:liangjing_home:clock",
+                "internal_context": {
+                  "$mapping": [
+                    [
+                      "location_id",
+                      "liangjing_home"
+                    ],
+                    [
+                      "object_id",
+                      "clock"
+                    ]
+                  ]
+                },
+                "related_entities": {
+                  "$tuple": [
+                    "liangjing_home",
+                    "clock"
+                  ]
+                },
+                "candidate_actions": {
+                  "$tuple": [
+                    {
+                      "$model": "ActionCandidate",
+                      "fields": {
+                        "action_type": "inspect",
+                        "target_refs": {
+                          "$tuple": [
+                            "钟"
+                          ]
+                        },
+                        "metadata": {
+                          "$mapping": [
+                            [
+                              "objective",
+                              "inspect:钟"
+                            ],
+                            [
+                              "method",
+                              "inspect"
+                            ],
+                            [
+                              "risk",
+                              0.25
+                            ],
+                            [
+                              "relationship_effect",
+                              "no_direct_change"
+                            ],
+                            [
+                              "expected_effect",
+                              "inspect_target"
+                            ]
+                          ]
+                        },
+                        "action_id": "anchor_clock_inspection",
+                        "actor_id": "liangjing",
+                        "intent": "inspect",
+                        "target": "钟",
+                        "motivation": "investigate_visible_detail"
+                      }
+                    }
+                  ]
+                },
+                "status": {
+                  "$enum": "OpportunityStatus",
+                  "value": "active"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "world_tree",
+        {
+          "$mapping": [
+            [
+              "world_id",
+              "anchor_608bd0b0485f4f0cb4046af764af9ebf"
+            ],
+            [
+              "root",
+              {
+                "$model": "StoryBranch",
+                "fields": {
+                  "branch_id": "main",
+                  "parent_branch_id": null,
+                  "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+                  "revision": 0,
+                  "divergence_event_id": null,
+                  "divergence_action": null
+                }
+              }
+            ],
+            [
+              "branches",
+              {
+                "$tuple": [
+                  {
+                    "$model": "StoryBranch",
+                    "fields": {
+                      "branch_id": "main",
+                      "parent_branch_id": null,
+                      "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+                      "revision": 0,
+                      "divergence_event_id": null,
+                      "divergence_action": null
+                    }
+                  },
+                  {
+                    "$model": "StoryBranch",
+                    "fields": {
+                      "branch_id": "84e2ac7a-64f8-4580-9a47-2e6298114d44",
+                      "parent_branch_id": "main",
+                      "world_id": "anchor_608bd0b0485f4f0cb4046af764af9ebf",
+                      "revision": 0,
+                      "divergence_event_id": null,
+                      "divergence_action": {
+                        "$model": "ActionCandidate",
+                        "fields": {
+                          "action_type": "inspect",
+                          "target_refs": {
+                            "$tuple": [
+                              "钟"
+                            ]
+                          },
+                          "metadata": {
+                            "$mapping": [
+                              [
+                                "objective",
+                                "inspect:钟"
+                              ],
+                              [
+                                "method",
+                                "inspect"
+                              ],
+                              [
+                                "risk",
+                                0.25
+                              ],
+                              [
+                                "relationship_effect",
+                                "no_direct_change"
+                              ],
+                              [
+                                "expected_effect",
+                                "inspect_target"
+                              ],
+                              [
+                                "opportunity_id",
+                                "investigate_clock"
+                              ]
+                            ]
+                          },
+                          "action_id": "anchor_clock_inspection",
+                          "actor_id": "liangjing",
+                          "intent": "inspect",
+                          "target": "钟",
+                          "motivation": "investigate_visible_detail"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            [
+              "current_branch_id",
+              "main"
+            ],
+            [
+              "opportunity_branches",
+              {
+                "$mapping": [
+                  [
+                    "investigate_clock",
+                    {
+                      "$tuple": [
+                        "84e2ac7a-64f8-4580-9a47-2e6298114d44"
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              "deleted_branch_ids",
+              {
+                "$tuple": []
+              }
+            ],
+            [
+              "expansion_count",
+              0
+            ]
+          ]
+        }
+      ]
+    ]
+  },
+  "emotion": {
+    "$mapping": [
+      [
+        "states",
+        {
+          "$mapping": [
+            [
+              "liangjing",
+              {
+                "$model": "EmotionalState",
+                "fields": {
+                  "joy": 0.0,
+                  "sadness": 0.0,
+                  "fear": 0.0,
+                  "anger": 0.0,
+                  "surprise": 0.0,
+                  "disgust": 0.0,
+                  "curiosity": 0.25,
+                  "guilt": 0.25,
+                  "attachment": 0.0,
+                  "pride": 0.0,
+                  "shame": 0.0,
+                  "hope": 0.0,
+                  "despair": 0.0,
+                  "stress": 0.58,
+                  "confidence": 0.38,
+                  "calmness": 0.35,
+                  "fatigue": 0.0
+                }
+              }
+            ],
+            [
+              "liuyiyi",
+              {
+                "$model": "EmotionalState",
+                "fields": {
+                  "joy": 0.0,
+                  "sadness": 0.0,
+                  "fear": 0.28,
+                  "anger": 0.0,
+                  "surprise": 0.0,
+                  "disgust": 0.0,
+                  "curiosity": 0.72,
+                  "guilt": 0.0,
+                  "attachment": 0.0,
+                  "pride": 0.0,
+                  "shame": 0.0,
+                  "hope": 0.0,
+                  "despair": 0.0,
+                  "stress": 0.32,
+                  "confidence": 0.52,
+                  "calmness": 0.55,
+                  "fatigue": 0.0
+                }
+              }
+            ],
+            [
+              "pei",
+              {
+                "$model": "EmotionalState",
+                "fields": {
+                  "joy": 0.0,
+                  "sadness": 0.0,
+                  "fear": 0.05,
+                  "anger": 0.0,
+                  "surprise": 0.0,
+                  "disgust": 0.0,
+                  "curiosity": 0.15,
+                  "guilt": 0.0,
+                  "attachment": 0.0,
+                  "pride": 0.0,
+                  "shame": 0.0,
+                  "hope": 0.0,
+                  "despair": 0.0,
+                  "stress": 0.18,
+                  "confidence": 0.55,
+                  "calmness": 0.62,
+                  "fatigue": 0.0
+                }
+              }
+            ],
+            [
+              "song",
+              {
+                "$model": "EmotionalState",
+                "fields": {
+                  "joy": 0.0,
+                  "sadness": 0.0,
+                  "fear": 0.2,
+                  "anger": 0.0,
+                  "surprise": 0.0,
+                  "disgust": 0.0,
+                  "curiosity": 0.55,
+                  "guilt": 0.0,
+                  "attachment": 0.0,
+                  "pride": 0.0,
+                  "shame": 0.0,
+                  "hope": 0.0,
+                  "despair": 0.0,
+                  "stress": 0.25,
+                  "confidence": 0.68,
+                  "calmness": 0.75,
+                  "fatigue": 0.0
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "history",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "memories",
+        {
+          "$tuple": []
+        }
+      ]
+    ]
+  },
+  "director": {
+    "$mapping": [
+      [
+        "constraints",
+        {
+          "$tuple": []
+        }
+      ],
+      [
+        "history",
+        {
+          "$tuple": []
+        }
+      ]
+    ]
+  },
+  "authority": {
+    "$mapping": [
+      [
+        "player_character_id",
+        "liangjing"
+      ],
+      [
+        "authorities",
+        {
+          "$tuple": [
+            {
+              "$model": "CharacterAuthority",
+              "fields": {
+                "character_id": "liangjing",
+                "authority_level": {
+                  "$enum": "AuthorityLevel",
+                  "value": 30
+                },
+                "controllable": true,
+                "visible_information_scope": {
+                  "$tuple": [
+                    "self",
+                    "public",
+                    "owned_knowledge"
+                  ]
+                },
+                "can_make_autonomous_decisions": false
+              }
+            },
+            {
+              "$model": "CharacterAuthority",
+              "fields": {
+                "character_id": "liuyiyi",
+                "authority_level": {
+                  "$enum": "AuthorityLevel",
+                  "value": 20
+                },
+                "controllable": false,
+                "visible_information_scope": {
+                  "$tuple": [
+                    "self",
+                    "public",
+                    "owned_knowledge",
+                    "self_emotion",
+                    "own_relationships",
+                    "visible_goal"
+                  ]
+                },
+                "can_make_autonomous_decisions": true
+              }
+            },
+            {
+              "$model": "CharacterAuthority",
+              "fields": {
+                "character_id": "pei",
+                "authority_level": {
+                  "$enum": "AuthorityLevel",
+                  "value": 20
+                },
+                "controllable": false,
+                "visible_information_scope": {
+                  "$tuple": [
+                    "self",
+                    "public",
+                    "owned_knowledge",
+                    "self_emotion",
+                    "own_relationships",
+                    "visible_goal"
+                  ]
+                },
+                "can_make_autonomous_decisions": true
+              }
+            },
+            {
+              "$model": "CharacterAuthority",
+              "fields": {
+                "character_id": "song",
+                "authority_level": {
+                  "$enum": "AuthorityLevel",
+                  "value": 20
+                },
+                "controllable": false,
+                "visible_information_scope": {
+                  "$tuple": [
+                    "self",
+                    "public",
+                    "owned_knowledge",
+                    "self_emotion",
+                    "own_relationships",
+                    "visible_goal"
+                  ]
+                },
+                "can_make_autonomous_decisions": true
+              }
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "cognition": {
+    "$mapping": [
+      [
+        "styles",
+        {
+          "$mapping": [
+            [
+              "liangjing",
+              {
+                "$model": "CognitiveStyle",
+                "fields": {
+                  "analytical": 0.55,
+                  "intuitive": 0.65,
+                  "creative": 0.45,
+                  "suspicious": 0.8,
+                  "pragmatic": 0.55,
+                  "emotional": 0.6,
+                  "strategic": 0.5
+                }
+              }
+            ],
+            [
+              "liuyiyi",
+              {
+                "$model": "CognitiveStyle",
+                "fields": {
+                  "analytical": 0.7,
+                  "intuitive": 0.75,
+                  "creative": 0.6,
+                  "suspicious": 0.75,
+                  "pragmatic": 0.45,
+                  "emotional": 0.55,
+                  "strategic": 0.6
+                }
+              }
+            ],
+            [
+              "pei",
+              {
+                "$model": "CognitiveStyle",
+                "fields": {
+                  "analytical": 0.4,
+                  "intuitive": 0.45,
+                  "creative": 0.35,
+                  "suspicious": 0.2,
+                  "pragmatic": 0.75,
+                  "emotional": 0.45,
+                  "strategic": 0.35
+                }
+              }
+            ],
+            [
+              "song",
+              {
+                "$model": "CognitiveStyle",
+                "fields": {
+                  "analytical": 0.85,
+                  "intuitive": 0.5,
+                  "creative": 0.55,
+                  "suspicious": 0.7,
+                  "pragmatic": 0.65,
+                  "emotional": 0.3,
+                  "strategic": 0.9
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "reasoning_profiles",
+        {
+          "$mapping": [
+            [
+              "liangjing",
+              {
+                "$model": "ReasoningProfile",
+                "fields": {
+                  "reasoning_depth": 0.55,
+                  "reflection_tendency": 0.75,
+                  "causal_search": 0.65,
+                  "future_prediction": 0.5
+                }
+              }
+            ],
+            [
+              "liuyiyi",
+              {
+                "$model": "ReasoningProfile",
+                "fields": {
+                  "reasoning_depth": 0.75,
+                  "reflection_tendency": 0.7,
+                  "causal_search": 0.8,
+                  "future_prediction": 0.65
+                }
+              }
+            ],
+            [
+              "pei",
+              {
+                "$model": "ReasoningProfile",
+                "fields": {
+                  "reasoning_depth": 0.35,
+                  "reflection_tendency": 0.3,
+                  "causal_search": 0.35,
+                  "future_prediction": 0.3
+                }
+              }
+            ],
+            [
+              "song",
+              {
+                "$model": "ReasoningProfile",
+                "fields": {
+                  "reasoning_depth": 0.9,
+                  "reflection_tendency": 0.85,
+                  "causal_search": 0.9,
+                  "future_prediction": 0.9
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "attention_profiles",
+        {
+          "$mapping": [
+            [
+              "liangjing",
+              {
+                "$model": "AttentionProfile",
+                "fields": {
+                  "physical_detail": 0.65,
+                  "social_signal": 0.55,
+                  "emotional_signal": 0.65,
+                  "risk_signal": 0.75,
+                  "resource_signal": 0.45,
+                  "temporal_pattern": 0.82
+                }
+              }
+            ],
+            [
+              "liuyiyi",
+              {
+                "$model": "AttentionProfile",
+                "fields": {
+                  "physical_detail": 0.8,
+                  "social_signal": 0.55,
+                  "emotional_signal": 0.5,
+                  "risk_signal": 0.65,
+                  "resource_signal": 0.35,
+                  "temporal_pattern": 0.92
+                }
+              }
+            ],
+            [
+              "pei",
+              {
+                "$model": "AttentionProfile",
+                "fields": {
+                  "physical_detail": 0.45,
+                  "social_signal": 0.5,
+                  "emotional_signal": 0.4,
+                  "risk_signal": 0.4,
+                  "resource_signal": 0.7,
+                  "temporal_pattern": 0.25
+                }
+              }
+            ],
+            [
+              "song",
+              {
+                "$model": "AttentionProfile",
+                "fields": {
+                  "physical_detail": 0.65,
+                  "social_signal": 0.6,
+                  "emotional_signal": 0.35,
+                  "risk_signal": 0.65,
+                  "resource_signal": 0.4,
+                  "temporal_pattern": 0.9
+                }
+              }
+            ]
+          ]
+        }
+      ],
+      [
+        "beliefs",
+        {
+          "$mapping": []
+        }
+      ],
+      [
+        "memories",
+        {
+          "$mapping": []
+        }
+      ],
+      [
+        "thoughts",
+        {
+          "$mapping": []
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+{"character_id": "liangjing", "activities": ["daily_life", "work", "organize", "socialize"], "locations": {"home": "liangjing_home", "work": "convenience_store", "social": "neighborhood"}, "active_hours": ["08:00", "18:00"], "weight": 0.32}

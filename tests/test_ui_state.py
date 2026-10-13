@@ -56,10 +56,23 @@ def test_narrative_and_dialogue_are_rendered(qapp):
     window.append_dialogue_line(DialogueLine("doctor", "我来帮你。", "calm"))
 
     displayed = window.narrative_display.toPlainText()
-    assert "一次帮助" in displayed
+    assert "一次帮助" not in displayed
     assert "有人伸出了援手" in displayed
-    assert "doctor" in displayed
+    assert "doctor" not in displayed
     assert "我来帮你。" in displayed
+    window.close()
+
+
+def test_world_chronicle_entry_is_available_for_an_active_session(qapp):
+    from cognitive_sandbox.application.game_launcher import GameLauncher
+
+    window = FoundationMainWindow()
+    assert window.chronicle_button.text() == "世界编年史"
+    assert not window.chronicle_button.isEnabled()
+    launcher = GameLauncher()
+    window.set_game_launcher(launcher)
+    window._attach_roleplay_session(launcher.start_scenario("example_world"))
+    assert window.chronicle_button.isEnabled()
     window.close()
 
 
